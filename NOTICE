@@ -1,0 +1,18 @@
+Blockchain curriculum development artifacts
+
+This project includes curriculum and software developed at the Army Cyber
+Institute, United States Military Academy, West Point.
+
+U.S. government work is in the public domain in the United States under
+17 U.S.C. Section 105. Other original project material is offered under CC0 1.0
+Universal, subject to file-specific notices. Third-party works remain the
+property of their respective rights holders and carry their own terms.
+
+THIRD_PARTY_LICENSES.md maps bundled components to license and attribution files.
+The licenses/ directory contains additional license texts and compiler source.
+Dependencies installed by package managers, container builds, and Quarto are
+subject to their upstream licenses. Their notices also accompany installed
+packages and generated distributions.
+
+Institutional marks and third-party trademarks identify their respective
+organizations and do not imply endorsement.

@@ -1,0 +1,1004 @@
+---
+title: "Day 5: Consensus Security and Adversarial Attacks"
+subtitle: "Section II: Blockchain Fundamentals"
+author: "Army Cyber Institute"
+institute: "U.S. Military Academy"
+date: ""
+bibliography: ../Blockchain.bib
+smaller: true
+link-citations: true
+csl: ../ieee.csl
+format: 
+  aci-revealjs:
+    scrolling: true
+    slide-level: 2
+skip-title-lift: true
+title-slide-attributes:
+  data-sync-id: "consensus-title pos-title ethereum-title"
+---
+
+## Lesson 3: Motivator {data-sync-unmatched="true"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Focus for threat hunters
+* Why consensus security is conditional, not absolute
+  - Assumptions about honesty, distribution, and timely propagation
+* What real adversaries target
+  - Majority control, network isolation, selfish miner advantage
+* What you can observe operationally
+  - Reorg depth, orphan rate, hash/stake concentration, peer churn
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart TD
+  A["Consensus Protocols"] --> B["Security Assumptions"]
+  B --> C["Adversarial Attacks"]
+  C --> D["Operational Detection & Defense"]
+```
+:::
+::::
+
+::: {.notes}
+Slide 2: Introduction
+
+Key Points:
+
+  - Consensus guarantees depend on economic and network assumptions holding.
+
+  - Adversaries attack assumptions: resource concentration, latency, topology control.
+
+  - Threat hunters should track on-chain reorg/orphan signals and off-chain network health.
+
+Instructor Notes:
+
+  Consensus protocols such as Proof of Work and Proof of Stake provide probabilistic safety and liveness when participants behave within assumed bounds. In PoW, the honest majority assumption means aggregate honest hash power outpaces any adversary; in PoS, the bonded honest stake and slashing incentives are expected to deter collusion. These are assumptions, not laws. When an attacker amasses resources or manipulates the network fabric, the protocol can still function but delivers weaker guarantees. For example, temporary partitions or eclipse attacks can let an attacker convince a subgraph of peers to accept a conflicting history while the global network advances honestly.
+
+  From an operational perspective, defenders must look beyond the abstract protocol. What matters day to day are indicators that those assumptions are weakening: a single mining pool creeping toward majority, suspiciously synchronized validator voting, or a rise in orphaned blocks that hints at network propagation problems. Consider consensus like air traffic control: safe when radios work and the rules are followed; risky when a storm (latency) or a hijacker (malicious majority) interferes.
+
+  Threat hunters should fuse three vantage points: on-chain structure (reorganizations, confirmation depth, time-between-blocks variance), peer-to-peer telemetry (peer counts, connection churn, round-trip propagation time), and ecosystem context (hash rental markets, major pool outages, geopolitically driven internet disruptions). Each by itself can be noisy; together they paint a reliable picture of consensus health. This lesson equips you to map specific attacks to observable signals and preplanned actions.
+
+Script:
+
+  - "Up to now, we treated consensus like a sturdy foundation. Today we stress‑test it. These protocols work because certain assumptions hold—no one controls too many resources, messages propagate quickly, and most participants follow the rules. Attackers go after those assumptions. 
+
+  - On the right, the diagram shows the flow: protocols rest on assumptions; attacks target them; our job is to detect and respond. We’ll learn what to watch—like reorganizations and orphan rates—and what to do when signals spike."
+
+Q & A:
+
+- Q: Why say consensus offers probabilistic finality?
+- A: Because safety increases with each confirmation but never reaches mathematical certainty; deep reorganizations are unlikely, not impossible.
+
+- Q: Are PoW and PoS equally exposed to majority attacks?
+- A: Both rely on a majority assumption; PoW on hash power, PoS on stake plus honest governance. The mechanics differ, but the meta‑risk is similar.
+
+- Q: What’s the first place to look for trouble?
+- A: Sudden rises in reorg depth or orphan rate combined with pool/validator concentration are strong early signals.
+
+References:
+
+- @nakamoto_bitcoinpeertopeerelectronic_2008
+
+- @zhang_securityprivacyblockchain_2019
+
+- @barski_bitcoinbefuddled_2015
+:::
+
+---
+
+## Consensus Security Challenges {.smaller data-sync-unmatched="true"}
+
+```{mermaid}
+sequenceDiagram
+  participant H as "Honest Node"
+  participant M as "Malicious Node"
+  participant P as "P2P Network"
+  H->>P: "Broadcast block Bh"
+  M-->>P: "Broadcast competing block Bm (delayed / isolated peers)"
+  P->>H: "Conflicting tips / temporary fork"
+  Note over H,M: "Race condition resolved by next leader / work"
+``` 
+:::: {.columns}
+::: {.column}
+#### Assumptions to watch
+* Honest majority of resources
+  - Hash power (PoW) or stake/voting power (PoS)
+* Timely, fairly routed gossip
+  - Low propagation delay; no large partitions
+* Unpredictable leader selection
+  - Robust randomness; resistance to grinding
+:::
+::: {.column}
+#### Where attackers press
+* Resource concentration or rental
+  - Hash rental markets; cartelized pools; delegated stake cartels
+* Network manipulation
+  - BGP hijack, eclipse, time-dilation, targeted DDoS of relays
+* Incentive exploits
+  - Selfish mining, feather‑forking, bribery attacks
+:::
+::::
+
+#### Why guarantees are probabilistic
+* Finality grows with confirmations/epochs
+  - Confirmation depth reduces reversal odds, never to zero 
+
+
+
+::: {.notes}
+Key Points:
+- Honest majority, low latency, and unbiased leader selection are load‑bearing assumptions.
+
+- Adversaries rent or centralize resources, isolate peers, or exploit incentives.
+
+- Detection = correlate on‑chain fork metrics with off‑chain network health.
+
+Instructor Notes:
+
+Consensus protects integrity when the system’s load‑bearing assumptions remain intact. First is majority control: if honest miners or validators collectively outpace an attacker, conflicting histories die out. Second is timely, fairly routed propagation: blocks and votes must reach diverse peers quickly to prevent long‑lived forks. Third is unpredictability: leader election and VRFs must resist grinding so no single entity can bias who proposes blocks.
+
+Attackers push on each axis. Resource concentration can arise organically (economies of scale, geographic clustering) or be purchased on demand through hash‑rental markets. Network manipulation ranges from route hijacking and traffic shaping to targeted eclipse attacks against exchanges or major relays. Incentive exploits don’t require breaking crypto; they abuse strategy. Selfish mining withholds blocks to gain a head start, feather‑forking threatens to censor transactions by building on blocks that exclude them, and bribery attacks pay miners to temporarily deviate from protocol.
+
+For defenders, the signal is rarely one metric. A transient orphan spike may be benign. A propagation slowdown might be a cloud outage. But when you see pool concentration rising toward critical thresholds while reorg depth increases and peer churn spikes, treat it like a multi‑sensor aircraft warning: act. Raise confirmation thresholds, slow withdrawals, and increase peer diversity until the storm passes or the root cause is found.
+
+Script:
+
+- "Security here isn’t a binary. It’s a balance of assumptions. Honest majority, fast propagation, unpredictable leaders—keep those healthy and consensus is sturdy. Attackers will rent power, isolate nodes, or game incentives. 
+  
+- The sequence on the right shows how two competing blocks appear when propagation falters. Our job is to watch both the chain and the network and respond when the signals line up."
+
+Q & A:
+
+Q: What’s a practical sign of unfair propagation?
+  - A: Sustained increase in orphaned blocks and widened time‑to‑finality, especially localized to  certain peers or regions.
+
+Q: Do economic incentives alone stop attacks?
+  - A: They help, but motivated adversaries (criminals or nation‑states) may accept short‑term economic loss for strategic gain.
+
+References:
+
+- @zhang_securityprivacyblockchain_2019
+
+- @bonneau_sokresearchperspectives_2015
+
+- @bano_consensusageblockchains_2017
+:::
+
+## The 51% Attack {data-sync-id="ethereum-double-spend"}
+
+:::: {.columns}
+::: {.column}
+### What it is
+* Attacker controls the majority of validation power
+  - >50% hash rate (PoW) or voting power (PoS variants)
+
+### What it enables
+* Double spending via deep chain reorgs
+* Temporary censorship of targeted transactions
+* Rewriting recent history; invalid block pruning
+:::
+::: {.column}
+### What to watch
+* Pool/validator concentration trending upward
+* Reorg depth > typical; spike in orphan rates
+* Sudden external hash influx (rental markets), regional outages
+
+### Runbook actions
+* Raise confirmation thresholds for high‑risk flows
+* Pause large, irreversible transfers; require multi‑path receipts
+* Rotate/expand peers; prefer diverse relays; monitor BGP routes
+:::
+::::
+```{mermaid}
+flowchart LR
+  A["Attacker > 50% Power"] --> B["Builds Private Fork Faster"]
+  B --> C["Publishes Longer Chain"]
+  C --> D["Honest Chain Orphaned"]
+  D --> E["Double Spend / Censorship"]
+```
+
+::: {.notes}
+Key Points:
+
+- Majority control lets an attacker outpace honest participants and rewrite recent history.
+
+- Operational signals: concentration, reorg depth, and anomalous hash/validator behavior.
+
+- Immediate defenses: raise confirmations, slow risky flows, diversify connectivity.
+
+Instructor Notes:
+
+The majority attack is simple in concept and devastating in effect. In PoW, an attacker controlling more hash rate than the rest of the network combined will, on average, extend their private fork faster than the public chain. By revealing that longer fork after spending coins on the honest chain, they cause a reorganization that invalidates the merchant’s deposit—a classic double spend. In PoS, details differ—long‑range and governance‑driven risks enter—but the meta‑threat remains: concentrated power undermines finality.
+
+Real incidents show this is not hypothetical. Public chains with modest security budgets have suffered multi‑million‑dollar double spends when attackers leased hash power. Even without a clean majority, near‑majority attackers can cause instability, increasing reorg frequency and shaking confidence. Exchanges respond by raising confirmation requirements, sometimes dramatically, to price in the increased risk.
+
+Detection hinges on correlating multiple feeds. On‑chain, track reorg depth distribution, orphan rates, and inter‑block time variance. Off‑chain, watch pool shares, hash rental market prices and volumes, cloud GPU/ASIC rental spikes, and network health (e.g., simultaneous regional packet loss that could depress honest mining). When signals align, shift posture from speed to safety: slow large withdrawals, require more confirmations, and route through additional, geographically diverse peers and relays to reduce the chance that you are isolated onto an attacker’s view.
+
+Analogize this to a sports match where one side suddenly fields twice as many players. The rules still exist, but the game’s fairness evaporates until the imbalance is corrected. Your response is to stop awarding trophies based on a single referee’s call—wait for multiple confirmations from independent officials and, if necessary, pause the game.
+
+Script:
+
+- "A 51% attack is the consensus equivalent of controlling the scoreboard. With more than half the power, an adversary can build a private history faster, reveal it later, and invalidate recent transactions—classic double spending. We detect it by watching concentration, reorganizations, and strange spikes in external hash. Our runbook is about buying certainty: increase confirmations, slow or pause high‑risk transfers, and widen our network view so we’re harder to fool."
+
+Q & A:
+
+Q: Does a 51% attacker steal coins directly from wallets?
+- A: No. They cannot forge signatures. They can reorder recent transactions and censor new ones, enabling double spends against counterparties.
+
+Q: How many confirmations are enough?
+- A: It depends on observed risk. Under stress, increase thresholds substantially for large transfers; combine with out‑of‑band verification.
+
+Q: Would decentralizing pools fix this?
+- A: It helps. Policies that discourage mega‑pools and promote protocol‑level decentralization reduce concentration risk.
+
+References:
+
+- @nakamoto_bitcoinpeertopeerelectronic_2008
+
+- @zhang_securityprivacyblockchain_2019
+
+- @bano_consensusageblockchains_2017
+:::
+
+
+## Selfish Mining {data-sync-unmatched="true"}
+
+:::: {.columns}
+::: {.column width="65%"}
+```{mermaid}
+flowchart LR
+  A["Attacker Mines Block Privatel"] --> B{"Keep or Publish?"}
+  B -->|"Keep"| C["Extend Private Chai"]
+  B -->|"Publish"| D["Override Honest Bloc"]
+  D --> E["Honest Work Orphane"]
+```
+### Attack mechanics
+* Miner withholds blocks instead of publishing immediately
+* Gains lead by selectively releasing private chain
+* Honest miners waste effort on blocks that later become stale
+:::
+
+::: {.column width="35%"}
+### Impact
+* Disproportionate rewards for attacker
+* Weakens fairness assumption
+* Incentivizes collusion among smaller miners
+
+### Detection signals
+* Spike in orphan/stale block rates
+* Irregular publication timing
+* Miner returns > proportional hash rate
+:::
+::::
+
+::: {.notes}
+Key Points:
+- Selfish mining exploits protocol incentives without majority control.
+
+- Attacker withholds blocks to force honest miners into wasted effort.
+
+- Monitoring orphan rates and miner reward shares can reveal anomalies.
+
+Instructor Notes:
+
+  *Selfish mining* is a subtle attack. Unlike the brute-force 51% attack, it can succeed with less than majority power. The attacker mines privately, withholding newly discovered blocks. By selectively publishing their private chain when it is advantageous, they cause honest miners’ work to be wasted. This yields the attacker a revenue share greater than their hash rate proportion, undermining fairness. Over time, selfish mining can destabilize incentives, pressuring small miners to join attacker pools to survive.
+
+  From an operational perspective, selfish mining manifests in observable signals: elevated orphan or stale block rates, irregular publication timing, and mining pools achieving disproportionate returns. Defenders must distinguish natural variance from strategic withholding. During suspected selfish mining, exchanges and services can increase confirmation thresholds to reduce risk exposure. Understanding selfish mining illustrates that adversarial incentives can erode system security long before outright majority attacks occur.
+
+Script:
+- "Not all consensus attacks need brute force. Selfish mining is about strategy. An attacker finds a block but doesn’t tell anyone. By keeping it private, they hope to stay one step ahead. When they publish at the right moment, they waste the honest miners’ work. The diagram shows this cycle—mine, keep, then publish to override. For defenders, the giveaway is unusual orphan rates and miner payouts bigger than their share of hash power."
+
+Q & A:
+
+- Q: Can selfish mining succeed with less than 50% hash power?
+- A: Yes. With around 25–33% and network advantages, selfish miners can gain disproportionate rewards.
+
+- Q: What’s the long-term risk?
+- A: It drives centralization as honest miners defect to selfish pools, eroding the system’s decentralization assumption.
+
+References:
+- @eyal_majoritynotenough_2014
+- @bonneau_sokresearchperspectives_2015
+- @bano_consensusageblockchains_2017
+:::
+
+---
+
+## Sybil Attacks {data-sync-unmatched="true"}
+```{mermaid}
+graph TD
+  A["Victim Node"] --> B1["Attacker Peer"]
+  A --> B2["Attacker Peer"]
+  A --> B3["Attacker Peer"]
+  A --> B4["Attacker Peer"]
+  B1 & B2 & B3 & B4 --> C["Isolated View of Network"]
+```
+### What it is
+* Adversary creates many fake identities in a P2P network
+* Seeks to influence voting, routing, or peer reputation
+
+### In blockchain consensus
+* Surrounds target node with attacker-controlled peers
+* Distorts network view (e.g., block withholding, fork isolation)
+
+### Adversarial use
+* Isolate exchanges or wallets
+* Delay block/tx propagation
+* Facilitate double spending with reduced visibility
+
+::: {.notes}
+Key Points:
+- Sybil = many fake peers controlled by attacker.
+
+- Enables isolation, delay, or distortion of a node’s view of the blockchain.
+
+- Defenders monitor peer diversity and connection churn.
+
+Instructor Notes:
+
+  The *Sybil attack* is a classic in peer-to-peer systems. By flooding the victim with attacker-controlled identities, the adversary can manipulate what the victim sees. In blockchain consensus, this means isolating a wallet, miner, or exchange node, delaying their receipt of new blocks or transactions. Such delay can open a window for double spending, or at least reduce the victim’s confidence in transaction finality. Unlike 51% or selfish mining, Sybil attacks exploit network topology rather than consensus mechanics.
+
+  Operational defense focuses on peer diversity and monitoring. Nodes should maintain connections across diverse ASNs and geographies, limiting exposure to a single source. Security teams should monitor sudden churn—when all peers drop and reconnect rapidly—or unusual uniformity in connected peers. In adversarial environments, defenders can also use authenticated peering and whitelists. For cyber operators, detecting a Sybil is like spotting an ambush: the victim’s field of view looks normal, but the world outside is manipulated.
+
+Script:
+- "Imagine playing a game of telephone where everyone you talk to is secretly working together to trick you. That’s a Sybil attack. In Bitcoin or Ethereum, attackers spin up many fake peers to surround a target. On the right, you see the victim node connected only to attacker peers. The result? The victim’s view of the blockchain is distorted, blocks arrive late, or double-spends slip through. For defense, we watch peer diversity and churn—are we talking to a healthy mix of the world, or just to imposters?"
+
+Q & A:
+
+ Q: Do Sybil attacks require massive resources?
+- A: Not always. Renting IPs or using botnets can cheaply create many peers.
+
+- Q: What are practical mitigations?
+- A: Enforce connection limits per ASN, prefer known relay nodes, and monitor for sudden homogeneous peer sets.
+
+References:
+- @douceur_sybilattack_2002
+- @bonneau_sokresearchperspectives_2015
+- @zhang_securityprivacyblockchain_2019
+:::
+
+---
+
+## Eclipse Attacks {data-sync-id="pos-censorship"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Definition
+* Variant of Sybil: victim’s inbound & outbound connections monopolized by attacker
+
+### Consequences
+* Victim isolated from honest network
+* Can be fed stale blocks or withheld transactions
+* Useful for front-running, selfish mining, or double spending
+
+### Detection
+* Sudden peer churn or homogeneity
+* Long gaps between block arrivals
+* Divergence from global mempool view
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart LR
+  A["Victim Node"] --> B1["Attacker Peer"]
+  A --> B2["Attacker Peer"]
+  A --> B3["Attacker Peer"]
+  A --> B4["Attacker Peer"]
+  B1 & B2 & B3 & B4 --> C["Complete Isolation"]
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+- Eclipse = total isolation of a node from honest peers.
+
+- Enables adversary to feed false or delayed blockchain view.
+
+- Defenders should monitor peer churn, diversity, and block arrival times.
+
+Instructor Notes:
+
+clipse attacks extend the Sybil concept. Here, the attacker monopolizes all of a victim’s inbound and outbound connections. From that moment, the victim is blind to the honest network. This lets the adversary show them a counterfeit or delayed view of the blockchain. In practice, an eclipsed exchange node might accept a transaction, see it “confirmed” on the attacker’s false fork, and then later discover the transaction invalid when rejoining the real network. Eclipse attacks also amplify selfish mining by isolating honest competitors, giving the attacker a head start.
+Detecting an eclipse is challenging because from the victim’s perspective, everything looks normal—blocks still arrive, peers still respond. The key is comparing local view with global signals: block arrival times, mempool content, and peer diversity. Operational runbooks should trigger alerts when block arrivals are delayed beyond expected distribution times, or when a node’s peers all share similar network origins. Defenses include rotating peer connections, limiting per-ASN peers, and using authenticated or out-of-band verification channels.
+ 
+Script:
+
+- "An eclipse is like being blindfolded while the attacker whispers what’s happening. You think you see the blockchain, but it’s only what the attacker wants you to see. In the diagram, the victim is connected only to attacker peers. That isolation allows double spending, selfish mining, or even censorship. 
+  
+- To detect it, we look at peer churn and block timing—if we’re too far out of sync with the global network, we may be eclipsed."
+
+Q & A:
+
+- Q: How is eclipse different from Sybil?
+- A: Sybil uses many fake peers; eclipse takes the next step by monopolizing all of the victim’s connections, leaving them fully isolated.
+
+- Q: What are strong countermeasures?
+- A: Peer rotation, ASN diversity, authenticated connections, and out-of-band verification.
+
+References:
+- @heilman_eclipseattacksbitcoins_2015
+- @zhang_securityprivacyblockchain_2019
+- @bonneau_sokresearchperspectives_2015
+:::
+
+
+## Double Spending Variants {data-sync-id="ethereum-double-spend"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Core idea
+* Same coins spent in two conflicting transactions
+* Validated on competing forks; only one survives
+
+### Variants
+* Race attack — attacker broadcasts conflicting tx to different merchants
+* Finney attack — attacker pre-mines a block with double spend
+* Vector76 — hybrid of Finney + network delay
+* >51% — attacker reorganizes chain to invalidate victim tx
+
+### Operational defenses
+* Wait for multiple confirmations
+* Use network monitoring for conflicting tx broadcasts
+* Raise thresholds during instability
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart TD
+  A["Tx1: Pay Merchant"] --> B[Honest Chain]
+  A2["Tx2: Pay Attacker Wallet"] --> C["Attacker Fork"]
+  B & C --> D["Double Spend Risk"]
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+- Double spend = two conflicting transactions using the same coins.
+
+- Variants include race, Finney, Vector76, and 51% attacks.
+
+- Defenses: confirmations, mempool monitoring, and adaptive policies.
+
+Instructor Notes:
+
+ouble spending strikes at the heart of blockchain trust. The design of Bitcoin and similar systems prevents it probabilistically, but adversaries keep looking for cracks. The simplest form, the race attack, involves sending one transaction to a merchant and a conflicting one directly to miners. If the merchant accepts zero-confirmation payments, they may be defrauded. The Finney attack involves an attacker pre-mining a block with a double-spend, then spending coins with a merchant before releasing the pre...
+The more advanced Vector76 combines block withholding with network delay, targeting exchanges that connect poorly. And of course, the full 51% attack allows deep reorganizations that erase prior transactions. Defenders can mitigate double spends by requiring confirmations proportional to risk, monitoring mempools for conflicting transactions, and adjusting thresholds when orphan rates rise. For cyber operators, it is critical to recognize that zero-confirmation or shallow-confirmation transactions are ex...
+Script:
+- "Here’s the classic blockchain weakness: double spending. Same coins, two different transactions. The attacker’s goal is to get goods or services for Tx1, then invalidate it with Tx2. The diagram shows Tx1 on the honest chain and Tx2 on the attacker’s fork. If the attacker wins, Tx1 disappears. Variants like race and Finney rely on timing tricks, while Vector76 uses network delay. The defense? Confirmations, mempool monitoring, and raising thresholds when the network looks shaky."
+
+Q & A:
+
+ Q: Why are zero-confirmation transactions risky?
+- A: They can be invalidated easily by a conflicting transaction, since no blocks have secured them.
+
+- Q: What’s the difference between a Finney and a 51% attack?
+- A: Finney requires luck and timing with a pre-mined block; 51% guarantees success by outpacing the network.
+
+References:
+- @nakamoto_bitcoinpeertopeerelectronic_2008
+- @karame_misbehaviorbitcoinstudy_2015
+- @bonneau_sokresearchperspectives_2015
+:::
+
+---
+
+## Network Delay Attacks {data-sync-id="pos-censorship"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Attack mechanics
+* Attacker introduces artificial latency in block propagation
+* Victim nodes accept delayed or conflicting views
+* Creates temporary forks exploitable for double spending
+
+### Techniques
+* BGP hijack or routing manipulation
+* Targeted DoS against relays
+* Time-dilation attacks at protocol layer
+
+### Detection
+* Block arrival variance beyond expected distribution
+* Regional propagation anomalies
+* Increased orphan rates localized to peers
+:::
+::: {.column width="40%"}
+```{mermaid}
+sequenceDiagram
+  participant H as Honest Miner
+  participant V as Victim Exchange
+  participant A as Attacker
+  H->>V: Block (delayed)
+  A-->>V: Conflicting Tx / Block
+  Note over V: Victim sees stale state
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+
+- Network delay undermines the fairness assumption of consensus.
+
+- Attacks often use BGP hijack, DoS, or protocol manipulation.
+
+- Detection requires comparing local vs. global block propagation.
+
+Instructor Notes:
+
+onsensus assumes fast, fair propagation of blocks. When an attacker can delay or partition a region, the assumptions break. BGP hijacking allows attackers to reroute traffic through their infrastructure, adding delay or dropping packets. Targeted DoS against relays or miners can slow block spread. Time-dilation attacks exploit the protocol to stretch block intervals for selected peers. The net result is that victims operate on stale or incomplete information, opening windows for double spending or other att...
+Operational defenses involve multi-perspective monitoring. Exchanges should compare block arrival times from multiple geographically diverse peers. Security teams should baseline expected propagation latency and alert when variance exceeds thresholds. Detection of regional anomalies—say, one geography consistently lagging behind global block arrival—can indicate interference. In adversarial contexts, defenders may increase confirmation thresholds or temporarily halt critical operations until network heal...
+Script:
+- "Consensus only works when blocks move quickly and fairly. But if an attacker delays them, the victim sees an outdated version of the chain. In the diagram, the honest miner’s block arrives late, while the attacker slips in a conflicting transaction. That’s a network delay attack. Techniques include BGP hijacking, denial of service, and protocol tricks. We detect it by watching block timing across the globe. If one region lags while others don’t, we may be under attack."
+
+Q & A:
+
+ Q: Why is BGP hijacking relevant to blockchains?
+- A: Because blockchain traffic still rides on the Internet. By rerouting traffic, attackers can delay or censor propagation.
+
+- Q: What should defenders do when delay is detected?
+- A: Raise confirmation thresholds, diversify peers, and, if needed, pause high-value transfers.
+
+References:
+- @apostolaki_hijackingbitcoinrouting_2017
+- @zhang_securityprivacyblockchain_2019
+- @bonneau_sokresearchperspectives_2015
+:::
+
+---
+
+## Transaction Censorship {data-sync-id="pos-censorship ethereum-censorship"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Mechanisms
+* Miner or validator refuses to include targeted transactions
+* Attacker coalition filters transactions at mempool or block proposal
+
+### Motivations
+* Economic — extortion or MEV (maximal extractable value)
+* Political — censorship of adversary payments
+* Criminal — hiding illicit flows, blocking forensic traces
+
+### Detection
+* Transactions persist in mempool unconfirmed
+* Selective exclusion patterns visible in block analysis
+* Geographic or political correlation with censorship
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart TD
+  A["Victim Tx in Mempool"] -.X.-> B["Block Proposal by Attacker"]
+  B --> C["Block Without Victim Tx"]
+  C --> D["Censorship Achieved"]
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+
+- Transaction censorship = selective exclusion from blocks.
+
+- Motivations include profit, politics, or crime.
+
+- Defenders detect by analyzing mempool persistence and block inclusion.
+
+Instructor Notes:
+
+Consensus participants can attack not just by rewriting history but by shaping it. Transaction censorship occurs when miners or validators systematically refuse to include certain transactions. Motivations vary. Economically, censoring transactions allows adversaries to capture MEV opportunities or extort victims. Politically, state-aligned miners may block dissident or sanctioned payments. Criminals may censor to obscure forensic signals or disadvantage competitors. This is particularly concerning in publi...
+
+Detection relies on comparing mempool persistence with block inclusion. If a transaction remains unconfirmed while others of similar fee levels confirm quickly, it may be censored. Analysts can identify selective exclusion by correlating with miner identity, geography, or political context. For defenders, awareness is key—detecting censorship early allows operators to route transactions through multiple peers, raise fees strategically, or use privacy tools. Operational countermeasures include diversified ...
+
+Script:
+
+- "Consensus attacks don’t always mean rewriting blocks. Sometimes it’s about what never gets written. Transaction censorship happens when miners or validators simply ignore certain transactions. 
+  
+- "On the right, you see a victim’s transaction stuck in the mempool while the attacker’s block skips it. Why? Maybe extortion, maybe politics, maybe crime. We detect it by watching which transactions linger too long compared to others. Defenses include rerouting, raising fees, and spreading transactions wider."
+
+Q & A:
+
+Q: Is censorship always malicious?
+  - A: Not necessarily—miners may exclude low-fee transactions. The concern is systematic, targeted exclusion.
+
+Q: Can censorship succeed without majority control?
+  - A: Yes, even a significant minority of block producers can delay targeted transactions, though majority makes it stronger.
+
+References:
+
+- @gervais_securityperformanceproof_2016
+
+- @zhang_securityprivacyblockchain_2019
+
+- @bonneau_sokresearchperspectives_2015
+:::
+
+
+## Mitigation Strategies {data-sync-id="pos-censorship-mitigations"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Technical controls
+* Raise confirmation thresholds during anomalies
+* Diversify peers across ASNs/geographies
+* Use authenticated/whitelisted relay connections
+
+### Operational actions
+* Monitor mempool for conflicts & censorship
+* Track orphan/reorg rates, block arrival variance
+* Correlate on-chain anomalies with network telemetry
+
+### Strategic responses
+* Promote mining/validator decentralization
+* Encourage transparency in pool operations
+* Share indicators across defenders
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart TD
+  A["Detection Signals"] --> B["Operational Response"]
+  B --> C["Raise Confirmations"]
+  B --> D["Diversify Peers"]
+  B --> E["Pause High-Risk Transfers"]
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+
+- Mitigation spans technical, operational, and strategic layers.
+
+- Immediate actions: raise confirmations, diversify peers, monitor anomalies.
+
+- Long-term: decentralization and shared situational awareness.
+
+Instructor Notes:
+
+Defending consensus requires layered mitigation. Technically, nodes can raise confirmation thresholds during anomalies, diversify their peer sets across autonomous systems and geographies, and adopt authenticated relay connections. Operationally, teams must monitor mempools for conflicting or censored transactions, track reorg depth and orphan rates, and correlate these with network telemetry to distinguish local issues from systemic attacks. Strategically, defenders should push for decentralization of ...
+
+Mitigation should be adaptive. During calm periods, fast settlement may be acceptable. When anomalies arise, safety trumps speed. Threat hunters can operationalize these responses as runbooks: if reorg depth $> X$, raise confirmations; if orphan rate spikes, pause large transfers. Shared indicators across exchanges, wallets, and national CERTs amplify resilience. The more transparent the ecosystem, the harder it is for attackers to hide.
+
+Script:
+
+- "How do we fight back? We layer defenses. Technically, we raise confirmations and diversify peers. Operationally, we monitor mempools, reorgs, and latency. Strategically, we promote decentralization and share indicators. 
+  
+- The diagram shows the flow: signals feed responses like raising confirmations, diversifying peers, or pausing risky transfers. The goal is to make consensus attacks harder and more visible."
+
+Q & A:
+
+ Q: Should confirmation thresholds always be static?
+- A: No. They should adapt to observed risk levels.
+
+- Q: Why diversify peers across ASNs?
+- A: To prevent single points of failure or targeted regional isolation.
+
+References:
+- @gervais_securityperformanceproof_2016
+- @zhang_securityprivacyblockchain_2019
+- @bonneau_sokresearchperspectives_2015
+:::
+
+---
+
+## Defensive Runbooks {data-sync-unmatched="true"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Common triggers
+* Reorg depth > normal baseline
+* Orphan/stale block spike
+* Regional block delay detected
+* Concentration of mining/stake power
+
+### Runbook actions
+* Raise confirmation thresholds
+* Pause or slow high-value transfers
+* Rotate peer connections; diversify relays
+* Notify stakeholders; share threat intel
+
+### Example
+* If reorg depth > 3 in <1hr → require 12 confirmations
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart TD
+  A["Anomaly Detected"] --> B{"Trigger"?}
+  B -->|Yes| C["Runbook Action"]
+  C --> D["Raise Confirmations / Pause Transfers"]
+  B -->|No| E["Continue Normal Ops"]
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+
+- Runbooks define if-then actions for consensus anomalies.
+
+- Standard triggers: reorg depth, orphan spikes, delays, concentration.
+
+- Actions: raise thresholds, pause risky flows, rotate peers, share intel.
+
+Instructor Notes:
+
+Consensus attacks demand speed and clarity in defense. Runbooks provide this by predefining triggers and responses. For example, if reorg depth exceeds three blocks in under an hour, the runbook mandates raising confirmation requirements to twelve. If orphan rates spike, pause large withdrawals. If mining concentration crosses a threshold, notify stakeholders and consider adaptive measures. These steps reduce decision-making delays during crises. Cyber operators should see runbooks as a checklist and a co...
+The diagram shows anomaly detection leading to a trigger decision. If triggered, specific actions execute: raise confirmations, slow or pause transfers, rotate peers, and notify stakeholders. Runbooks should be rehearsed, like incident response playbooks, so operators act with confidence. They should also include escalation paths for leadership awareness when attacks threaten national-level or critical financial infrastructure.
+Script:
+- "Defenders don’t improvise under fire—they follow runbooks. If anomalies exceed thresholds, actions trigger. The chart shows the flow: anomaly, trigger, action. Examples include raising confirmations or pausing transfers. Runbooks let us act fast, consistently, and defensibly."
+
+Q & A:
+
+ Q: Why not always use maximum confirmations?
+- A: Efficiency—normal operations demand speed. Runbooks let us balance speed with safety based on context.
+
+- Q: Should runbooks be static documents?
+- A: No, they evolve with threat intelligence and lessons learned.
+
+References:
+- @bonneau_sokresearchperspectives_2015
+- @zhang_securityprivacyblockchain_2019
+- @gervais_securityperformanceproof_2016
+:::
+
+## Case Studies {.smaller data-sync-unmatched="true"}
+```{mermaid}
+timeline
+  title Timeline of Consensus Attacks
+  2018 : Bitcoin Gold 51% Attack
+  2019 : Ethereum Classic 51% Attack
+  2020 : Ongoing Censorship Debates
+```
+:::: {.columns}
+::: {.column}
+#### Bitcoin Gold (2018)
+* Attacker rented hash power
+* Double spends against exchanges
+* Highlighted vulnerability of small-cap chains
+
+[Bitcoin Gold media coverage — Cash Alternative TV](https://www.youtube.com/watch?v=8XV-b2G_j3I)
+
+::: {.callout-note appearance="minimal" icon=false title="Publication review"}
+The human-added graphic in the original draft was removed during publication review due to copyright issues.
+:::
+
+:::
+::: {.column}
+#### Ethereum Classic (2019)
+* Multiple 51% attacks
+* Millions lost to double spends
+* Exchanges raised confirmations drastically
+
+#### Key Takeaways
+* Attacks move from theory to practice
+* Confirmation thresholds adapt post-incident
+* Smaller chains face greater relative risk
+:::
+::::
+
+::: {.notes}
+Key Points:
+
+- Real-world attacks demonstrate feasibility of theory.
+
+- Exchanges adapt by raising confirmations after attacks.
+
+- Small-cap chains are particularly vulnerable to hash rental attacks.
+
+Instructor Notes:
+
+Consensus attacks are not theoretical—they have happened. In 2018, Bitcoin Gold suffered a 51% attack where attackers rented hash power from markets and executed successful double spends against exchanges. In 2019, Ethereum Classic experienced multiple 51% attacks, with millions in losses. Exchanges responded by raising confirmation requirements, in some cases to dozens of blocks. These case studies highlight the vulnerabilities of smaller chains with lower security budgets and hash rates. Attackers exp...
+For defenders, the lesson is twofold. First, consensus attacks are real threats, not classroom hypotheticals. Second, mitigation is reactive unless preplanned. By learning from past incidents, threat hunters can anticipate attacker tactics, indicators, and defenses. For cyber operators, these cases underscore why blockchain forensics and consensus monitoring must be part of the operational toolkit. Understanding these historical incidents arms defenders to respond faster and more effectively in future at...
+Script:
+- "These aren’t just thought experiments. Bitcoin Gold in 2018 and Ethereum Classic in 2019 both suffered 51% attacks. Millions were lost. Exchanges scrambled to raise confirmations—sometimes to dozens of blocks. The timeline shows attacks moving from theory into practice. The lesson? Consensus attacks are real, and smaller chains with lower hash rates are prime targets."
+
+Q & A:
+
+ Q: Why are smaller chains more vulnerable?
+- A: Because their lower hash/stake rates make attacks cheaper with rented resources.
+
+- Q: Do big chains like Bitcoin face the same risks?
+- A: In theory yes, but in practice the cost of attacking Bitcoin’s massive hash rate is prohibitive.
+
+References:
+- @bonneau_sokresearchperspectives_2015
+- @zhang_securityprivacyblockchain_2019
+- @bano_consensusageblockchains_2017
+:::
+
+
+## Adversarial Scenarios {data-sync-unmatched="true"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Criminal exploitation
+* Ransomware actors using double spends to launder payments
+* Darknet markets exploiting weak-confirmation policies
+* Botnets for Sybil/Eclipse attacks against exchanges
+
+### Nation-state threats
+* Resource-rich adversaries renting/buying hash power
+* State-aligned pools enforcing censorship or surveillance
+* Network-level manipulation via BGP or state firewalls
+
+### Insider/Collusion
+* Mining pool operators colluding for selfish mining
+* Validators bribed to deviate from protocol
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart TD
+  A["Criminal Groups"] --> B["Double Spend Laundering"]
+  A --> C["Darknet Market Exploits"]
+  D["Nation States"] --> E["Censorship Pools"]
+  D --> F["Network Manipulation"]
+  G["Insiders"] --> H["Collusion / Bribery"]
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+
+- Adversarial use spans criminals, nation-states, and insiders.
+
+- Tactics include double spending, Sybil/Eclipse, censorship, and collusion.
+
+- Motivations: profit, disruption, surveillance, or strategic advantage.
+
+Instructor Notes:
+
+Consensus attacks are not limited to academics. Criminal groups actively experiment with double spending and laundering via weakly secured exchanges. Darknet markets exploit venues with lax confirmation policies to cash out illicit funds. Botnets can be rented to stage Sybil or Eclipse attacks against lightly defended targets. On the nation-state front, well-resourced adversaries have both the capital and regulatory cover to manipulate consensus. State-aligned mining pools may quietly enforce censorship, ...
+Insiders also pose risks. Mining pool operators may collude to increase revenue through selfish mining. Validators in proof-of-stake systems may be bribed or coerced to deviate from protocol. Each adversarial scenario reflects a distinct threat model: opportunistic criminals, strategic nation-states, or insiders with privileged access. Defenders must understand all three to design resilient detection and response strategies.
+Script:
+- "So who actually does this in the real world? Three categories: criminals, nation-states, and insiders. Criminals use double spends and darknet tricks. Nation-states exploit their resources and control over infrastructure. Insiders collude or take bribes. The diagram shows the ecosystem—different actors with different goals, but all capable of undermining consensus."
+
+Q & A:
+
+ Q: Why are nation-states uniquely positioned?
+- A: They combine financial resources with control of infrastructure, like ISPs or firewalls.
+
+- Q: How do insiders threaten PoS systems?
+- A: Validators can be bribed or coerced, especially in poorly decentralized networks.
+
+References:
+- @bonneau_sokresearchperspectives_2015
+- @zhang_securityprivacyblockchain_2019
+- @heilman_eclipseattacksbitcoins_2015
+:::
+
+---
+
+## Detection Opportunities {data-sync-unmatched="true"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### On-chain signals
+* Elevated reorg depth / orphan rates
+* Mining/stake concentration trends
+* Transaction censorship patterns
+
+### Network-layer telemetry
+* Block propagation delays across regions
+* Peer churn and ASN concentration
+* Anomalous traffic patterns (BGP, DoS)
+
+### Cross-layer fusion
+* Correlate on-chain and off-chain metrics
+* Build baselines for normal vs. anomalous
+* Share alerts with peers and exchanges
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart TD
+  A["On-Chain Signals"] --> D["Fusion Analysis"]
+  B["Network Telemetry"] --> D
+  C["Ecosystem Context"] --> D
+  D --> E["Threat Hunter Alerts"]
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+
+- Detection requires combining on-chain and off-chain signals.
+
+- Baselines are critical to separate anomalies from noise.
+
+- Sharing alerts multiplies defender effectiveness.
+
+Instructor Notes:
+
+  Consensus attacks leave traces. On-chain, defenders can watch for elevated reorg depth, rising orphan rates, and concentration shifts in mining or staking power. Transaction censorship patterns—specific addresses excluded from blocks—also stand out with statistical analysis. Off-chain, block propagation delays, peer churn, and anomalous traffic patterns provide complementary indicators. For example, a BGP hijack might manifest as regional block delays while the chain itself shows increased orphaning. Neith...
+  
+  Detection strategies should emphasize baselining and fusion. By establishing what “normal” looks like for block arrival times, orphan rates, and peer diversity, defenders can distinguish random variance from attack signals. Fusion analysis across layers strengthens confidence. For example, if on-chain metrics spike while network telemetry also shows anomalies, it strongly suggests an adversarial event. Finally, sharing alerts across defenders—exchanges, wallets, CERTs—multiplies defensive power. Collabora...
+  
+Script:
+  - "Consensus attacks aren’t invisible. They leave traces on the chain and the network. On-chain, we see reorgs, orphans, and concentration shifts. On the network, we watch block delays and peer churn. 
+  
+  - The diagram shows fusion—combine signals from chain, network, and ecosystem, and produce alerts. Baselines tell us what’s normal, so we can spot what’s not. Sharing those alerts with peers makes us all stronger."
+
+Q & A:
+
+Q: Why is fusion analysis important?
+  - A: Because any single metric may be noisy. Correlating multiple signals raises confidence.
+
+Q: How do baselines help detection?
+  - A: They define normal behavior, making deviations stand out as potential attacks.
+
+References:
+- @gervais_securityperformanceproof_2016
+- @zhang_securityprivacyblockchain_2019
+- @bonneau_sokresearchperspectives_2015
+:::
+
+---
+
+## Lesson Wrap-Up {data-sync-unmatched="true"}
+
+:::: {.columns}
+::: {.column width="60%"}
+### Key takeaways
+* Consensus is probabilistic and assumption-driven
+* Attacks exploit concentration, latency, or incentives
+* Defenders must monitor chain + network signals
+* Runbooks guide adaptive operational responses
+
+### Relevance for operators
+* Consensus attacks threaten financial trust and cyber stability
+* Real-world incidents show attacks are feasible
+* Threat hunters can detect, disrupt, and respond
+
+### Next lesson
+* Transition from public consensus security to permissioned ledgers
+* Introduction to Hyperledger Fabric and enterprise blockchain
+:::
+::: {.column width="40%"}
+```{mermaid}
+flowchart TD
+  A["Consensus Protocols"] --> B["Adversarial Attacks"]
+  B --> C["Defensive Detection"]
+  C --> D["Operational Response"]
+  D --> E["Lesson 4: Hyperledger Fabric"]
+```
+:::
+::::
+
+::: {.notes}
+Key Points:
+
+- Consensus is secure only if assumptions hold.
+
+- Adversaries exploit concentration, latency, or incentives.
+
+- Defenders need monitoring + runbooks for resilience.
+
+Instructor Notes:
+
+    This lesson closed the loop on consensus. We began with the assumptions—honest majority, fast propagation, fair incentives—and explored how adversaries break them. Attacks like 51%, selfish mining, Sybil, and eclipse target the weak points. Double spending and censorship exploit timing and power imbalances. Real-world incidents prove these are not theoretical. For defenders, detection opportunities lie in combining on-chain and off-chain signals. Operational resilience comes from adaptive runbooks, whic...
+
+    For operators, consensus attacks matter because they undermine financial trust and operational stability. Adversaries—from criminals to nation-states—have motivation and means to exploit them. But defenders are not powerless. By watching the right signals and acting on playbooks, they can blunt or deter attacks. The lesson also prepares the pivot to permissioned ledgers. Next, we study Hyperledger Fabric, a framework designed for enterprise and coalition environments. Unlike open public chains, Fabric ass...
+
+Script:
+
+  - "We’ve now seen consensus from both sides: how it works, and how it can fail. Consensus is probabilistic and assumption-driven. Attacks exploit weak points." 
+    
+  - "Defenders detect and respond by fusing signals and executing runbooks. Real-world cases show attacks are real, but defenses are possible. Next, we pivot. We’ll move from public consensus attacks into permissioned blockchains, starting with Hyperledger Fabric."
+
+Q & A:
+
+  - Q: Are consensus attacks only relevant to cryptocurrencies?
+  - A: No. Any distributed ledger using consensus is potentially at risk, including permissioned systems, though attack surfaces differ.
+
+  - Q: How does this prepare us for Lesson 4?
+  - A: By understanding public consensus risks, we can appreciate why permissioned systems like Hyperledger Fabric adopt different assumptions and defenses.
+
+References:
+
+  - @nakamoto_bitcoinpeertopeerelectronic_2008
+  - @zhang_securityprivacyblockchain_2019
+  - @bonneau_sokresearchperspectives_2015
+  - @bano_consensusageblockchains_2017
+:::
+
+## References {data-sync-id="consensus-references pos-references ethereum-references"}

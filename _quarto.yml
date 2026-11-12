@@ -1,0 +1,88 @@
+project:
+  type: website
+  output-dir: _site
+  post-render:
+    - scripts/patch_quarto_output.py
+  render:
+    - index.qmd
+    - collection.qmd
+    - README.md
+    - docs/BITCOIN.md
+    - docs/DEMOS.md
+    - docs/EVOLUTION.md
+    - docs/EXPLORER.md
+    - THIRD_PARTY_LICENSES.md
+    - tests/playbooks/README.md
+    - tests/playbooks/bitcoin.md
+    - tests/playbooks/cryptography.md
+    - tests/playbooks/ethereum.md
+    - tests/playbooks/quiz.md
+    - quizes/DISTRACTOR_REWRITE_GUIDE.md
+    - quizes/LESSON_SYNTHESIS_GUIDE.md
+    - quizes/QUIZ_BANK_GENERATION_GUIDE.md
+    - quizes/QUIZ_BANK_VALIDATION_GUIDE.md
+    - quizes/QUIZ_ENGINE_JSON_SPEC.md
+    - quizes/READINGS_SYNTHESIS_GUIDE.md
+    - quizes/SAMPLE_PROVENANCE.md
+    - licenses/sources/README.md
+    - labs/bitcoin/index.qmd
+    - lab-guide.qmd
+    - "snapshots/early-work/lessons/day 3/day3_lecture2_symmetric_hashing.qmd"
+    - "snapshots/early-work/lessons/day 3/day3_lecture3_merkle_signatures.qmd"
+    - "snapshots/early-work/lessons/day 3/day3_lecture4_consensus.qmd"
+    - "snapshots/early-work/lessons/day1_lesson2.qmd"
+    - "snapshots/early-work/lessons/day5/blockchain_day_5_lesson_1.qmd"
+    - "snapshots/early-work/lessons/day5/blockchain_day_5_lesson_3.qmd"
+    - "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd"
+    - "snapshots/final/lessons/consensus_primitives/01-CM-consensus_in_distributed_systems_and_blockchains_intro.qmd"
+    - "snapshots/final/lessons/ethereum/02-EF-ethereum_mining_pos_and_security.qmd"
+    - "snapshots/final/lessons/introduction/05-IN-trust_and_distributed_systems_foundations_for_blockchain.qmd"
+    - "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd"
+    - "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd"
+    - "snapshots/pilot/lessons/introduction/l03_i3_trust_and_distributed_systems_foundations_for_blockchain.qmd"
+    - "snapshots/pilot/lessons/primitives/l05_p2_hashing_and_merkle_trees.qmd"
+    - "snapshots/pilot/lessons/primitives/l07_p4_asymmetric_encryption_and_digital_signatures.qmd"
+    - "snapshots/pilot/lessons/primitives/l15_p12_pos.qmd"
+    - "snapshots/pre-group-review/lessons/introduction/l03_i3_trust_and_distributed_systems_foundations_for_blockchain.qmd"
+    - "snapshots/pre-group-review/lessons/primitives/l05_p2_hashing_and_merkle_trees.qmd"
+    - "snapshots/pre-group-review/lessons/primitives/l07_p4_asymmetric_encryption_and_digital_signatures.qmd"
+    - "snapshots/pre-group-review/lessons/primitives/l15_p12_pos.qmd"
+  resources:
+    - labs/bitcoin/student/
+    - labs/bitcoin/instructor/
+    - snapshots/**/assets/
+    - docs/
+    - web/
+    - artifact-manifest.json
+    - LICENSE
+    - NOTICE
+    - THIRD_PARTY_LICENSES.md
+    - licenses/
+    - .github/workflows/
+    - tests/functional.cjs
+    - tests/bitcoin-terminal.cjs
+    - tests/bitcoin-zellij.cjs
+    - tests/zellij_state.py
+filters:
+  - scripts/documentation.lua
+website:
+  title: "Curriculum development: selected artifacts"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Compare lessons
+      - href: collection.qmd
+        text: Artifact index
+      - text: Guides
+        menu:
+          - href: docs/EXPLORER.md
+            text: Using the explorer
+          - href: docs/EVOLUTION.md
+            text: Lesson evolution
+          - href: docs/DEMOS.md
+            text: Demonstrations
+format:
+  html:
+    theme: cosmo
+    toc: true
+    css: web/documentation.css

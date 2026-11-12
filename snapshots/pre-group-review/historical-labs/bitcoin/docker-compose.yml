@@ -1,0 +1,49 @@
+name: bitcoin
+
+services:
+  # The Inner Nginx Router
+  router:
+    image: nginx:alpine
+    ports:
+      - "${HTTP_PORT:-8080}:80" # Exposed to your Host Nginx
+    #  - "${TLS_PORT:-443}:443" # Exposed to your Host Nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    #  - /etc/letsencrypt/live/course.example.edu/privkey.pem:/etc/letsencrypt/privkey.pem:ro
+    #  - /etc/letsencrypt/live/course.example.edu/fullchain.pem:/etc/letsencrypt/fullchain.pem:ro
+
+    depends_on:
+      - student
+    networks:
+      - lab-net
+      - router-net
+
+  # The Student Environment
+  student:
+    environment:
+      AGENT_ON: "1"
+    build:
+      context: workstation
+    networks:
+      - lab-net
+
+  instructor:
+    build:
+      context: workstation
+    networks:
+      - lab-net
+
+  mempool:
+    environment:
+      BTCEXP_BASEURL2: "/labs/bitcoin/btc-explorer/"
+      BTCEXP_BASEURL: "/btc-explorer/"
+    build:
+      context: mempool
+    networks:
+      - lab-net
+
+networks:
+  router-net:
+  lab-net:
+    internal: true
+

@@ -1,0 +1,45 @@
+---
+title: "Curriculum in progress"
+navbar: false
+toc: false
+page-layout: full
+format:
+  html:
+    theme: none
+    css: web/explorer.css
+    anchor-sections: false
+---
+
+```{=html}
+<div id="explorer">
+  <header class="masthead"><a class="identity" href="./"><span>Course material comparisons<small>Blockchain teaching materials</small></span></a><nav aria-label="Collection"><a href="collection.html">All artifacts</a><a href="/quiz/instructor/">Quiz builder ↗</a><a href="downloads/curriculum-source.zip">Source ↓</a></nav></header>
+  <section id="welcome" class="welcome" aria-labelledby="welcome-title">
+    <h1 id="welcome-title">Choose a topic to compare</h1>
+    <label for="thread-choice">Teaching thread</label>
+    <select id="thread-choice" class="thread-select" aria-label="Choose a thread"><option value="">Loading threads…</option></select>
+    <section id="additional-microlabs" aria-labelledby="additional-microlabs-title" hidden>
+      <h2 id="additional-microlabs-title">Highlighted microlabs</h2>
+      <div id="microlab-gallery" class="microlab-gallery"></div>
+    </section>
+  </section>
+  <main class="workspace" id="workspace" aria-label="Artifact explorer" hidden>
+    <header class="reader-bar" aria-label="Reader controls">
+      <select id="thread-switch" class="thread-select" aria-label="Change thread"></select>
+      <div id="kinds" role="tablist" aria-label="Artifact type"><button role="tab" data-kind="lessons" aria-selected="true">Lessons</button><button role="tab" data-kind="microlabs" aria-selected="false">Microlabs <span id="micro-count"></span></button><button role="tab" data-kind="labs" aria-selected="false">Final labs <span id="lab-count"></span></button></div>
+      <label id="family-control" hidden><select id="family" aria-label="Microlab activity"></select></label>
+      <div class="layout-controls" aria-label="Preview layout"><button id="single" type="button">Single</button><button id="pair" type="button">Early + final</button><button id="all" type="button">All versions</button></div>
+      <details id="reader-options" class="reader-options"><summary>Controls</summary><div class="controls-pane">
+        <div class="topic-heading"><div><p class="eyebrow" id="topic-group"></p><h2 id="topic-title"></h2></div><button id="share" class="quiet" type="button">Copy link ↗</button></div>
+        <div class="format-controls"><button id="formats" type="button" hidden>Beamer / Quarto sources</button></div>
+        <section id="history" aria-label="Development timeline"><div class="timeline" id="timeline"></div><p id="selection-description" aria-live="polite"></p><div class="reading-controls"><label>Comparison point <select id="waypoint"><option value="">Start of lesson</option></select></label><button id="slide-sync" type="button" aria-pressed="true">Slide sync on</button><label id="notes-control"><input type="checkbox" id="notes"> Speaker notes</label></div></section>
+        <nav class="collection-links" aria-label="Collection"><a href="collection.html">All artifacts</a><a href="/quiz/instructor/">Quiz builder ↗</a><a href="downloads/curriculum-source.zip">Source ↓</a><a href="THIRD_PARTY_LICENSES.html">Licenses</a></nav>
+      </div></details>
+    </header>
+    <div id="previews" class="preview-grid" aria-live="polite"></div>
+    <section class="related" id="related"></section>
+  </main>
+  <p id="status" class="status" role="status"></p>
+  <footer class="page-footer"><span><a href="LICENSE">Public domain & licenses</a> · <a href="NOTICE">Attribution</a></span></footer>
+</div>
+<script type="module" src="web/explorer.js"></script>
+```

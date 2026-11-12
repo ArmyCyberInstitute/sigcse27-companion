@@ -1,0 +1,1248 @@
+{
+  "stages": [
+    {
+      "id": "early-work",
+      "title": "Early research"
+    },
+    {
+      "id": "pilot",
+      "title": "Pilot"
+    },
+    {
+      "id": "pre-group-review",
+      "title": "Before group review"
+    },
+    {
+      "id": "final",
+      "title": "Final"
+    }
+  ],
+  "threads": [
+    {
+      "id": "trust",
+      "group": "Introduction",
+      "title": "Trust & coordination",
+      "lessons": {
+        "early-work": [
+          {
+            "sync_keys": [
+              "trust-title",
+              "trust-trust",
+              "trust-digital-trust",
+              "trust-generals",
+              "trust-formal-generals",
+              "trust-crash",
+              "trust-byzantine",
+              "trust-classical",
+              "trust-agreement-activity",
+              "trust-recap"
+            ],
+            "id": "day1_lesson2",
+            "title": "Trust, Coordination, and the Byzantine Problem",
+            "source": "snapshots/early-work/lessons/day1_lesson2.qmd",
+            "url": "snapshots/early-work/lessons/day1_lesson2.html",
+            "digest": "b13709c78d6376198e7201c358c3d1564449e5fc476e6c148d328f843028ad8c",
+            "format": "Quarto",
+            "comparison_digest": "b85de9d20ad349bd5ef4f69ee6f674a959632f1aac8a8e76b1b41f780863e3b5",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "pilot": [
+          {
+            "sync_keys": [
+              "trust-title",
+              "trust-trust",
+              "trust-digital-trust",
+              "trust-architectures",
+              "trust-examples",
+              "trust-suspicion",
+              "trust-suspicion-examples",
+              "trust-generals",
+              "trust-crash",
+              "trust-omission",
+              "trust-timing",
+              "trust-commission",
+              "trust-byzantine",
+              "trust-fault-spectrum",
+              "trust-security-risks",
+              "trust-compromised-node",
+              "trust-defenses",
+              "trust-consensus",
+              "trust-classical",
+              "trust-decentralization",
+              "trust-formal-generals",
+              "trust-agreement-activity",
+              "trust-recap",
+              "trust-references"
+            ],
+            "id": "l03_i3_trust_and_distributed_systems_foundations_for_blockchain",
+            "title": "Trust and Distributed Systems: Foundations for Blockchain",
+            "source": "snapshots/pilot/lessons/introduction/l03_i3_trust_and_distributed_systems_foundations_for_blockchain.qmd",
+            "url": "snapshots/pilot/lessons/introduction/l03_i3_trust_and_distributed_systems_foundations_for_blockchain.html",
+            "digest": "24927c3429db0f536a96f8913a7e450925128205d6e6c300fe297ab94329d736",
+            "format": "Quarto",
+            "comparison_digest": "f5adafaa0f46b272eb8355cb04a4255eedc9f1cf25f1d934b349d1bb3739ea37",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "pre-group-review": [
+          {
+            "sync_keys": [
+              "trust-title",
+              "trust-trust",
+              "trust-digital-trust",
+              "trust-architectures",
+              "trust-examples",
+              "trust-suspicion",
+              "trust-suspicion-examples",
+              "trust-generals",
+              "trust-crash",
+              "trust-omission",
+              "trust-timing",
+              "trust-commission",
+              "trust-byzantine",
+              "trust-fault-spectrum",
+              "trust-security-risks",
+              "trust-compromised-node",
+              "trust-defenses",
+              "trust-consensus",
+              "trust-classical",
+              "trust-decentralization",
+              "trust-formal-generals",
+              "trust-agreement-activity",
+              "trust-recap",
+              "trust-references"
+            ],
+            "id": "l03_i3_trust_and_distributed_systems_foundations_for_blockchain",
+            "title": "Trust and Distributed Systems: Foundations for Blockchain",
+            "source": "snapshots/pre-group-review/lessons/introduction/l03_i3_trust_and_distributed_systems_foundations_for_blockchain.qmd",
+            "url": "snapshots/pre-group-review/lessons/introduction/l03_i3_trust_and_distributed_systems_foundations_for_blockchain.html",
+            "digest": "f74c13794adb1591e59292cd9b7cdd202706f3a9cbccca0166d1d182c008d18c",
+            "format": "Quarto",
+            "comparison_digest": "59ed0a7af7ad82f2431b7c4f6d6dd830a320f936fe5d35b3c6793644c7ede85c",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "final": [
+          {
+            "sync_keys": [
+              "trust-title",
+              "trust-insider",
+              "trust-digital-insider",
+              "trust-trust",
+              "trust-digital-trust",
+              "trust-architectures",
+              "trust-examples",
+              "trust-suspicion",
+              "trust-suspicion-examples",
+              "trust-crash",
+              "trust-omission",
+              "trust-timing",
+              "trust-commission",
+              "trust-byzantine",
+              "trust-generals",
+              "trust-fault-spectrum",
+              "trust-security-risks",
+              "trust-compromised-node",
+              "trust-defenses",
+              "trust-consensus",
+              "trust-classical",
+              "trust-decentralization",
+              "trust-formal-generals",
+              "trust-agreement-activity",
+              "trust-digital-agreement",
+              "trust-recap",
+              "trust-references"
+            ],
+            "id": "05-IN-trust_and_distributed_systems_foundations_for_blockchain",
+            "title": "Trust and Distributed Systems: Foundations for Blockchain",
+            "source": "snapshots/final/lessons/introduction/05-IN-trust_and_distributed_systems_foundations_for_blockchain.qmd",
+            "url": "snapshots/final/lessons/introduction/05-IN-trust_and_distributed_systems_foundations_for_blockchain.html",
+            "digest": "1e06c3a8b5a6915abfb2b2450f7a96a63fee79cce774b6f61fd7d6cde84a7b57",
+            "format": "Quarto",
+            "comparison_digest": "66b2d2618c9e497c3d2fc5b58c7d10180bccf7e46424043f67fbcd09afccdcf5",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ]
+      },
+      "microlabs": {},
+      "labs": [
+        "bitcoin"
+      ]
+    },
+    {
+      "id": "hashing",
+      "group": "Cryptography",
+      "title": "Hashing & Merkle trees",
+      "lessons": {
+        "early-work": [
+          {
+            "sync_keys": [
+              "hashing-title",
+              "signatures-title",
+              "signatures-symmetric-asymmetric",
+              "hashing-definition",
+              "hashing-properties",
+              "hashing-preimage",
+              "hashing-second-preimage",
+              "hashing-collision",
+              "hashing-avalanche",
+              "hashing-sha-family",
+              "hashing-merkle-definition",
+              "hashing-merkle-building",
+              "hashing-merkle-example",
+              "hashing-merkle-applications",
+              "hashing-tamper-evidence",
+              "hashing-summary"
+            ],
+            "id": "day3_lecture2_symmetric_hashing",
+            "title": "Symmetric Cryptography & Hashing: The Backbone of Blockchain Integrity",
+            "source": "snapshots/early-work/lessons/day 3/day3_lecture2_symmetric_hashing.qmd",
+            "url": "snapshots/early-work/lessons/day 3/day3_lecture2_symmetric_hashing.html",
+            "digest": "f99030aa9907217aeb762cf95ddb5099c7fc2b713e310f678f0b8a2adc3107b8",
+            "format": "Quarto",
+            "comparison_digest": "7793b54e0023ee7573c5e9870b42677eb65d737d1b88999d54b91b7300d0e53a",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [
+              "hashing-title",
+              "signatures-title",
+              "hashing-definition",
+              "hashing-properties",
+              "hashing-preimage",
+              "hashing-second-preimage",
+              "hashing-collision",
+              "hashing-avalanche",
+              "hashing-sha-family",
+              "hashing-merkle-definition",
+              "hashing-merkle-building",
+              "hashing-merkle-example",
+              "signatures-signing-workflow",
+              "signatures-public-key",
+              "signatures-encryption-to-signing",
+              "hashing-merkle-applications",
+              "hashing-tamper-evidence",
+              "signatures-addresses",
+              "hashing-summary",
+              "signatures-summary"
+            ],
+            "id": "day3_lecture3_merkle_signatures",
+            "title": "Merkle Trees, Signatures, and Blockchain Integrity",
+            "source": "snapshots/early-work/lessons/day 3/day3_lecture3_merkle_signatures.qmd",
+            "url": "snapshots/early-work/lessons/day 3/day3_lecture3_merkle_signatures.html",
+            "digest": "92a877d52a9b0b8e7d0a817bae8c3de1edbef89a5c9f5ae5d38f533ea5fc4e8f",
+            "format": "Quarto",
+            "comparison_digest": "a06816cc544fb996cad3d1537c9ebdcb058d5b23140d30671a6278bceba1d9d3",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [],
+            "id": "cryptographic_primitives",
+            "title": "Cryptographic Primitives for Blockchain",
+            "source": "snapshots/early-work/beamer/cryptographic_primitives.tex",
+            "url": "source/snapshots/early-work/beamer/cryptographic_primitives.tex",
+            "digest": "d38d2d01df789b5484644d9e400d2075dacc195bf54fef21a6ee6966749c2dc3",
+            "format": "Beamer",
+            "source_files": [
+              "snapshots/early-work/beamer/cryptographic_primitives.tex",
+              "snapshots/early-work/beamer/beamercolorthemed2s.sty",
+              "snapshots/early-work/beamer/beamerinnerthemed2s.sty",
+              "snapshots/early-work/beamer/beamerouterthemed2s.sty",
+              "snapshots/early-work/beamer/beamerthemed2s.sty"
+            ],
+            "comparison_digest": "a56f5abaa27d6bb5f8a3cbd8aa8ceb9aab93d70f0ac010fac8937d72af0df6f4",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "pilot": [
+          {
+            "sync_keys": [
+              "hashing-title",
+              "hashing-objectives",
+              "hashing-definition",
+              "hashing-properties",
+              "hashing-preimage",
+              "hashing-second-preimage",
+              "hashing-collision",
+              "hashing-avalanche",
+              "hashing-uniform",
+              "hashing-birthday",
+              "hashing-hashing-lab",
+              "hashing-sha-family",
+              "hashing-construction-comparison",
+              "hashing-merkle-damgard",
+              "hashing-sponge",
+              "hashing-length-extension",
+              "hashing-hmac",
+              "hashing-salting",
+              "hashing-commitment",
+              "hashing-merkle-motivation",
+              "hashing-merkle-definition",
+              "hashing-merkle-building",
+              "hashing-merkle-example",
+              "hashing-merkle-proof",
+              "hashing-proof-efficiency",
+              "hashing-tamper-evidence",
+              "hashing-merkle-variants",
+              "hashing-merkle-applications",
+              "hashing-merkle-labs",
+              "hashing-summary",
+              "hashing-references"
+            ],
+            "id": "l05_p2_hashing_and_merkle_trees",
+            "title": "Hashing and Merkle Trees",
+            "source": "snapshots/pilot/lessons/primitives/l05_p2_hashing_and_merkle_trees.qmd",
+            "url": "snapshots/pilot/lessons/primitives/l05_p2_hashing_and_merkle_trees.html",
+            "digest": "278ffc4964cde45a8ce146f8749bc5fdcab403711fa1a746432ef5bd68aada97",
+            "format": "Quarto",
+            "comparison_digest": "dda12a23759d0aeb96e3939fe5191ebc983d23f2c7daff7c37d3b45defbbb5d6",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "pre-group-review": [
+          {
+            "sync_keys": [
+              "hashing-title",
+              "hashing-objectives",
+              "hashing-definition",
+              "hashing-properties",
+              "hashing-preimage",
+              "hashing-second-preimage",
+              "hashing-collision",
+              "hashing-avalanche",
+              "hashing-uniform",
+              "hashing-birthday",
+              "hashing-hashing-lab",
+              "hashing-sha-family",
+              "hashing-construction-comparison",
+              "hashing-merkle-damgard",
+              "hashing-sponge",
+              "hashing-length-extension",
+              "hashing-hmac",
+              "hashing-salting",
+              "hashing-commitment",
+              "hashing-merkle-motivation",
+              "hashing-merkle-definition",
+              "hashing-merkle-building",
+              "hashing-merkle-example",
+              "hashing-merkle-proof",
+              "hashing-proof-efficiency",
+              "hashing-tamper-evidence",
+              "hashing-merkle-variants",
+              "hashing-merkle-applications",
+              "hashing-merkle-labs",
+              "hashing-summary",
+              "hashing-references"
+            ],
+            "id": "l05_p2_hashing_and_merkle_trees",
+            "title": "Hashing and Merkle Trees",
+            "source": "snapshots/pre-group-review/lessons/primitives/l05_p2_hashing_and_merkle_trees.qmd",
+            "url": "snapshots/pre-group-review/lessons/primitives/l05_p2_hashing_and_merkle_trees.html",
+            "digest": "160b55ca5a28b9e905f00edb1291bc8d080d7ff4f3e884607a1238c534d361cc",
+            "format": "Quarto",
+            "comparison_digest": "be6b727a178a24a5cf3ff7b50946d82c533efe29495d3b1472cb70285d61cfa8",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "final": [
+          {
+            "sync_keys": [
+              "hashing-title",
+              "hashing-objectives",
+              "hashing-definition",
+              "hashing-properties",
+              "hashing-preimage",
+              "hashing-second-preimage",
+              "hashing-collision",
+              "hashing-avalanche",
+              "hashing-uniform",
+              "hashing-birthday",
+              "hashing-hashing-lab",
+              "hashing-sha-family",
+              "hashing-merkle-damgard",
+              "hashing-length-extension",
+              "hashing-hmac",
+              "hashing-sponge",
+              "hashing-construction-comparison",
+              "hashing-salting",
+              "hashing-commitment",
+              "hashing-merkle-motivation",
+              "hashing-merkle-definition",
+              "hashing-merkle-building",
+              "hashing-merkle-example",
+              "hashing-merkle-proof",
+              "hashing-proof-efficiency",
+              "hashing-tamper-evidence",
+              "hashing-merkle-variants",
+              "hashing-merkle-applications",
+              "hashing-merkle-labs",
+              "hashing-summary",
+              "hashing-references"
+            ],
+            "id": "02-CP-hashing_and_merkle_trees",
+            "title": "Hashing and Merkle Trees",
+            "source": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+            "url": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.html",
+            "digest": "84bdd2a3bdd6725e945cc2499cf9abac99836fee93af5244302e6043b2c93c7c",
+            "format": "Quarto",
+            "comparison_digest": "59a310897156be7f59a401fa9b95a17d17db97442aa91386fce22d84a303b29d",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ]
+      },
+      "microlabs": {
+        "merkle": {
+          "title": "Merkle trees",
+          "versions": {
+            "early-work": [],
+            "pilot": [
+              {
+                "sync_keys": [],
+                "id": "index",
+                "title": "Merkle Tree Exercise \u2014 Self\u2011Contained",
+                "source": "snapshots/pilot/assets/labs/merkle-trees/index.html",
+                "url": "snapshots/pilot/assets/labs/merkle-trees/index.html",
+                "digest": "592c536d4be6af09dafa16c0ef20969ad1c19c92a9ded282062b2da67ab96120",
+                "format": "HTML",
+                "comparison_digest": "592c536d4be6af09dafa16c0ef20969ad1c19c92a9ded282062b2da67ab96120",
+                "also_in": [
+                  "pre-group-review"
+                ],
+                "equivalent_sources": [
+                  "snapshots/pre-group-review/assets/labs/merkle-trees/index.html"
+                ]
+              }
+            ],
+            "pre-group-review": [],
+            "final": [
+              {
+                "sync_keys": [],
+                "id": "index",
+                "title": "Merkle Tree Microlab",
+                "source": "snapshots/final/assets/labs/merkle-trees/index.html",
+                "url": "snapshots/final/assets/labs/merkle-trees/index.html",
+                "digest": "3bb22e9524c6ea59ccc30ce042f7db51370a3bde439fa9fe30d53b4635f1fb62",
+                "format": "HTML",
+                "comparison_digest": "3bb22e9524c6ea59ccc30ce042f7db51370a3bde439fa9fe30d53b4635f1fb62",
+                "also_in": [],
+                "equivalent_sources": []
+              }
+            ]
+          }
+        }
+      },
+      "labs": [
+        "crypto",
+        "bitcoin",
+        "quiz"
+      ],
+      "source_pair": {
+        "early-work": "cryptographic_primitives",
+        "final": "02-CP-hashing_and_merkle_trees"
+      }
+    },
+    {
+      "id": "signatures",
+      "group": "Cryptography",
+      "title": "Keys & digital signatures",
+      "lessons": {
+        "early-work": [
+          {
+            "sync_keys": [
+              "hashing-title",
+              "signatures-title",
+              "hashing-definition",
+              "hashing-properties",
+              "hashing-preimage",
+              "hashing-second-preimage",
+              "hashing-collision",
+              "hashing-avalanche",
+              "hashing-sha-family",
+              "hashing-merkle-definition",
+              "hashing-merkle-building",
+              "hashing-merkle-example",
+              "signatures-signing-workflow",
+              "signatures-public-key",
+              "signatures-encryption-to-signing",
+              "hashing-merkle-applications",
+              "hashing-tamper-evidence",
+              "signatures-addresses",
+              "hashing-summary",
+              "signatures-summary"
+            ],
+            "id": "day3_lecture3_merkle_signatures",
+            "title": "Merkle Trees, Signatures, and Blockchain Integrity",
+            "source": "snapshots/early-work/lessons/day 3/day3_lecture3_merkle_signatures.qmd",
+            "url": "snapshots/early-work/lessons/day 3/day3_lecture3_merkle_signatures.html",
+            "digest": "92a877d52a9b0b8e7d0a817bae8c3de1edbef89a5c9f5ae5d38f533ea5fc4e8f",
+            "format": "Quarto",
+            "comparison_digest": "a06816cc544fb996cad3d1537c9ebdcb058d5b23140d30671a6278bceba1d9d3",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [
+              "hashing-title",
+              "signatures-title",
+              "signatures-symmetric-asymmetric",
+              "hashing-definition",
+              "hashing-properties",
+              "hashing-preimage",
+              "hashing-second-preimage",
+              "hashing-collision",
+              "hashing-avalanche",
+              "hashing-sha-family",
+              "hashing-merkle-definition",
+              "hashing-merkle-building",
+              "hashing-merkle-example",
+              "hashing-merkle-applications",
+              "hashing-tamper-evidence",
+              "hashing-summary"
+            ],
+            "id": "day3_lecture2_symmetric_hashing",
+            "title": "Symmetric Cryptography & Hashing: The Backbone of Blockchain Integrity",
+            "source": "snapshots/early-work/lessons/day 3/day3_lecture2_symmetric_hashing.qmd",
+            "url": "snapshots/early-work/lessons/day 3/day3_lecture2_symmetric_hashing.html",
+            "digest": "f99030aa9907217aeb762cf95ddb5099c7fc2b713e310f678f0b8a2adc3107b8",
+            "format": "Quarto",
+            "comparison_digest": "7793b54e0023ee7573c5e9870b42677eb65d737d1b88999d54b91b7300d0e53a",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [],
+            "id": "cryptographic_primitives",
+            "title": "Cryptographic Primitives for Blockchain",
+            "source": "snapshots/early-work/beamer/cryptographic_primitives.tex",
+            "url": "source/snapshots/early-work/beamer/cryptographic_primitives.tex",
+            "digest": "d38d2d01df789b5484644d9e400d2075dacc195bf54fef21a6ee6966749c2dc3",
+            "format": "Beamer",
+            "source_files": [
+              "snapshots/early-work/beamer/cryptographic_primitives.tex",
+              "snapshots/early-work/beamer/beamercolorthemed2s.sty",
+              "snapshots/early-work/beamer/beamerinnerthemed2s.sty",
+              "snapshots/early-work/beamer/beamerouterthemed2s.sty",
+              "snapshots/early-work/beamer/beamerthemed2s.sty"
+            ],
+            "comparison_digest": "a56f5abaa27d6bb5f8a3cbd8aa8ceb9aab93d70f0ac010fac8937d72af0df6f4",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "pilot": [
+          {
+            "sync_keys": [
+              "signatures-title",
+              "signatures-secret",
+              "signatures-key-distribution",
+              "signatures-mailbox",
+              "signatures-public-key",
+              "signatures-symmetric-asymmetric",
+              "signatures-rsa",
+              "signatures-trapdoor",
+              "signatures-dh-analogy",
+              "signatures-dh-concept",
+              "signatures-modular-exponentiation",
+              "signatures-hardness",
+              "signatures-rsa-video",
+              "signatures-rsa-keygen",
+              "signatures-rsa-encryption",
+              "signatures-rsa-correctness",
+              "signatures-ecc",
+              "signatures-ecc-video",
+              "signatures-ecc-rsa",
+              "signatures-encryption-to-signing",
+              "signatures-signing-workflow",
+              "signatures-rsa-signature",
+              "signatures-pki",
+              "signatures-certificate-validation",
+              "signatures-addresses",
+              "signatures-compromise",
+              "signatures-quantum",
+              "signatures-summary",
+              "signatures-references"
+            ],
+            "id": "l07_p4_asymmetric_encryption_and_digital_signatures",
+            "title": "Asymmetric Encryption & Digital Signatures",
+            "source": "snapshots/pilot/lessons/primitives/l07_p4_asymmetric_encryption_and_digital_signatures.qmd",
+            "url": "snapshots/pilot/lessons/primitives/l07_p4_asymmetric_encryption_and_digital_signatures.html",
+            "digest": "085b0aad5c23318a3f759ece9c0a70302d3bfb953c2e3f5cb44609f1aaaf77bf",
+            "format": "Quarto",
+            "comparison_digest": "2bb143e2454dcff9be3f2e9088d3fb7433f34fdf45144e297c8315930f7ce48e",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "pre-group-review": [
+          {
+            "sync_keys": [
+              "signatures-title",
+              "signatures-secret",
+              "signatures-key-distribution",
+              "signatures-mailbox",
+              "signatures-public-key",
+              "signatures-symmetric-asymmetric",
+              "signatures-rsa",
+              "signatures-trapdoor",
+              "signatures-dh-analogy",
+              "signatures-dh-concept",
+              "signatures-modular-exponentiation",
+              "signatures-hardness",
+              "signatures-rsa-video",
+              "signatures-rsa-keygen",
+              "signatures-rsa-encryption",
+              "signatures-rsa-correctness",
+              "signatures-ecc",
+              "signatures-ecc-video",
+              "signatures-ecc-rsa",
+              "signatures-encryption-to-signing",
+              "signatures-signing-workflow",
+              "signatures-rsa-signature",
+              "signatures-pki",
+              "signatures-certificate-validation",
+              "signatures-addresses",
+              "signatures-compromise",
+              "signatures-quantum",
+              "signatures-summary",
+              "signatures-references"
+            ],
+            "id": "l07_p4_asymmetric_encryption_and_digital_signatures",
+            "title": "Asymmetric Encryption & Digital Signatures",
+            "source": "snapshots/pre-group-review/lessons/primitives/l07_p4_asymmetric_encryption_and_digital_signatures.qmd",
+            "url": "snapshots/pre-group-review/lessons/primitives/l07_p4_asymmetric_encryption_and_digital_signatures.html",
+            "digest": "e1fe682062655bef8f20b19ae41732c5da3374cdc13778c53dd06c9f0a27f5a6",
+            "format": "Quarto",
+            "comparison_digest": "2a903e8c7389fd6ce52b29ae9800d9c054bbe4a95c6a27c8b850f4df9aa69f64",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "final": [
+          {
+            "sync_keys": [
+              "signatures-title",
+              "signatures-secret",
+              "signatures-key-distribution",
+              "signatures-mailbox",
+              "signatures-public-key",
+              "signatures-symmetric-asymmetric",
+              "signatures-trapdoor",
+              "signatures-dh-analogy",
+              "signatures-dh-concept",
+              "signatures-modular-exponentiation",
+              "signatures-hardness",
+              "signatures-encryption-to-signing",
+              "signatures-rsa",
+              "signatures-rsa-video",
+              "signatures-rsa-keygen",
+              "signatures-rsa-encryption",
+              "signatures-rsa-correctness",
+              "signatures-ecc",
+              "signatures-ecc-video",
+              "signatures-ecc-rsa",
+              "signatures-signing-workflow",
+              "signatures-rsa-signature",
+              "signatures-signature-lab",
+              "signatures-pki",
+              "signatures-certificate-validation",
+              "signatures-pac4j",
+              "signatures-addresses",
+              "signatures-compromise",
+              "signatures-quantum",
+              "signatures-summary",
+              "signatures-references"
+            ],
+            "id": "04-CP-asymmetric_encryption_and_digital_signatures",
+            "title": "Asymmetric Encryption & Digital Signatures",
+            "source": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+            "url": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.html",
+            "digest": "e41a028d56612754a08c64974361ed7937564e5a5289de789a6a1fc1ef6331b5",
+            "format": "Quarto",
+            "comparison_digest": "cdf9135f6755a34674b1f3dfadff985b5a1b43afd696a30d5cb33b03e895430f",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ]
+      },
+      "microlabs": {
+        "signatures": {
+          "title": "Encryption & signatures",
+          "versions": {
+            "early-work": [],
+            "pilot": [
+              {
+                "sync_keys": [],
+                "id": "asymmetric_signatures_lab",
+                "title": "Asymmetric Encryption & Digital Signatures Lab",
+                "source": "snapshots/pilot/assets/labs/asymmetric & signature/asymmetric_signatures_lab.html",
+                "url": "snapshots/pilot/assets/labs/asymmetric & signature/asymmetric_signatures_lab.html",
+                "digest": "c380a74f7695019a4a8d3e8484a2486e41ae7523aa67ca71b2358ea00d5e2c05",
+                "format": "HTML",
+                "comparison_digest": "c380a74f7695019a4a8d3e8484a2486e41ae7523aa67ca71b2358ea00d5e2c05",
+                "also_in": [
+                  "pre-group-review"
+                ],
+                "equivalent_sources": [
+                  "snapshots/pre-group-review/assets/labs/asymmetric & signature/asymmetric_signatures_lab.html"
+                ]
+              }
+            ],
+            "pre-group-review": [],
+            "final": [
+              {
+                "sync_keys": [],
+                "id": "index",
+                "title": "Asymmetric Encryption & Digital Signatures Lab",
+                "source": "snapshots/final/assets/labs/signatures/index.html",
+                "url": "snapshots/final/assets/labs/signatures/index.html",
+                "digest": "3dc4f3dea5b373bf6e0ebda21e81f17e001fd0094466e93144eca0f0fbe44a4a",
+                "format": "HTML",
+                "comparison_digest": "b2e3be55c0c8bf250f38f8d6f119beec39fad923c2ac7285eb6a52225e2a45e1",
+                "also_in": [],
+                "equivalent_sources": []
+              }
+            ]
+          }
+        }
+      },
+      "labs": [
+        "crypto",
+        "bitcoin",
+        "quiz"
+      ],
+      "source_pair": {
+        "early-work": "cryptographic_primitives",
+        "final": "04-CP-asymmetric_encryption_and_digital_signatures"
+      }
+    },
+    {
+      "id": "consensus",
+      "group": "Consensus",
+      "title": "Consensus \u2192 Proof of Stake",
+      "lessons": {
+        "early-work": [
+          {
+            "sync_keys": [
+              "consensus-title",
+              "pos-title",
+              "consensus-agreement",
+              "consensus-blockchains",
+              "pos-selection",
+              "pos-proposer",
+              "ethereum-selection",
+              "consensus-nakamoto",
+              "pos-orientation",
+              "pos-lifecycle",
+              "consensus-bft",
+              "pos-weak-subjectivity",
+              "pos-comparison"
+            ],
+            "id": "day3_lecture4_consensus",
+            "title": "Consensus, Merkle Roots, and the Bitcoin Problem",
+            "source": "snapshots/early-work/lessons/day 3/day3_lecture4_consensus.qmd",
+            "url": "snapshots/early-work/lessons/day 3/day3_lecture4_consensus.html",
+            "digest": "9a03c6e24d0d18d69367d88b75039d0b1d0bc113d6d4659be00eb47634c749b5",
+            "format": "Quarto",
+            "comparison_digest": "2b39f0c21bf2ad34ab743387548ae50553567e5b84c597239d29cba32e149ff9",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [
+              "consensus-title",
+              "pos-title",
+              "consensus-foundations",
+              "consensus-real-world",
+              "consensus-properties",
+              "consensus-failures",
+              "consensus-timing",
+              "consensus-flp-dls",
+              "consensus-practical",
+              "consensus-rounds",
+              "consensus-quorums",
+              "consensus-timeouts",
+              "consensus-families",
+              "consensus-blockchains",
+              "consensus-cft",
+              "consensus-bft",
+              "consensus-finality",
+              "consensus-nakamoto",
+              "ethereum-forks",
+              "pos-comparison",
+              "pos-parameters",
+              "consensus-references",
+              "pos-references",
+              "ethereum-references"
+            ],
+            "id": "blockchain_day_5_lesson_1",
+            "title": "Day 5: Reaching Consensus",
+            "source": "snapshots/early-work/lessons/day5/blockchain_day_5_lesson_1.qmd",
+            "url": "snapshots/early-work/lessons/day5/blockchain_day_5_lesson_1.html",
+            "digest": "4de98a290e46c7e4896eda1a77eceb587d0fae7f313c86b2b7d139e8891b1735",
+            "format": "Quarto",
+            "comparison_digest": "de4e2625fa1a266f0f656ba4de329b65299c8c98b5cc94cf34c6a89ca6db92e0",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [
+              "consensus-title",
+              "pos-title",
+              "ethereum-title",
+              "ethereum-double-spend",
+              "pos-censorship",
+              "ethereum-censorship",
+              "pos-censorship-mitigations",
+              "consensus-references",
+              "pos-references",
+              "ethereum-references"
+            ],
+            "id": "blockchain_day_5_lesson_3",
+            "title": "Day 5: Consensus Security and Adversarial Attacks",
+            "source": "snapshots/early-work/lessons/day5/blockchain_day_5_lesson_3.qmd",
+            "url": "snapshots/early-work/lessons/day5/blockchain_day_5_lesson_3.html",
+            "digest": "a5957d5e93a65ffbb9cdc3a84f58747c8241dea0407a4ac02639c29d8a39f7d5",
+            "format": "Quarto",
+            "comparison_digest": "e50f1bb7e33968018c713794724397f1c3aec316b3221776ce9c3f85230a2e5c",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [],
+            "id": "reaching_consensus",
+            "title": "Day 5: Reaching Consensus",
+            "source": "snapshots/early-work/beamer/reaching_consensus.tex",
+            "url": "source/snapshots/early-work/beamer/reaching_consensus.tex",
+            "digest": "6e89408ac97448e4f2b39eb25140212db85e664307953d7600b603e38ea13054",
+            "format": "Beamer",
+            "source_files": [
+              "snapshots/early-work/beamer/reaching_consensus.tex",
+              "snapshots/early-work/beamer/beamercolorthemed2s.sty",
+              "snapshots/early-work/beamer/beamerinnerthemed2s.sty",
+              "snapshots/early-work/beamer/beamerouterthemed2s.sty",
+              "snapshots/early-work/beamer/beamerthemed2s.sty"
+            ],
+            "comparison_digest": "794f2cd64bcb6597455c04a76b3ac6df04a98d87c76413cedaa4c1ec22c7529a",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "pilot": [
+          {
+            "sync_keys": [
+              "pos-title",
+              "ethereum-title",
+              "pos-orientation",
+              "pos-comparison",
+              "pos-validator",
+              "pos-lifecycle",
+              "ethereum-validators",
+              "pos-selection",
+              "pos-proposer",
+              "ethereum-selection",
+              "ethereum-randao-vdf",
+              "ethereum-randao",
+              "pos-committees",
+              "pos-attestation",
+              "pos-checkpoints",
+              "pos-epochs",
+              "pos-justification",
+              "pos-finalization",
+              "ethereum-slots",
+              "ethereum-gasper",
+              "pos-flow",
+              "pos-fork-choice",
+              "ethereum-forks",
+              "pos-safety",
+              "pos-slashing",
+              "pos-nothing-at-stake",
+              "pos-economics",
+              "ethereum-nothing-at-stake",
+              "pos-weak-subjectivity",
+              "pos-checkpoint-mitigations",
+              "pos-censorship",
+              "pos-censorship-mitigations",
+              "ethereum-censorship",
+              "ethereum-finality-delay",
+              "pos-parameters",
+              "pos-references",
+              "ethereum-references"
+            ],
+            "id": "l15_p12_pos",
+            "title": "Proof of Stake (PoS): Selection, Security, and Finality",
+            "source": "snapshots/pilot/lessons/primitives/l15_p12_pos.qmd",
+            "url": "snapshots/pilot/lessons/primitives/l15_p12_pos.html",
+            "digest": "fa09be12b661d79a32e8adf67bb356b0a54f886dc82f88833daef89979af01ab",
+            "format": "Quarto",
+            "comparison_digest": "70ec7dcb0eb917789f93d6513db15db51334e4fa32fe94293a9230bc72b06433",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "pre-group-review": [
+          {
+            "sync_keys": [
+              "pos-title",
+              "ethereum-title",
+              "pos-orientation",
+              "pos-comparison",
+              "pos-validator",
+              "pos-lifecycle",
+              "ethereum-validators",
+              "pos-selection",
+              "pos-proposer",
+              "ethereum-selection",
+              "ethereum-randao-vdf",
+              "ethereum-randao",
+              "pos-committees",
+              "pos-attestation",
+              "pos-checkpoints",
+              "pos-epochs",
+              "pos-justification",
+              "pos-finalization",
+              "ethereum-slots",
+              "ethereum-gasper",
+              "pos-flow",
+              "pos-fork-choice",
+              "ethereum-forks",
+              "pos-safety",
+              "pos-slashing",
+              "pos-nothing-at-stake",
+              "pos-economics",
+              "ethereum-nothing-at-stake",
+              "pos-weak-subjectivity",
+              "pos-checkpoint-mitigations",
+              "pos-censorship",
+              "pos-censorship-mitigations",
+              "ethereum-censorship",
+              "ethereum-finality-delay",
+              "pos-parameters",
+              "pos-references",
+              "ethereum-references"
+            ],
+            "id": "l15_p12_pos",
+            "title": "Proof of Stake (PoS): Selection, Security, and Finality",
+            "source": "snapshots/pre-group-review/lessons/primitives/l15_p12_pos.qmd",
+            "url": "snapshots/pre-group-review/lessons/primitives/l15_p12_pos.html",
+            "digest": "b4b32101093cc12fd99346d8a91c37167b99a0f65e507a8d596f682641d4c9d9",
+            "format": "Quarto",
+            "comparison_digest": "5095a6d7d84903b29122d03ccd6fbd3f6dc45d297cc36e03adf77a2c7cfa12cc",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ],
+        "final": [
+          {
+            "sync_keys": [
+              "pos-title",
+              "pos-orientation",
+              "pos-lifecycle",
+              "pos-networks",
+              "pos-proposer",
+              "pos-attestation",
+              "pos-epochs",
+              "pos-justification",
+              "pos-finalization",
+              "pos-flow",
+              "pos-slashing",
+              "pos-validator",
+              "pos-selection",
+              "pos-committees",
+              "pos-checkpoints",
+              "pos-fork-choice",
+              "pos-safety",
+              "pos-nothing-at-stake",
+              "pos-economics",
+              "pos-weak-subjectivity",
+              "pos-checkpoint-mitigations",
+              "pos-censorship",
+              "pos-censorship-mitigations",
+              "pos-parameters",
+              "pos-comparison",
+              "pos-references"
+            ],
+            "id": "03-CM-pos",
+            "title": "Proof of Stake (PoS): Selection, Security, and Finality",
+            "source": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+            "url": "snapshots/final/lessons/consensus_primitives/03-CM-pos.html",
+            "digest": "a59805b35c082c07016aa383f81466f1d47b763ae626afd98d7feca7ab01893d",
+            "format": "Quarto",
+            "comparison_digest": "78e9fbd37bef2ae37d395a2057edd160c834eb77afd184ad8e0dc939d7ecff1a",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [
+              "ethereum-title",
+              "ethereum-agenda",
+              "ethereum-framework",
+              "ethereum-execution-header",
+              "ethereum-beacon-payload",
+              "ethereum-merge",
+              "ethereum-validators",
+              "ethereum-slots",
+              "ethereum-selection",
+              "ethereum-randao",
+              "ethereum-randao-vdf",
+              "ethereum-forks",
+              "ethereum-gasper",
+              "ethereum-double-spend",
+              "ethereum-balance-attack",
+              "ethereum-code-reuse",
+              "ethereum-incidents",
+              "ethereum-nothing-at-stake",
+              "ethereum-finality-delay",
+              "ethereum-censorship",
+              "ethereum-summary",
+              "ethereum-references"
+            ],
+            "id": "02-EF-ethereum_mining_pos_and_security",
+            "title": "Ethereum \"Mining\", PoS, and Security",
+            "source": "snapshots/final/lessons/ethereum/02-EF-ethereum_mining_pos_and_security.qmd",
+            "url": "snapshots/final/lessons/ethereum/02-EF-ethereum_mining_pos_and_security.html",
+            "digest": "b6c543eadc0f3c6764a03522776d3a64ff6de347eaa0dea29594b8bab844c669",
+            "format": "Quarto",
+            "comparison_digest": "e89e143dcb5252d5427572297db4cd1d530bca2bf645f5b025344244ff8d5132",
+            "also_in": [],
+            "equivalent_sources": []
+          },
+          {
+            "sync_keys": [
+              "consensus-title",
+              "consensus-agreement",
+              "consensus-foundations",
+              "consensus-real-world",
+              "consensus-properties",
+              "consensus-failures",
+              "consensus-timing",
+              "consensus-flp-dls",
+              "consensus-practical",
+              "consensus-rounds",
+              "consensus-finality",
+              "consensus-quorums",
+              "consensus-timeouts",
+              "consensus-cft",
+              "consensus-bft",
+              "consensus-nakamoto",
+              "consensus-families",
+              "consensus-blockchains",
+              "consensus-references"
+            ],
+            "id": "01-CM-consensus_in_distributed_systems_and_blockchains_intro",
+            "title": "Consensus in Distributed Systems & Blockchains \u2014 An Introduction",
+            "source": "snapshots/final/lessons/consensus_primitives/01-CM-consensus_in_distributed_systems_and_blockchains_intro.qmd",
+            "url": "snapshots/final/lessons/consensus_primitives/01-CM-consensus_in_distributed_systems_and_blockchains_intro.html",
+            "digest": "2decd6962ba7bcfa91be755b0f6c66964f68b6bc895bb47ca5370c6340c71172",
+            "format": "Quarto",
+            "comparison_digest": "4e6f4bff65a410b7499712cced97305b909e50f3bdd180cf28e2597f53e1dda0",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ]
+      },
+      "microlabs": {},
+      "labs": [
+        "ethereum",
+        "bitcoin",
+        "quiz"
+      ],
+      "source_pair": {
+        "early-work": "reaching_consensus",
+        "final": "01-CM-consensus_in_distributed_systems_and_blockchains_intro"
+      }
+    }
+  ],
+  "labs": {
+    "crypto": {
+      "title": "Applied cryptography",
+      "url": "/labs/cryptography/",
+      "guide_url": "lab-guide.html#cryptography",
+      "guide": "demos/cryptography/README.md",
+      "description": "Collisions, entropy, Merkle proofs, encryption, and digital signatures."
+    },
+    "bitcoin": {
+      "title": "Bitcoin network",
+      "url": "/labs/bitcoin/",
+      "guide_url": "lab-guide.html#bitcoin",
+      "guide": "demos/bitcoin/LAB1.md",
+      "description": "Student and instructor consoles, exercise navigation, ClassNet, Mempool, Explorer, and Chain Graph."
+    },
+    "ethereum": {
+      "title": "Ethereum & PoS trainer",
+      "url": "/labs/ethereum/",
+      "guide_url": "lab-guide.html#ethereum",
+      "guide": "demos/ethereum_lab/docs/README.md",
+      "description": "A local chain, contract activities, validator committees, and a teaching model of finality."
+    },
+    "quiz": {
+      "title": "Quiz builder",
+      "url": "/quiz/instructor/",
+      "guide_url": "lab-guide.html#quiz-engine",
+      "guide": "demos/quiz-engine-v2/README.md",
+      "description": "Three sample banks, selection templates, quiz generation, attempts, and grading."
+    }
+  },
+  "waypoints": [
+    {
+      "id": "orientation",
+      "title": "Framing & objectives",
+      "pattern": "orientation|objectives|roadmap|agenda|framing|overview|hook|motivator"
+    },
+    {
+      "id": "mechanism",
+      "title": "Core mechanism",
+      "pattern": "what is a cryptographic hash|hash function|merkle trees$|digital signatures$|from encryption to signing|committee|byzantine|centralized model|money"
+    },
+    {
+      "id": "example",
+      "title": "Examples & activities",
+      "pattern": "worked example|example:|micro.?lab|micro lab|exercise|check on learning|check for understanding|mini walkthrough"
+    },
+    {
+      "id": "evidence",
+      "title": "References & grounding",
+      "pattern": "^references|^sources|further reading|readings"
+    },
+    {
+      "id": "summary",
+      "title": "Synthesis",
+      "pattern": "^summary|^recap|takeaways|conclusion"
+    }
+  ],
+  "additional_microlabs": [
+    {
+      "id": "coin-flip",
+      "title": "Proof-of-work coin mining",
+      "description": "Race simulated miners, then explore block production and difficulty adjustment.",
+      "versions": {
+        "early-work": [],
+        "pilot": [
+          {
+            "sync_keys": [],
+            "id": "index",
+            "title": "Proof\u2011of\u2011Work Coin Mining \u2014 Classroom Simulator",
+            "source": "snapshots/pilot/assets/labs/POW_mining_micro/index.html",
+            "url": "snapshots/pilot/assets/labs/POW_mining_micro/index.html",
+            "digest": "1671e02828a00dbc12d341e1d5c1d7902ecdeac4d42e2fbd400b6af8b2ada351",
+            "format": "HTML",
+            "comparison_digest": "1671e02828a00dbc12d341e1d5c1d7902ecdeac4d42e2fbd400b6af8b2ada351",
+            "also_in": [
+              "pre-group-review"
+            ],
+            "equivalent_sources": [
+              "snapshots/pre-group-review/assets/labs/POW_mining_micro/index.html"
+            ]
+          }
+        ],
+        "pre-group-review": [],
+        "final": [
+          {
+            "sync_keys": [],
+            "id": "index",
+            "title": "Proof\u2011of\u2011Work Coin Mining \u2014 Classroom Simulator",
+            "source": "snapshots/final/assets/labs/POW_mining_micro/index.html",
+            "url": "snapshots/final/assets/labs/POW_mining_micro/index.html",
+            "digest": "c8dd5c64300840f564588cfef33e95f1f26d65a2b9e968485e520582652f2280",
+            "format": "HTML",
+            "comparison_digest": "c8dd5c64300840f564588cfef33e95f1f26d65a2b9e968485e520582652f2280",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "smart-contract",
+      "title": "Smart-contract execution",
+      "description": "Step through contract calls, state changes, and a reentrancy attack.",
+      "versions": {
+        "early-work": [],
+        "pilot": [
+          {
+            "sync_keys": [],
+            "id": "index",
+            "title": "Ethereum Smart Contracts \u2014 Interactive Micro\u2011Lab (Offline)",
+            "source": "snapshots/pilot/assets/labs/ether-smart-contract-micro/index.html",
+            "url": "snapshots/pilot/assets/labs/ether-smart-contract-micro/index.html",
+            "digest": "dadeb231f2bdbf2b7997559907a2fed73a4626faa36dab2e5febc8ebbaab14cf",
+            "format": "HTML",
+            "comparison_digest": "dadeb231f2bdbf2b7997559907a2fed73a4626faa36dab2e5febc8ebbaab14cf",
+            "also_in": [
+              "pre-group-review"
+            ],
+            "equivalent_sources": [
+              "snapshots/pre-group-review/assets/labs/ether-smart-contract-micro/index.html"
+            ]
+          }
+        ],
+        "pre-group-review": [],
+        "final": [
+          {
+            "sync_keys": [],
+            "id": "index",
+            "title": "Smart Contract Execution Lab",
+            "source": "snapshots/final/assets/labs/ether-smart-contract-micro/index.html",
+            "url": "snapshots/final/assets/labs/ether-smart-contract-micro/index.html",
+            "digest": "69bb00e38c141a1a71664c4d89cc6c46e053c49c668cef6679e4a5dd229604e2",
+            "format": "HTML",
+            "comparison_digest": "69bb00e38c141a1a71664c4d89cc6c46e053c49c668cef6679e4a5dd229604e2",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "mev",
+      "title": "MEV, builders, and relays",
+      "description": "Build and order a block, compare builder bids, and choose a proposer policy.",
+      "versions": {
+        "early-work": [],
+        "pilot": [
+          {
+            "sync_keys": [],
+            "id": "mev_builders",
+            "title": "Micro\u2011Lab: Proposer Strategy with Builders, Relays, and MEV",
+            "source": "snapshots/pilot/assets/labs/ether_mev/mev_builders.html",
+            "url": "snapshots/pilot/assets/labs/ether_mev/mev_builders.html",
+            "digest": "b7d30f09826a6ceb3ee9fa16c9bab02ca36b3051b3e507772ff14af6b0bcb45c",
+            "format": "HTML",
+            "comparison_digest": "b7d30f09826a6ceb3ee9fa16c9bab02ca36b3051b3e507772ff14af6b0bcb45c",
+            "also_in": [
+              "pre-group-review"
+            ],
+            "equivalent_sources": [
+              "snapshots/pre-group-review/assets/labs/ether_mev/mev_builders.html"
+            ]
+          }
+        ],
+        "pre-group-review": [],
+        "final": [
+          {
+            "sync_keys": [],
+            "id": "mev_builders",
+            "title": "Micro\u2011Lab: Proposer Strategy with Builders, Relays, and MEV",
+            "source": "snapshots/final/assets/labs/ether_mev/mev_builders.html",
+            "url": "snapshots/final/assets/labs/ether_mev/mev_builders.html",
+            "digest": "c24366fc3c42025a060ce05677d82ae1d1627e2d68f0d21c11eb685c02a876ac",
+            "format": "HTML",
+            "comparison_digest": "c24366fc3c42025a060ce05677d82ae1d1627e2d68f0d21c11eb685c02a876ac",
+            "also_in": [],
+            "equivalent_sources": []
+          }
+        ]
+      }
+    }
+  ]
+}

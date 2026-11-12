@@ -1,0 +1,16 @@
+/* Post-instruction accuracy review annotations for the final snapshot. */
+.reveal .accuracy-flag {
+  border: 2px solid #b42318;
+  border-radius: 2px;
+  padding: 0.02em 0.12em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.accuracy-review-note {
+  border-left: 3px solid #b42318;
+  padding-left: 0.75em;
+  margin-top: 1em;
+}
+@media print {
+  .reveal .accuracy-flag { border-color: #8d170f; }
+}

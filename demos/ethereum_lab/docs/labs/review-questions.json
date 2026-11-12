@@ -1,0 +1,2648 @@
+[
+  {
+    "question": "What fundamental problem does blockchain solve?",
+    "options": [
+      "Fast payments",
+      "Trust without central authority",
+      "Free transactions",
+      "Anonymous browsing"
+    ]
+  },
+  {
+    "question": "In traditional finance, who verifies that transactions are legitimate?",
+    "options": [
+      "The sender",
+      "The receiver",
+      "Banks and financial institutions",
+      "Nobody"
+    ]
+  },
+  {
+    "question": "What is the main drawback of relying on banks for trust?",
+    "options": [
+      "They charge fees",
+      "They can freeze accounts, make mistakes, or get hacked",
+      "They're too slow",
+      "They only work on weekdays"
+    ]
+  },
+  {
+    "question": "In the village ledger thought experiment, how is truth established?",
+    "options": [
+      "The chief decides",
+      "Everyone keeps the same copy of the ledger",
+      "The richest person decides",
+      "Voting once per year"
+    ]
+  },
+  {
+    "question": "What happens when two people in a decentralized system disagree about a transaction?",
+    "options": [
+      "The richest person decides",
+      "A central authority decides",
+      "The network reaches consensus",
+      "The transaction is cancelled"
+    ]
+  },
+  {
+    "question": "Why is 'trustless' considered a positive term in blockchain?",
+    "options": [
+      "You don't need friends",
+      "You don't need to trust any single entity",
+      "Nobody can be trusted",
+      "Trust is bad"
+    ]
+  },
+  {
+    "question": "In the village ledger analogy, what problem does Mallory represent?",
+    "options": [
+      "Slow transactions",
+      "Someone trying to cheat the system",
+      "High fees",
+      "Technical errors"
+    ]
+  },
+  {
+    "question": "What would happen if everyone kept their own ledger without coordination?",
+    "options": [
+      "Perfect harmony",
+      "Conflicting records and chaos",
+      "Faster transactions",
+      "Lower fees"
+    ]
+  },
+  {
+    "question": "Which approach does Ethereum use to solve the trust problem?",
+    "options": [
+      "Trust the government",
+      "Voting + wealth-weighted + randomness + punishment",
+      "Ask the user",
+      "Single authority"
+    ]
+  },
+  {
+    "question": "In the village ledger, what happens when Alice pays Bob?",
+    "options": [
+      "Only Alice records it",
+      "Only Bob records it",
+      "Everyone in the village records it",
+      "The bank records it"
+    ]
+  },
+  {
+    "question": "What is a 'single point of failure'?",
+    "options": [
+      "A broken computer",
+      "One entity whose failure breaks the whole system",
+      "A software bug",
+      "A network timeout"
+    ]
+  },
+  {
+    "question": "Why do banks represent a single point of failure?",
+    "options": [
+      "They're too big",
+      "If they fail or act maliciously, your money is at risk",
+      "They have too many employees",
+      "They're open 24/7"
+    ]
+  },
+  {
+    "question": "What is the core question Chapter 1 asks?",
+    "options": [
+      "How fast is blockchain?",
+      "How do we trust without a central authority?",
+      "How much does it cost?",
+      "Who invented Bitcoin?"
+    ]
+  },
+  {
+    "question": "What does 'decentralized' mean in the context of blockchain?",
+    "options": [
+      "One computer runs everything",
+      "Many independent participants share control",
+      "Government-controlled",
+      "Only available in certain countries"
+    ]
+  },
+  {
+    "question": "In the village ledger analogy, why does everyone need the same copy?",
+    "options": [
+      "To save paper",
+      "So no single person can lie about transactions",
+      "It's cheaper",
+      "Legal requirement"
+    ]
+  },
+  {
+    "question": "What happens if Mallory tries to claim Alice paid her when she didn't?",
+    "options": [
+      "It works",
+      "Everyone else's ledger shows she's lying",
+      "The bank investigates",
+      "Nothing"
+    ]
+  },
+  {
+    "question": "Why can't you trust a single company with all financial records?",
+    "options": [
+      "They're too expensive",
+      "They can make mistakes, get hacked, or act maliciously",
+      "They're too slow",
+      "They don't want to"
+    ]
+  },
+  {
+    "question": "What is the key insight from the village ledger thought experiment?",
+    "options": [
+      "Banks are bad",
+      "Shared records prevent any single party from cheating",
+      "Villages are better than cities",
+      "Paper is better than digital"
+    ]
+  },
+  {
+    "question": "According to Chapter 1, Ethereum combines which four ideas?",
+    "options": [
+      "Speed, size, color, shape",
+      "Voting, wealth-weighting, randomness, and punishment",
+      "Banks, government, corporations, individuals",
+      "Morning, noon, evening, night"
+    ]
+  },
+  {
+    "question": "What does 'trustless' mean in blockchain?",
+    "options": [
+      "Nobody can be trusted",
+      "You don't need to trust any single entity to participate",
+      "The system doesn't work",
+      "Only criminals use it"
+    ]
+  },
+  {
+    "question": "What is a validator in Ethereum?",
+    "options": [
+      "A type of token",
+      "A participant who verifies and proposes blocks",
+      "A smart contract",
+      "A wallet type"
+    ]
+  },
+  {
+    "question": "How many validators are currently on Ethereum mainnet (approximately)?",
+    "options": [
+      "About 100",
+      "About 8,000",
+      "About 500,000+",
+      "About 10 million"
+    ]
+  },
+  {
+    "question": "What is the minimum ETH required to become a solo validator?",
+    "options": [
+      "1 ETH",
+      "16 ETH",
+      "32 ETH",
+      "100 ETH"
+    ]
+  },
+  {
+    "question": "What do validators receive in exchange for honest work?",
+    "options": [
+      "NFTs",
+      "Block rewards and transaction fees",
+      "Governance tokens",
+      "Nothing"
+    ]
+  },
+  {
+    "question": "What is a validator's 'attestation'?",
+    "options": [
+      "A certificate",
+      "A vote confirming a block is valid",
+      "A signature",
+      "A deposit"
+    ]
+  },
+  {
+    "question": "How often must validators attest?",
+    "options": [
+      "Once per day",
+      "Every epoch (approximately every 6.4 minutes)",
+      "Once per year",
+      "Whenever they want"
+    ]
+  },
+  {
+    "question": "What happens if a validator misses their attestation duty?",
+    "options": [
+      "Nothing",
+      "A small penalty is applied",
+      "Immediate slashing",
+      "Account deletion"
+    ]
+  },
+  {
+    "question": "What's the difference between a validator and a miner?",
+    "options": [
+      "Nothing",
+      "Validators stake ETH; miners use computing power",
+      "Miners are newer",
+      "Validators are older"
+    ]
+  },
+  {
+    "question": "Can one person run multiple validators?",
+    "options": [
+      "No, strictly one per person",
+      "Yes, with separate 32 ETH stakes each",
+      "Only up to 3",
+      "Only corporations can"
+    ]
+  },
+  {
+    "question": "What is a 'staking pool'?",
+    "options": [
+      "A swimming pool",
+      "A group pooling ETH to run validators together",
+      "A trading platform",
+      "A lending service"
+    ]
+  },
+  {
+    "question": "Why would someone use a staking pool instead of solo staking?",
+    "options": [
+      "Higher rewards",
+      "Less than 32 ETH required, less technical knowledge needed",
+      "Faster unstaking",
+      "No penalties"
+    ]
+  },
+  {
+    "question": "What is Lido in the context of staking?",
+    "options": [
+      "A beach",
+      "A popular liquid staking protocol",
+      "A hardware wallet",
+      "An exchange"
+    ]
+  },
+  {
+    "question": "What is 'liquid staking'?",
+    "options": [
+      "Staking while swimming",
+      "Receiving tradeable tokens representing staked ETH",
+      "Fast staking",
+      "Emergency staking"
+    ]
+  },
+  {
+    "question": "What do you receive when staking through Lido?",
+    "options": [
+      "LIDO tokens",
+      "stETH (staked ETH tokens)",
+      "Nothing",
+      "Governance votes"
+    ]
+  },
+  {
+    "question": "What hardware is needed to run a validator?",
+    "options": [
+      "Specialized ASICs",
+      "A regular computer with good internet",
+      "Supercomputer",
+      "Quantum computer"
+    ]
+  },
+  {
+    "question": "What is the 'beacon chain'?",
+    "options": [
+      "A navigation tool",
+      "The consensus layer coordinating validators",
+      "A sidechain",
+      "A bridge"
+    ]
+  },
+  {
+    "question": "When did Ethereum transition to Proof of Stake?",
+    "options": [
+      "2015",
+      "2020",
+      "September 2022 (The Merge)",
+      "2025"
+    ]
+  },
+  {
+    "question": "What was 'The Merge'?",
+    "options": [
+      "Company merger",
+      "Transition from PoW to PoS",
+      "Chain split",
+      "Hard fork"
+    ]
+  },
+  {
+    "question": "What happens during a 'validator exit'?",
+    "options": [
+      "The validator quits immediately",
+      "A queue process to withdraw stake",
+      "Funds are burned",
+      "Account is deleted"
+    ]
+  },
+  {
+    "question": "Why is there an exit queue for validators?",
+    "options": [
+      "To annoy users",
+      "To maintain network stability",
+      "Legal requirement",
+      "Technical limitation"
+    ]
+  },
+  {
+    "question": "What is 'validator effective balance'?",
+    "options": [
+      "Total ETH owned",
+      "The balance counted for rewards (max 32 ETH)",
+      "Pending balance",
+      "Borrowed balance"
+    ]
+  },
+  {
+    "question": "Why is effective balance capped at 32 ETH?",
+    "options": [
+      "Arbitrary rule",
+      "To encourage decentralization",
+      "Technical limitation",
+      "Legal requirement"
+    ]
+  },
+  {
+    "question": "What is a 'validator index'?",
+    "options": [
+      "A rating",
+      "A unique ID number for each validator",
+      "A score",
+      "A ranking"
+    ]
+  },
+  {
+    "question": "Can validators communicate directly with each other?",
+    "options": [
+      "Yes, through email",
+      "Yes, through the P2P gossip network",
+      "No, never",
+      "Only through Ethereum Foundation"
+    ]
+  },
+  {
+    "question": "What is 'validator client' software?",
+    "options": [
+      "A customer",
+      "Software that runs validator operations",
+      "A web browser",
+      "A mobile app"
+    ]
+  },
+  {
+    "question": "What is 'stake' in Proof of Stake?",
+    "options": [
+      "A wooden post",
+      "ETH locked as collateral",
+      "A type of meat",
+      "A game"
+    ]
+  },
+  {
+    "question": "Why must validators lock up ETH?",
+    "options": [
+      "To prove they're rich",
+      "To create economic incentive for honest behavior",
+      "Tax purposes",
+      "Tradition"
+    ]
+  },
+  {
+    "question": "What is the approximate APY for ETH staking?",
+    "options": [
+      "0.1%",
+      "3-5%",
+      "50%",
+      "100%"
+    ]
+  },
+  {
+    "question": "Why does staking APY vary?",
+    "options": [
+      "Random",
+      "It depends on total ETH staked network-wide",
+      "Exchange manipulation",
+      "Government regulation"
+    ]
+  },
+  {
+    "question": "If more people stake, what happens to individual rewards?",
+    "options": [
+      "They increase",
+      "They decrease (dilution)",
+      "They stay the same",
+      "They become random"
+    ]
+  },
+  {
+    "question": "What is 'issuance' in Ethereum?",
+    "options": [
+      "Printing newspapers",
+      "New ETH created as block rewards",
+      "Token burning",
+      "Transaction fees"
+    ]
+  },
+  {
+    "question": "How did The Merge affect Ethereum's energy consumption?",
+    "options": [
+      "Increased 10x",
+      "Decreased ~99.95%",
+      "No change",
+      "Increased slightly"
+    ]
+  },
+  {
+    "question": "What is EIP-1559?",
+    "options": [
+      "A phone model",
+      "Fee market change that burns base fees",
+      "A validator rule",
+      "A staking pool"
+    ]
+  },
+  {
+    "question": "What does 'ultrasound money' refer to?",
+    "options": [
+      "Sound effects",
+      "ETH potentially becoming deflationary",
+      "A podcast",
+      "Audio NFTs"
+    ]
+  },
+  {
+    "question": "When is ETH deflationary?",
+    "options": [
+      "Always",
+      "When burn rate exceeds issuance rate",
+      "Never",
+      "Only on weekends"
+    ]
+  },
+  {
+    "question": "What is the 'base fee' in Ethereum transactions?",
+    "options": [
+      "Fixed cost",
+      "Dynamic fee that gets burned",
+      "Optional tip",
+      "Gas limit"
+    ]
+  },
+  {
+    "question": "What is the 'priority fee' (tip)?",
+    "options": [
+      "Mandatory fee",
+      "Optional payment to validators for faster inclusion",
+      "Burned fee",
+      "Network fee"
+    ]
+  },
+  {
+    "question": "Where do validator tips go?",
+    "options": [
+      "Ethereum Foundation",
+      "Directly to the block proposer",
+      "Burned",
+      "Staking pools"
+    ]
+  },
+  {
+    "question": "What is MEV (Maximal Extractable Value)?",
+    "options": [
+      "A token",
+      "Extra profit from transaction ordering",
+      "A staking method",
+      "A wallet type"
+    ]
+  },
+  {
+    "question": "How can validators extract MEV?",
+    "options": [
+      "Hacking",
+      "Reordering, inserting, or censoring transactions",
+      "Printing money",
+      "Voting"
+    ]
+  },
+  {
+    "question": "Is MEV extraction considered ethical?",
+    "options": [
+      "Always ethical",
+      "Controversial - some forms harm users",
+      "Always unethical",
+      "Not relevant"
+    ]
+  },
+  {
+    "question": "What is a 'block builder' in PBS (Proposer-Builder Separation)?",
+    "options": [
+      "Construction worker",
+      "Entity that assembles transaction bundles",
+      "Validator type",
+      "Developer"
+    ]
+  },
+  {
+    "question": "Why was PBS introduced?",
+    "options": [
+      "To increase fees",
+      "To democratize MEV and reduce centralization",
+      "To slow down blocks",
+      "Legal compliance"
+    ]
+  },
+  {
+    "question": "What is 'validator effective stake'?",
+    "options": [
+      "Total holdings",
+      "The stake amount counted for protocol purposes",
+      "Pending stake",
+      "Delegated stake"
+    ]
+  },
+  {
+    "question": "What happens to rewards if a validator goes offline briefly?",
+    "options": [
+      "Full slashing",
+      "Small inactivity penalty",
+      "Reward bonus",
+      "Nothing"
+    ]
+  },
+  {
+    "question": "What is the 'inactivity leak'?",
+    "options": [
+      "Data breach",
+      "Accelerated penalties during finality failure",
+      "Memory leak",
+      "Gas leak"
+    ]
+  },
+  {
+    "question": "When does the inactivity leak activate?",
+    "options": [
+      "Every block",
+      "When the chain fails to finalize for >4 epochs",
+      "Never",
+      "Daily"
+    ]
+  },
+  {
+    "question": "What's the purpose of the inactivity leak?",
+    "options": [
+      "Punishment",
+      "To restore finality by reducing inactive stake",
+      "Revenue generation",
+      "Testing"
+    ]
+  },
+  {
+    "question": "How long is the unbonding period for validators?",
+    "options": [
+      "Instant",
+      "About 27 hours minimum (256 epochs)",
+      "1 year",
+      "Forever"
+    ]
+  },
+  {
+    "question": "Why is there an unbonding period?",
+    "options": [
+      "To annoy users",
+      "Security - ensures accountability for past actions",
+      "Technical limitation",
+      "Tradition"
+    ]
+  },
+  {
+    "question": "How is a block proposer selected in Ethereum PoS?",
+    "options": [
+      "First come first serve",
+      "Weighted random selection based on stake",
+      "Highest stake always wins",
+      "Alphabetical order"
+    ]
+  },
+  {
+    "question": "What is RANDAO?",
+    "options": [
+      "A company",
+      "Randomness beacon using validator reveals",
+      "A token",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "Why is randomness important in validator selection?",
+    "options": [
+      "Entertainment",
+      "Prevents manipulation and ensures fairness",
+      "Faster processing",
+      "Lower fees"
+    ]
+  },
+  {
+    "question": "Can a validator predict when they'll be selected?",
+    "options": [
+      "Yes, exactly",
+      "Partially - they know their slot assignment one epoch ahead",
+      "Never",
+      "Always"
+    ]
+  },
+  {
+    "question": "What is a 'slot' in Ethereum?",
+    "options": [
+      "A casino game",
+      "A 12-second window for block production",
+      "A validator type",
+      "A transaction"
+    ]
+  },
+  {
+    "question": "What is an 'epoch'?",
+    "options": [
+      "A time period",
+      "32 slots (~6.4 minutes)",
+      "A validator group",
+      "A block type"
+    ]
+  },
+  {
+    "question": "How many slots are in one epoch?",
+    "options": [
+      "10",
+      "32",
+      "100",
+      "256"
+    ]
+  },
+  {
+    "question": "What is a 'committee' in Ethereum PoS?",
+    "options": [
+      "A board meeting",
+      "A group of validators assigned to attest to a slot",
+      "A staking pool",
+      "A governance body"
+    ]
+  },
+  {
+    "question": "How are validators assigned to committees?",
+    "options": [
+      "They choose",
+      "Pseudo-random shuffling each epoch",
+      "First come first serve",
+      "Alphabetically"
+    ]
+  },
+  {
+    "question": "What is the 'beacon block root'?",
+    "options": [
+      "A plant",
+      "Hash linking to the beacon chain state",
+      "A validator ID",
+      "A transaction"
+    ]
+  },
+  {
+    "question": "If Alice has 64 ETH staked (2 validators) and Bob has 32 ETH (1 validator), what's Alice's relative selection probability?",
+    "options": [
+      "Same as Bob",
+      "Twice as likely as Bob",
+      "Three times as likely",
+      "Half as likely"
+    ]
+  },
+  {
+    "question": "What prevents a wealthy attacker from controlling validator selection?",
+    "options": [
+      "Nothing",
+      "Randomness combined with economic penalties",
+      "Government oversight",
+      "Community voting"
+    ]
+  },
+  {
+    "question": "What is 'grinding' in the context of RANDAO?",
+    "options": [
+      "Coffee preparation",
+      "Attempting to manipulate randomness by skipping blocks",
+      "Mining",
+      "Staking"
+    ]
+  },
+  {
+    "question": "Why is RANDAO grinding costly?",
+    "options": [
+      "High fees",
+      "Proposer forfeits block reward when skipping",
+      "Legal penalties",
+      "Community shame"
+    ]
+  },
+  {
+    "question": "What is VDF (Verifiable Delay Function)?",
+    "options": [
+      "A formula",
+      "Future randomness improvement requiring time to compute",
+      "A token",
+      "A validator type"
+    ]
+  },
+  {
+    "question": "What is 'single secret leader election' (SSLE)?",
+    "options": [
+      "A voting method",
+      "Hiding proposer identity until block publication",
+      "A staking pool",
+      "A governance method"
+    ]
+  },
+  {
+    "question": "Why would SSLE be beneficial?",
+    "options": [
+      "Faster blocks",
+      "Prevents targeted DoS attacks on proposers",
+      "Higher rewards",
+      "Lower stake requirement"
+    ]
+  },
+  {
+    "question": "What happens if the selected proposer is offline?",
+    "options": [
+      "Chain halts",
+      "The slot is skipped, next proposer continues",
+      "Emergency election",
+      "Backup proposer"
+    ]
+  },
+  {
+    "question": "How does stake weight affect attestation duties?",
+    "options": [
+      "No effect",
+      "Higher stake = more attestation assignments",
+      "Lower stake = more duties",
+      "Random"
+    ]
+  },
+  {
+    "question": "What is 'sync committee' duty?",
+    "options": [
+      "Tech support",
+      "Special validator group helping light clients",
+      "Debugging",
+      "Testing"
+    ]
+  },
+  {
+    "question": "How often are sync committees rotated?",
+    "options": [
+      "Every block",
+      "Every ~27 hours (256 epochs)",
+      "Never",
+      "Daily"
+    ]
+  },
+  {
+    "question": "What rewards do sync committee members receive?",
+    "options": [
+      "Nothing extra",
+      "Higher rewards for the duty period",
+      "Lower rewards",
+      "Negative rewards"
+    ]
+  },
+  {
+    "question": "Can the same validator be on multiple committees simultaneously?",
+    "options": [
+      "Never",
+      "Yes, potentially",
+      "Only if staking 64+ ETH",
+      "Only institutions"
+    ]
+  },
+  {
+    "question": "What is 'proposer boost'?",
+    "options": [
+      "Energy drink",
+      "Extra weight given to timely block proposals in fork choice",
+      "Faster hardware",
+      "Higher stake"
+    ]
+  },
+  {
+    "question": "Why was proposer boost introduced?",
+    "options": [
+      "To favor rich validators",
+      "To prevent balancing attacks and strengthen fork choice",
+      "To slow down blocks",
+      "Cosmetic change"
+    ]
+  },
+  {
+    "question": "What is slashing?",
+    "options": [
+      "Price reduction",
+      "Penalty destroying validator stake for misbehavior",
+      "A trading strategy",
+      "Account deletion"
+    ]
+  },
+  {
+    "question": "What is 'double signing' (equivocation)?",
+    "options": [
+      "Signing twice",
+      "Signing two conflicting blocks/attestations for same slot",
+      "Using two keys",
+      "Multi-sig"
+    ]
+  },
+  {
+    "question": "Why is double signing slashable?",
+    "options": [
+      "It's annoying",
+      "It's an attempt to create conflicting chain history",
+      "It wastes energy",
+      "It's slow"
+    ]
+  },
+  {
+    "question": "What is a 'surround vote'?",
+    "options": [
+      "Voting method",
+      "Attestation that wraps around (surrounds) a previous one",
+      "Election",
+      "Consensus rule"
+    ]
+  },
+  {
+    "question": "Why are surround votes slashable?",
+    "options": [
+      "They're confusing",
+      "They attempt to finalize conflicting checkpoints",
+      "They're slow",
+      "They waste gas"
+    ]
+  },
+  {
+    "question": "What's the minimum slashing penalty?",
+    "options": [
+      "0%",
+      "1/32 of stake (about 1 ETH)",
+      "50%",
+      "100%"
+    ]
+  },
+  {
+    "question": "What is the 'correlation penalty'?",
+    "options": [
+      "Statistical measure",
+      "Extra slashing if many validators slash together",
+      "Reward bonus",
+      "Network metric"
+    ]
+  },
+  {
+    "question": "Why does correlation penalty exist?",
+    "options": [
+      "To punish individuals",
+      "To heavily penalize coordinated attacks",
+      "Revenue generation",
+      "Random rule"
+    ]
+  },
+  {
+    "question": "If 1/3 of validators are slashed simultaneously, what's the penalty?",
+    "options": [
+      "1/32",
+      "Full stake (100%)",
+      "Nothing",
+      "Half"
+    ]
+  },
+  {
+    "question": "What is the 'slasher' client?",
+    "options": [
+      "A weapon",
+      "Software monitoring for slashable offenses",
+      "A validator",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "Who can submit slashing evidence?",
+    "options": [
+      "Only Ethereum Foundation",
+      "Any network participant",
+      "Only validators",
+      "Only exchanges"
+    ]
+  },
+  {
+    "question": "What reward does the slashing reporter receive?",
+    "options": [
+      "Nothing",
+      "A portion of the slashed stake",
+      "The full stake",
+      "Negative reward"
+    ]
+  },
+  {
+    "question": "What is 'slashing protection'?",
+    "options": [
+      "Insurance",
+      "Database preventing accidental self-slashing",
+      "Legal protection",
+      "Community guidelines"
+    ]
+  },
+  {
+    "question": "Why might a validator accidentally double-sign?",
+    "options": [
+      "They're malicious",
+      "Running same keys on two machines simultaneously",
+      "Bad luck",
+      "Network error"
+    ]
+  },
+  {
+    "question": "What happens to slashed validators?",
+    "options": [
+      "They continue normally",
+      "Forced exit with penalties over time",
+      "Immediate removal",
+      "Account freeze"
+    ]
+  },
+  {
+    "question": "How long after slashing can a validator withdraw remaining funds?",
+    "options": [
+      "Immediately",
+      "After about 36 days (8192 epochs)",
+      "Never",
+      "1 year"
+    ]
+  },
+  {
+    "question": "Can a slashed validator ever validate again with the same keys?",
+    "options": [
+      "Yes, after appeal",
+      "No, those keys are permanently exited",
+      "Yes, after paying fee",
+      "Depends on offense"
+    ]
+  },
+  {
+    "question": "What is 'doppelganger detection'?",
+    "options": [
+      "Clone finding",
+      "Protection against running duplicate validators",
+      "Attack type",
+      "Network monitoring"
+    ]
+  },
+  {
+    "question": "Is slashing automatic or does it require human intervention?",
+    "options": [
+      "Requires court order",
+      "Automatic via protocol rules",
+      "Community vote",
+      "Foundation approval"
+    ]
+  },
+  {
+    "question": "What makes slashing 'credible'?",
+    "options": [
+      "Threats",
+      "It's actually enforced by code, not promises",
+      "Legal backing",
+      "Insurance"
+    ]
+  },
+  {
+    "question": "Can validators be slashed for being offline?",
+    "options": [
+      "Yes, immediately",
+      "No, only inactivity penalties (not slashing)",
+      "Yes, after 1 day",
+      "Random"
+    ]
+  },
+  {
+    "question": "What's the difference between slashing and inactivity penalty?",
+    "options": [
+      "Same thing",
+      "Slashing is for malicious acts; inactivity is for being offline",
+      "Slashing is smaller",
+      "No difference"
+    ]
+  },
+  {
+    "question": "What is 'weak subjectivity'?",
+    "options": [
+      "Philosophical concept",
+      "Nodes need recent checkpoint to avoid long-range attacks",
+      "Network weakness",
+      "User interface"
+    ]
+  },
+  {
+    "question": "How does slashing protect against long-range attacks?",
+    "options": [
+      "It doesn't",
+      "Old attackers would have been slashed, making keys worthless",
+      "Through encryption",
+      "Via backups"
+    ]
+  },
+  {
+    "question": "Why is the slashing penalty designed to be proportional to other slashings?",
+    "options": [
+      "Fairness",
+      "Disincentivizes coordinated attacks more than accidents",
+      "Revenue optimization",
+      "Random choice"
+    ]
+  },
+  {
+    "question": "What is 'consensus' in blockchain?",
+    "options": [
+      "Agreement on valid state",
+      "A conference",
+      "A voting app",
+      "A token"
+    ]
+  },
+  {
+    "question": "What is Ethereum's consensus mechanism called?",
+    "options": [
+      "Nakamoto Consensus",
+      "Gasper (LMD GHOST + Casper FFG)",
+      "Tendermint",
+      "Raft"
+    ]
+  },
+  {
+    "question": "What does LMD GHOST stand for?",
+    "options": [
+      "A horror movie",
+      "Latest Message Driven Greediest Heaviest Observed SubTree",
+      "A validator name",
+      "A token"
+    ]
+  },
+  {
+    "question": "What does LMD GHOST do?",
+    "options": [
+      "Ghost hunting",
+      "Fork choice - picks the chain with most support",
+      "Block production",
+      "Slashing"
+    ]
+  },
+  {
+    "question": "What is Casper FFG?",
+    "options": [
+      "A ghost",
+      "Finality gadget that makes blocks permanent",
+      "A validator",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "What does FFG stand for?",
+    "options": [
+      "Fast Finality Guarantee",
+      "Friendly Finality Gadget",
+      "Final Fork Guard",
+      "First-come First-go"
+    ]
+  },
+  {
+    "question": "What is a 'checkpoint' in Casper?",
+    "options": [
+      "A save point",
+      "First block of each epoch used for finality",
+      "A validator ID",
+      "A transaction type"
+    ]
+  },
+  {
+    "question": "What is 'justification'?",
+    "options": [
+      "Legal defense",
+      "When 2/3 of stake attests to a checkpoint",
+      "Account verification",
+      "Fee payment"
+    ]
+  },
+  {
+    "question": "What is 'finalization'?",
+    "options": [
+      "Ending something",
+      "When a justified block's child is also justified",
+      "Block deletion",
+      "Transaction completion"
+    ]
+  },
+  {
+    "question": "How much stake must attest for justification?",
+    "options": [
+      "50%",
+      "66.7% (2/3)",
+      "90%",
+      "100%"
+    ]
+  },
+  {
+    "question": "Why 2/3 threshold specifically?",
+    "options": [
+      "Arbitrary",
+      "Byzantine fault tolerance requires >2/3 honest majority",
+      "Marketing",
+      "Tradition"
+    ]
+  },
+  {
+    "question": "Can a finalized block ever be reverted?",
+    "options": [
+      "Yes, easily",
+      "Only with 1/3 stake slashed (economic finality)",
+      "Never under any circumstances",
+      "Daily resets"
+    ]
+  },
+  {
+    "question": "What is 'economic finality'?",
+    "options": [
+      "Financial term",
+      "Reversal requires destroying significant stake value",
+      "Budget planning",
+      "Fee structure"
+    ]
+  },
+  {
+    "question": "How long until a transaction is finalized?",
+    "options": [
+      "Instant",
+      "About 12-15 minutes (2-3 epochs)",
+      "1 hour",
+      "1 day"
+    ]
+  },
+  {
+    "question": "What is a 'fork' in blockchain?",
+    "options": [
+      "Eating utensil",
+      "Chain split where two valid blocks exist",
+      "A transaction",
+      "A validator"
+    ]
+  },
+  {
+    "question": "What causes forks?",
+    "options": [
+      "Bugs only",
+      "Network delays, simultaneous proposals, or attacks",
+      "User error",
+      "Hardware failure"
+    ]
+  },
+  {
+    "question": "How does LMD GHOST resolve forks?",
+    "options": [
+      "Random selection",
+      "Following the subtree with most recent attestations",
+      "Oldest block wins",
+      "Smallest block wins"
+    ]
+  },
+  {
+    "question": "What is a 'reorg' (reorganization)?",
+    "options": [
+      "Company restructuring",
+      "Chain switching to a different fork as canonical",
+      "Block deletion",
+      "Account merge"
+    ]
+  },
+  {
+    "question": "Are reorgs normal in Ethereum?",
+    "options": [
+      "Never happen",
+      "Small reorgs (1-2 blocks) happen, deep reorgs are rare",
+      "Every block",
+      "Only during attacks"
+    ]
+  },
+  {
+    "question": "What is 'probabilistic finality'?",
+    "options": [
+      "Statistics",
+      "Confidence increasing over time (PoW style)",
+      "Random finality",
+      "Maybe-finality"
+    ]
+  },
+  {
+    "question": "How does Ethereum's finality differ from Bitcoin's?",
+    "options": [
+      "Same",
+      "Ethereum has deterministic finality; Bitcoin has probabilistic",
+      "Bitcoin is faster",
+      "No difference"
+    ]
+  },
+  {
+    "question": "What is 'safety' in consensus?",
+    "options": [
+      "Security guards",
+      "Honest nodes agree on same blocks",
+      "Password protection",
+      "Insurance"
+    ]
+  },
+  {
+    "question": "What is 'liveness' in consensus?",
+    "options": [
+      "Being alive",
+      "Network continues making progress",
+      "User activity",
+      "Online status"
+    ]
+  },
+  {
+    "question": "What's the tradeoff between safety and liveness?",
+    "options": [
+      "No tradeoff",
+      "Prioritizing one may temporarily sacrifice the other",
+      "Both always optimal",
+      "Neither matters"
+    ]
+  },
+  {
+    "question": "What does Ethereum prioritize: safety or liveness?",
+    "options": [
+      "Liveness always",
+      "Safety during normal operation, liveness recovery via inactivity leak",
+      "Neither",
+      "Both equally always"
+    ]
+  },
+  {
+    "question": "What is a '51% attack'?",
+    "options": [
+      "Discount sale",
+      "Controlling majority of network power/stake",
+      "A game",
+      "A token"
+    ]
+  },
+  {
+    "question": "How much would a 51% attack on Ethereum cost?",
+    "options": [
+      "$1,000",
+      "Tens of billions of dollars",
+      "$1 million",
+      "Free"
+    ]
+  },
+  {
+    "question": "Why is 51% attack harder in PoS than PoW?",
+    "options": [
+      "Same difficulty",
+      "Attacker must OWN stake vs rent mining power",
+      "PoS is weaker",
+      "More validators"
+    ]
+  },
+  {
+    "question": "What is a 'long-range attack'?",
+    "options": [
+      "Distance running",
+      "Creating alternative history from old blocks",
+      "Network attack",
+      "DDoS"
+    ]
+  },
+  {
+    "question": "How does PoS defend against long-range attacks?",
+    "options": [
+      "Can't defend",
+      "Weak subjectivity checkpoints and slashing",
+      "More validators",
+      "Encryption"
+    ]
+  },
+  {
+    "question": "What is a 'nothing at stake' problem?",
+    "options": [
+      "Poverty",
+      "PoS validators can vote on multiple forks costlessly",
+      "Empty wallets",
+      "No rewards"
+    ]
+  },
+  {
+    "question": "How does Ethereum solve nothing at stake?",
+    "options": [
+      "Can't solve",
+      "Slashing penalties for conflicting votes",
+      "Ignoring it",
+      "Community rules"
+    ]
+  },
+  {
+    "question": "What is a 'balancing attack'?",
+    "options": [
+      "Gymnastics",
+      "Keeping the network split between two forks",
+      "Budget attack",
+      "Token manipulation"
+    ]
+  },
+  {
+    "question": "What defends against balancing attacks?",
+    "options": [
+      "Nothing",
+      "Proposer boost and attestation deadlines",
+      "More validators",
+      "Higher fees"
+    ]
+  },
+  {
+    "question": "What is a 'grinding attack' on randomness?",
+    "options": [
+      "Coffee making",
+      "Manipulating RANDAO by selective block production",
+      "Hardware attack",
+      "Spam attack"
+    ]
+  },
+  {
+    "question": "What is a 'censorship attack'?",
+    "options": [
+      "Book banning",
+      "Validators refusing to include certain transactions",
+      "Network filtering",
+      "Content moderation"
+    ]
+  },
+  {
+    "question": "How does Ethereum resist censorship?",
+    "options": [
+      "Can't resist",
+      "Decentralization and proposer rotation",
+      "Legal protection",
+      "Community guidelines"
+    ]
+  },
+  {
+    "question": "What is 'OFAC compliance' controversy?",
+    "options": [
+      "Tax rule",
+      "US sanctions and whether validators must censor",
+      "Protocol upgrade",
+      "Governance vote"
+    ]
+  },
+  {
+    "question": "What percentage of blocks complied with OFAC after The Merge (peak)?",
+    "options": [
+      "0%",
+      "Over 70% at peak",
+      "100%",
+      "25%"
+    ]
+  },
+  {
+    "question": "What is a 'finality delay attack'?",
+    "options": [
+      "Slow finality",
+      "Preventing network from reaching finality",
+      "Transaction delay",
+      "Upgrade delay"
+    ]
+  },
+  {
+    "question": "What triggers inactivity leak as defense?",
+    "options": [
+      "User request",
+      "Chain not finalizing for 4+ epochs",
+      "Daily schedule",
+      "Random"
+    ]
+  },
+  {
+    "question": "What is a 'bouncing attack'?",
+    "options": [
+      "Ball game",
+      "Repeatedly switching between chain heads",
+      "Network ping",
+      "Token trading"
+    ]
+  },
+  {
+    "question": "What is 'Proposer-Builder Separation' (PBS)?",
+    "options": [
+      "Construction term",
+      "Separating who builds vs proposes blocks",
+      "Team structure",
+      "Protocol split"
+    ]
+  },
+  {
+    "question": "How does PBS help decentralization?",
+    "options": [
+      "It doesn't",
+      "Separates MEV extraction from validation",
+      "More validators",
+      "Lower stake"
+    ]
+  },
+  {
+    "question": "What is a 'sandwich attack'?",
+    "options": [
+      "Food",
+      "Front and back-running a user's trade",
+      "Network attack",
+      "Consensus attack"
+    ]
+  },
+  {
+    "question": "Who typically performs sandwich attacks?",
+    "options": [
+      "Hackers",
+      "MEV searchers/bots",
+      "Validators only",
+      "Exchanges"
+    ]
+  },
+  {
+    "question": "What is 'front-running'?",
+    "options": [
+      "Racing",
+      "Placing transaction ahead of known pending transaction",
+      "Leading",
+      "First place"
+    ]
+  },
+  {
+    "question": "What is a 'time-bandit attack'?",
+    "options": [
+      "Time travel",
+      "Reorganizing chain to steal past MEV",
+      "Schedule attack",
+      "Clock manipulation"
+    ]
+  },
+  {
+    "question": "How does finality protect against time-bandit attacks?",
+    "options": [
+      "It doesn't",
+      "Finalized blocks cannot be reorganized economically",
+      "Encryption",
+      "More validators"
+    ]
+  },
+  {
+    "question": "What is 'chain quality' metric?",
+    "options": [
+      "Rating",
+      "Fraction of blocks from honest validators",
+      "Block size",
+      "Transaction speed"
+    ]
+  },
+  {
+    "question": "Who created Ethereum?",
+    "options": [
+      "Satoshi Nakamoto",
+      "Vitalik Buterin (with others)",
+      "Elon Musk",
+      "Mark Zuckerberg"
+    ]
+  },
+  {
+    "question": "When was Ethereum launched?",
+    "options": [
+      "2009",
+      "July 30, 2015",
+      "2020",
+      "2022"
+    ]
+  },
+  {
+    "question": "What consensus did Ethereum use before The Merge?",
+    "options": [
+      "Proof of Stake",
+      "Proof of Work",
+      "Proof of Authority",
+      "Proof of History"
+    ]
+  },
+  {
+    "question": "What is 'gas' in Ethereum?",
+    "options": [
+      "Fuel",
+      "Unit measuring computational work",
+      "A token",
+      "Network speed"
+    ]
+  },
+  {
+    "question": "What is the 'gas limit'?",
+    "options": [
+      "Price cap",
+      "Maximum gas allowed per block",
+      "User setting",
+      "Minimum fee"
+    ]
+  },
+  {
+    "question": "What happens if a transaction runs out of gas?",
+    "options": [
+      "Free execution",
+      "Transaction fails, gas is still consumed",
+      "Automatic refund",
+      "Nothing"
+    ]
+  },
+  {
+    "question": "What is a 'smart contract'?",
+    "options": [
+      "Legal agreement",
+      "Self-executing code on blockchain",
+      "A PDF",
+      "A lawyer"
+    ]
+  },
+  {
+    "question": "What language are most Ethereum smart contracts written in?",
+    "options": [
+      "Python",
+      "Solidity",
+      "JavaScript",
+      "C++"
+    ]
+  },
+  {
+    "question": "What is the 'EVM'?",
+    "options": [
+      "Electric vehicle",
+      "Ethereum Virtual Machine - smart contract runtime",
+      "Token type",
+      "Wallet"
+    ]
+  },
+  {
+    "question": "What is 'state' in Ethereum?",
+    "options": [
+      "Country",
+      "All account balances and contract storage",
+      "Network status",
+      "Transaction list"
+    ]
+  },
+  {
+    "question": "What is a 'nonce' in Ethereum transactions?",
+    "options": [
+      "A word",
+      "Transaction counter preventing replay",
+      "A token",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is the difference between ETH and ERC-20 tokens?",
+    "options": [
+      "Same thing",
+      "ETH is native; ERC-20 are smart contract tokens",
+      "ERC-20 is newer",
+      "ETH is token"
+    ]
+  },
+  {
+    "question": "What is an 'EOA'?",
+    "options": [
+      "Organization",
+      "Externally Owned Account (user wallet)",
+      "Token type",
+      "Contract type"
+    ]
+  },
+  {
+    "question": "How is an Ethereum address derived?",
+    "options": [
+      "Random",
+      "Hash of public key (last 20 bytes)",
+      "Sequential",
+      "User chosen"
+    ]
+  },
+  {
+    "question": "What is 'account abstraction'?",
+    "options": [
+      "Art concept",
+      "Making smart contracts act as accounts",
+      "Privacy feature",
+      "Scaling solution"
+    ]
+  },
+  {
+    "question": "What is EIP-4844 (Proto-Danksharding)?",
+    "options": [
+      "A game",
+      "Blob transactions for L2 scaling",
+      "Token standard",
+      "Wallet feature"
+    ]
+  },
+  {
+    "question": "What are 'blobs' in EIP-4844?",
+    "options": [
+      "Fish",
+      "Large data chunks for rollups with separate fee market",
+      "Tokens",
+      "Blocks"
+    ]
+  },
+  {
+    "question": "What is 'Danksharding'?",
+    "options": [
+      "Person's name",
+      "Full data availability sharding (future)",
+      "Current feature",
+      "Token"
+    ]
+  },
+  {
+    "question": "What is a 'rollup'?",
+    "options": [
+      "Exercise",
+      "L2 scaling executing transactions off-chain",
+      "Token type",
+      "Consensus type"
+    ]
+  },
+  {
+    "question": "What's the difference between optimistic and ZK rollups?",
+    "options": [
+      "Speed only",
+      "Fraud proofs vs validity proofs",
+      "Same thing",
+      "Token type"
+    ]
+  },
+  {
+    "question": "What is 'data availability' in rollups?",
+    "options": [
+      "Uptime",
+      "Ensuring L1 has data to verify L2 transactions",
+      "Storage",
+      "Bandwidth"
+    ]
+  },
+  {
+    "question": "What is the 'execution layer'?",
+    "options": [
+      "Management",
+      "Part of Ethereum processing transactions",
+      "Token layer",
+      "Storage"
+    ]
+  },
+  {
+    "question": "What is the 'consensus layer'?",
+    "options": [
+      "Agreement level",
+      "Part of Ethereum running PoS consensus",
+      "Marketing layer",
+      "User layer"
+    ]
+  },
+  {
+    "question": "What clients can run the consensus layer?",
+    "options": [
+      "Only one",
+      "Prysm, Lighthouse, Teku, Nimbus, Lodestar",
+      "Chrome",
+      "MetaMask"
+    ]
+  },
+  {
+    "question": "Why is client diversity important?",
+    "options": [
+      "Aesthetics",
+      "Prevents bugs in one client from causing consensus failures",
+      "Speed",
+      "Cost"
+    ]
+  },
+  {
+    "question": "What is DeFi?",
+    "options": [
+      "Defiance",
+      "Decentralized Finance - financial services on blockchain",
+      "A token",
+      "A company"
+    ]
+  },
+  {
+    "question": "What is a DEX?",
+    "options": [
+      "Dinosaur",
+      "Decentralized Exchange",
+      "A wallet",
+      "A token"
+    ]
+  },
+  {
+    "question": "What is Uniswap?",
+    "options": [
+      "A swap meet",
+      "Popular DEX using automated market makers",
+      "A token",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "What is 'liquidity' in DeFi?",
+    "options": [
+      "Water",
+      "Available assets for trading in pools",
+      "A token",
+      "Speed"
+    ]
+  },
+  {
+    "question": "What is 'yield farming'?",
+    "options": [
+      "Agriculture",
+      "Earning rewards by providing liquidity/staking",
+      "A game",
+      "Mining"
+    ]
+  },
+  {
+    "question": "What is an NFT?",
+    "options": [
+      "Token type",
+      "Non-Fungible Token - unique digital asset",
+      "A coin",
+      "A contract"
+    ]
+  },
+  {
+    "question": "What makes NFTs 'non-fungible'?",
+    "options": [
+      "Price",
+      "Each token is unique and not interchangeable",
+      "Material",
+      "Size"
+    ]
+  },
+  {
+    "question": "What is a DAO?",
+    "options": [
+      "Chinese word",
+      "Decentralized Autonomous Organization",
+      "A token",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "How do DAOs typically make decisions?",
+    "options": [
+      "CEO decides",
+      "Token holder voting",
+      "Random",
+      "AI"
+    ]
+  },
+  {
+    "question": "What is 'governance' in crypto?",
+    "options": [
+      "Government",
+      "Decision-making process for protocol changes",
+      "Regulation",
+      "Control"
+    ]
+  },
+  {
+    "question": "What is a 'lending protocol'?",
+    "options": [
+      "Bank",
+      "DeFi service for borrowing/lending crypto",
+      "Email service",
+      "Game"
+    ]
+  },
+  {
+    "question": "What is Aave?",
+    "options": [
+      "A greeting",
+      "Popular DeFi lending protocol",
+      "A token only",
+      "An exchange"
+    ]
+  },
+  {
+    "question": "What is 'collateral' in DeFi lending?",
+    "options": [
+      "Jewelry",
+      "Assets locked to secure a loan",
+      "A fee",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What is a 'stablecoin'?",
+    "options": [
+      "Horse coin",
+      "Crypto pegged to stable asset like USD",
+      "Boring coin",
+      "Small coin"
+    ]
+  },
+  {
+    "question": "What is USDC?",
+    "options": [
+      "Currency",
+      "USD Coin - centralized stablecoin",
+      "US Dollar Crypto",
+      "A bank"
+    ]
+  },
+  {
+    "question": "What is DAI?",
+    "options": [
+      "Japanese word",
+      "Decentralized stablecoin by MakerDAO",
+      "A greeting",
+      "A game"
+    ]
+  },
+  {
+    "question": "What is a 'bridge' in crypto?",
+    "options": [
+      "Structure",
+      "Protocol moving assets between blockchains",
+      "A game",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "Why are bridges often targeted by hackers?",
+    "options": [
+      "Easy to find",
+      "They hold large amounts of locked assets",
+      "Poor security always",
+      "Government target"
+    ]
+  },
+  {
+    "question": "What is an 'oracle' in blockchain?",
+    "options": [
+      "Fortune teller",
+      "Service providing external data to smart contracts",
+      "A token",
+      "A validator"
+    ]
+  },
+  {
+    "question": "What is Chainlink?",
+    "options": [
+      "Chain store",
+      "Popular decentralized oracle network",
+      "A game",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "What is 'TVL' (Total Value Locked)?",
+    "options": [
+      "TV channel",
+      "Metric showing assets deposited in DeFi protocols",
+      "A token",
+      "A rating"
+    ]
+  },
+  {
+    "question": "What is an 'airdrop'?",
+    "options": [
+      "Delivery service",
+      "Free token distribution to wallet holders",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'token burning'?",
+    "options": [
+      "Fire",
+      "Permanently removing tokens from circulation",
+      "A game",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What is 'vesting' in crypto?",
+    "options": [
+      "Clothing",
+      "Gradual release of locked tokens over time",
+      "A fee",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What is a 'snapshot' for airdrops?",
+    "options": [
+      "Photo",
+      "Recording of wallet balances at specific time",
+      "A game",
+      "A token"
+    ]
+  },
+  {
+    "question": "What is a 'private key'?",
+    "options": [
+      "Password",
+      "Secret number controlling wallet access",
+      "A token",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is a 'public key'?",
+    "options": [
+      "Public information",
+      "Cryptographic key derived from private key",
+      "A token",
+      "An address"
+    ]
+  },
+  {
+    "question": "What is a 'seed phrase' (mnemonic)?",
+    "options": [
+      "Plant seeds",
+      "12-24 words that can restore a wallet",
+      "A password",
+      "A username"
+    ]
+  },
+  {
+    "question": "Should you ever share your seed phrase?",
+    "options": [
+      "Yes, with friends",
+      "Never - it gives full access to funds",
+      "Only with exchanges",
+      "Sometimes"
+    ]
+  },
+  {
+    "question": "What is MetaMask?",
+    "options": [
+      "A mask",
+      "Popular browser-based Ethereum wallet",
+      "A game",
+      "A token"
+    ]
+  },
+  {
+    "question": "What is a 'hardware wallet'?",
+    "options": [
+      "Computer",
+      "Physical device storing keys offline",
+      "Software",
+      "A token"
+    ]
+  },
+  {
+    "question": "What are Ledger and Trezor?",
+    "options": [
+      "Games",
+      "Popular hardware wallet brands",
+      "Exchanges",
+      "Tokens"
+    ]
+  },
+  {
+    "question": "What is a 'hot wallet'?",
+    "options": [
+      "Warm wallet",
+      "Wallet connected to the internet",
+      "A new wallet",
+      "Fast wallet"
+    ]
+  },
+  {
+    "question": "What is a 'cold wallet'?",
+    "options": [
+      "Frozen wallet",
+      "Wallet kept offline for security",
+      "Old wallet",
+      "Slow wallet"
+    ]
+  },
+  {
+    "question": "Why are cold wallets more secure?",
+    "options": [
+      "They're newer",
+      "Not connected to internet, harder to hack remotely",
+      "They're expensive",
+      "Government backed"
+    ]
+  },
+  {
+    "question": "What is a 'multi-sig' wallet?",
+    "options": [
+      "Many signatures",
+      "Wallet requiring multiple keys to authorize transactions",
+      "A new wallet",
+      "A fast wallet"
+    ]
+  },
+  {
+    "question": "What is a '2-of-3 multi-sig'?",
+    "options": [
+      "Math problem",
+      "Requires 2 of 3 keyholders to sign",
+      "A game",
+      "A fee structure"
+    ]
+  },
+  {
+    "question": "What is 'transaction signing'?",
+    "options": [
+      "Writing",
+      "Using private key to authorize a transaction",
+      "A fee",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What is a 'phishing attack'?",
+    "options": [
+      "Fishing",
+      "Fake website/message tricking users to reveal keys",
+      "A game",
+      "A token"
+    ]
+  },
+  {
+    "question": "How can you identify phishing attempts?",
+    "options": [
+      "You can't",
+      "Check URLs carefully, never click suspicious links",
+      "Trust all emails",
+      "Call support"
+    ]
+  },
+  {
+    "question": "What is a 'rug pull'?",
+    "options": [
+      "Home decor",
+      "Scam where developers abandon project with funds",
+      "A game",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What is 'address poisoning'?",
+    "options": [
+      "Toxic address",
+      "Sending tiny amounts from similar-looking addresses to trick users",
+      "A fee",
+      "A reward"
+    ]
+  },
+  {
+    "question": "Why should you verify addresses before sending?",
+    "options": [
+      "Courtesy",
+      "Transactions are irreversible, mistakes lose funds",
+      "Speed",
+      "Fees"
+    ]
+  },
+  {
+    "question": "What is 'infinite approval' risk?",
+    "options": [
+      "Math error",
+      "Giving contracts unlimited access to your tokens",
+      "A game",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What is 'revoke.cash'?",
+    "options": [
+      "A game",
+      "Tool to check and revoke token approvals",
+      "An exchange",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "What is a 'dusting attack'?",
+    "options": [
+      "Cleaning",
+      "Sending tiny amounts to track wallet activity",
+      "A game",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What is 'social engineering' in crypto scams?",
+    "options": [
+      "Building",
+      "Manipulating people to reveal sensitive information",
+      "A job",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What is a 'honeypot' scam?",
+    "options": [
+      "Bee product",
+      "Token that can be bought but not sold",
+      "A game",
+      "A reward"
+    ]
+  },
+  {
+    "question": "What should you do if you think your wallet is compromised?",
+    "options": [
+      "Nothing",
+      "Move funds to a new secure wallet immediately",
+      "Wait and see",
+      "Call police"
+    ]
+  },
+  {
+    "question": "What is a 'paper wallet'?",
+    "options": [
+      "Paper money",
+      "Private key printed on paper for offline storage",
+      "A document",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'sharding' in Ethereum's roadmap?",
+    "options": [
+      "Breaking",
+      "Splitting network into parallel processing chains",
+      "A game",
+      "A token"
+    ]
+  },
+  {
+    "question": "What is 'data availability sampling'?",
+    "options": [
+      "Statistics",
+      "Verifying data exists without downloading all of it",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What are 'KZG commitments'?",
+    "options": [
+      "Company initials",
+      "Cryptographic scheme for data availability proofs",
+      "A token",
+      "A wallet"
+    ]
+  },
+  {
+    "question": "What is a 'zero-knowledge proof'?",
+    "options": [
+      "No proof",
+      "Proving something true without revealing details",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is a 'SNARK'?",
+    "options": [
+      "Comment",
+      "Succinct Non-interactive Argument of Knowledge",
+      "A game",
+      "A token"
+    ]
+  },
+  {
+    "question": "What is a 'STARK'?",
+    "options": [
+      "Character",
+      "Scalable Transparent Argument of Knowledge",
+      "A game",
+      "A token"
+    ]
+  },
+  {
+    "question": "What's the main difference between SNARKs and STARKs?",
+    "options": [
+      "Nothing",
+      "STARKs don't need trusted setup, are quantum-resistant",
+      "Speed only",
+      "Cost only"
+    ]
+  },
+  {
+    "question": "What is 'recursive proving'?",
+    "options": [
+      "Repetition",
+      "Proofs that verify other proofs for scalability",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'enshrined PBS'?",
+    "options": [
+      "Religion",
+      "Proposer-Builder Separation built into protocol",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'single slot finality'?",
+    "options": [
+      "Fast finality",
+      "Finalizing blocks in one slot instead of epochs",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'Verkle trees'?",
+    "options": [
+      "Plants",
+      "More efficient state storage structure than Merkle trees",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'state expiry'?",
+    "options": [
+      "Death",
+      "Removing old unused state to reduce bloat",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'statelessness' in Ethereum?",
+    "options": [
+      "No states",
+      "Nodes validating without full state storage",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'proof of custody'?",
+    "options": [
+      "Legal term",
+      "Proving validators actually store required data",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'distributed validator technology' (DVT)?",
+    "options": [
+      "Delivery",
+      "Running one validator across multiple machines",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is the purpose of DVT?",
+    "options": [
+      "Speed",
+      "Improving validator resilience and decentralization",
+      "Cost savings",
+      "Simplicity"
+    ]
+  },
+  {
+    "question": "What is 'restaking'?",
+    "options": [
+      "Resting",
+      "Using staked ETH as security for other protocols",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is EigenLayer?",
+    "options": [
+      "A game",
+      "Popular restaking protocol",
+      "A wallet",
+      "A token"
+    ]
+  },
+  {
+    "question": "What is 'superfluid staking'?",
+    "options": [
+      "Liquid diet",
+      "Staked assets remaining liquid for other uses",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'maximal decentralization'?",
+    "options": [
+      "Politics",
+      "Design goal minimizing any single point of control",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'credible neutrality'?",
+    "options": [
+      "Politics",
+      "Protocol treating all users fairly by design",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'enshrined' in Ethereum context?",
+    "options": [
+      "Religious",
+      "Built into base protocol rather than added layer",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'social consensus'?",
+    "options": [
+      "Party agreement",
+      "Community agreement on protocol rules beyond code",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is a 'contentious hard fork'?",
+    "options": [
+      "Utensil",
+      "Upgrade where community disagrees, chain splits",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is EIP process?",
+    "options": [
+      "Pain",
+      "Ethereum Improvement Proposal - formal change process",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'protocol ossification'?",
+    "options": [
+      "Bone disease",
+      "When a protocol becomes resistant to changes",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'mechanism design'?",
+    "options": [
+      "Engineering",
+      "Creating incentive structures for desired outcomes",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'cryptoeconomics'?",
+    "options": [
+      "Currency",
+      "Using economic incentives to secure cryptographic systems",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'game theory' in blockchain?",
+    "options": [
+      "Video games",
+      "Analyzing strategic decision-making of participants",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is a 'dominant strategy' in game theory?",
+    "options": [
+      "Best game",
+      "Optimal choice regardless of others' actions",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'Nash equilibrium'?",
+    "options": [
+      "Movie",
+      "State where no player benefits from changing strategy alone",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'Sybil resistance'?",
+    "options": [
+      "Disease",
+      "Preventing one entity from creating many fake identities",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "How does staking provide Sybil resistance?",
+    "options": [
+      "It doesn't",
+      "Each validator requires real economic cost (32 ETH)",
+      "Through names",
+      "Via KYC"
+    ]
+  },
+  {
+    "question": "What is 'honest majority assumption'?",
+    "options": [
+      "Politics",
+      "Security assuming >50% or >66% of stake is honest",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'synchrony assumption'?",
+    "options": [
+      "Timing",
+      "Assuming messages are delivered within time bounds",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'partial synchrony'?",
+    "options": [
+      "Half sync",
+      "Network eventually becomes synchronous after unknown delay",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'light client'?",
+    "options": [
+      "Small computer",
+      "Node verifying chain with minimal data",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'stateless client'?",
+    "options": [
+      "No states",
+      "Node validating without storing full state",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'proof size' concern in ZK systems?",
+    "options": [
+      "Paper size",
+      "Computational and storage cost of proofs",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'prover time' in ZK systems?",
+    "options": [
+      "Test time",
+      "Time required to generate a proof",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'verifier time' in ZK systems?",
+    "options": [
+      "Check time",
+      "Time required to verify a proof",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'trusted setup'?",
+    "options": [
+      "Installation",
+      "Initial ceremony creating cryptographic parameters",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "Why is trusted setup controversial?",
+    "options": [
+      "Cost",
+      "If compromised, fake proofs could be generated",
+      "Slow",
+      "Boring"
+    ]
+  },
+  {
+    "question": "What is 'powers of tau' ceremony?",
+    "options": [
+      "Chinese ceremony",
+      "Multi-party trusted setup for ZK systems",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'quantum resistance'?",
+    "options": [
+      "Physics",
+      "Security against quantum computer attacks",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "Are current Ethereum signatures quantum-resistant?",
+    "options": [
+      "Yes",
+      "No, but it's on the roadmap to address",
+      "Partially",
+      "Unknown"
+    ]
+  },
+  {
+    "question": "What is 'post-quantum cryptography'?",
+    "options": [
+      "Time travel",
+      "Algorithms secure against quantum computers",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is 'aggregate signature'?",
+    "options": [
+      "Total sign",
+      "Combining multiple signatures into one for efficiency",
+      "A game",
+      "A fee"
+    ]
+  },
+  {
+    "question": "What is BLS signature scheme?",
+    "options": [
+      "Initials",
+      "Boneh-Lynn-Shacham - allows signature aggregation",
+      "A game",
+      "A fee"
+    ]
+  }
+]

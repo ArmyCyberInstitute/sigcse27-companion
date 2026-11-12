@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "lesson_ids": [
+    "demo_hashing",
+    "demo_signatures",
+    "demo_pos"
+  ],
+  "topics": [],
+  "tags": [],
+  "excluded_topics": [],
+  "excluded_tags": [],
+  "tag_match_mode": "any",
+  "hierarchy_sections": [],
+  "hierarchy_lectures": [],
+  "difficulty_min": 1,
+  "difficulty_max": 5,
+  "question_types": [
+    "multiple_choice"
+  ],
+  "quotas": {},
+  "require_topic_coverage": false
+}

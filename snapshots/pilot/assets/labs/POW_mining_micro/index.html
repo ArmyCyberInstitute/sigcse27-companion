@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Proof‑of‑Work Coin Mining — Classroom Simulator</title>
+  <style>
+    :root{
+      --bg:#0e1117;          /* app background */
+      --panel:#151a23;       /* panels/cards */
+      --ring:#2dd4bf;        /* progress ring */
+      --track:#273045;       /* ring track */
+      --accent:#8b5cf6;      /* primary accents */
+      --accent-2:#22c55e;    /* success */
+      --danger:#ef4444;      /* failure */
+      --text:#e5e7eb;        /* primary text */
+      --muted:#9aa4b2;       /* muted text */
+      --felt:#0b6b45;        /* subtle card table tint */
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 50% -200px, rgba(34,197,94,.08), transparent 70%), var(--bg);
+      color:var(--text);
+    }
+    .app{max-width:1100px; margin:0 auto; padding:24px;}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px;
+    }
+    .title{font-weight:800; letter-spacing:.2px;}
+    .title .sub{display:block; font-weight:500; font-size:.9rem; color:var(--muted)}
+    .hud{display:flex; flex-wrap:wrap; align-items:center; gap:12px}
+    .pill{background:linear-gradient(180deg, #1b2332, #121825); border:1px solid #293046; color:var(--text); padding:10px 14px; border-radius:999px; box-shadow:var(--shadow); display:inline-flex; align-items:center; gap:10px}
+    .pill strong{letter-spacing:.4px}
+    .target{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-weight:700; letter-spacing:.5px}
+    .btn{cursor:pointer; border:1px solid transparent; border-radius:12px; padding:12px 16px; font-weight:700; color:#0b1220; background:linear-gradient(180deg, #a78bfa, #7c3aed); color:white; box-shadow:var(--shadow); transition:transform .06s ease, filter .2s ease, opacity .2s ease}
+    .btn:disabled{opacity:.5; cursor:not-allowed}
+    .btn:active{transform: translateY(1px) scale(.997)}
+    .btn.secondary{background:linear-gradient(180deg, #10b981, #059669)}
+    .btn.ghost{background:transparent; color:var(--text); border-color:#334155}
+
+    .board{
+      background: radial-gradient(800px 500px at 50% -250px, rgba(34,197,94,.10), transparent 60%), linear-gradient(180deg, rgba(11,107,69,.06), rgba(11,107,69,.04));
+      border: 1px solid #2a3347; border-radius: var(--radius); padding:22px; box-shadow: var(--shadow);
+    }
+
+    .toolbar{display:flex; flex-wrap:wrap; align-items:center; gap:12px; justify-content:space-between; margin-bottom:16px}
+    .status{color:var(--muted); font-weight:600}
+    .status .live{color:#eab308}
+
+    .zones{display:grid; grid-template-columns: 1.1fr 2fr; gap:18px}
+    @media (max-width: 900px){ .zones{grid-template-columns: 1fr} }
+
+    /* USER PANEL */
+    .user-card{background:linear-gradient(180deg, #17202e, #101520); border:1px solid #2b344a; border-radius: var(--radius); padding:18px; display:flex; flex-direction:column; gap:14px}
+    .user-card h2{margin:0; font-size:1rem; letter-spacing:.4px; color:#cbd5e1}
+    .user-panel{
+      display:grid; grid-template-columns: auto 1fr; align-items:center; gap:16px
+    }
+    .user-node{position:relative; width:160px; height:160px}
+    .circle{
+      width:160px; height:160px; border-radius:50%;
+      background: radial-gradient(60% 60% at 50% 40%, #1c2535, #101520);
+      border: 1px solid #2a3347; display:flex; align-items:center; justify-content:center; text-align:center; box-shadow: inset 0 0 0 4px rgba(255,255,255,.02), var(--shadow);
+    }
+    .circle .inside{line-height:1.1}
+    .circle .label{font-size:.8rem; color:var(--muted)}
+    .circle .output{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:1.4rem; margin-top:6px; font-weight:800}
+    .circle .attempts{font-size:.8rem; color:var(--muted); margin-top:6px}
+
+    .actions{display:flex; gap:10px; flex-wrap:wrap}
+
+    /* MINERS GRID */
+    .miners{background:linear-gradient(180deg, #121826, #0e1420); border:1px solid #2a3347; border-radius: var(--radius); padding:16px}
+    .miners h3{margin:0 0 8px 0; font-size:.95rem; color:#cbd5e1}
+    .grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:16px}
+
+    .node{position:relative; width:160px; height:160px; border-radius:50%;}
+    .node svg{position:absolute; inset:0; width:100%; height:100%; transform: rotate(-90deg)}
+    .node .track{fill:none; stroke: var(--track); stroke-width:10}
+    .node .progress{fill:none; stroke: var(--ring); stroke-width:10; stroke-linecap:round; stroke-dasharray:100; stroke-dashoffset:0; animation: countdown 1s linear infinite}
+    .node .center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:8px}
+    .node .center .label{font-size:.8rem; color:var(--muted)}
+    .node .center .output{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-weight:800; font-size:1.3rem; margin-top:6px}
+    .node .center .attempts{font-size:.75rem; color:var(--muted); margin-top:6px}
+
+    .winner{outline: 3px solid var(--accent-2); box-shadow: 0 0 0 6px rgba(34,197,94,.25), var(--shadow)}
+    .loser{opacity:.6; filter: grayscale(.2)}
+
+    .start-wrap{display:flex; gap:10px; align-items:center}
+
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0b1220; border:1px solid #2a3347; padding:2px 6px; border-radius:6px; font-size:.85em}
+
+    @keyframes countdown { from { stroke-dashoffset: 0 } to { stroke-dashoffset: 100 } }
+
+    /* Reduced motion: stop ring animation but keep ticks working */
+    @media (prefers-reduced-motion: reduce) { .progress { animation: none !important } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <div style="font-size:1.6rem">⚒️ PoW Coin Mining — <span style="color:var(--accent)">Race to Match</span></div>
+        <span class="sub">A classroom-friendly simulation of proof‑of‑work where coins are “hashed” as H/T sequences.</span>
+      </div>
+      <div class="hud">
+        <div class="pill"><span>🎯 Target</span> <strong class="target" id="target">—</strong></div>
+        <button id="startBtn" class="btn">Start Game</button>
+      </div>
+    </header>
+
+    <section class="board" aria-live="polite" aria-atomic="true">
+      <div class="toolbar">
+        <div class="status" id="status">Press <span class="kbd">Start Game</span> to generate a 4‑flip target like <span class="kbd">HTHH</span>.</div>
+        <div class="start-wrap">
+          <button id="mineBtn" class="btn ghost" disabled>Mine (flip 4)</button>
+          <button id="resetBtn" class="btn secondary" style="display:none">New Game</button>
+        </div>
+      </div>
+
+      <div class="zones">
+        <!-- USER SIDE -->
+        <div class="user-card">
+          <h2>👤 You (manual miner)</h2>
+          <div class="user-panel">
+            <div class="user-node">
+              <div class="circle" id="userCircle">
+                <div class="inside">
+                  <div class="label">Last Output</div>
+                  <div class="output" id="userOutput">—</div>
+                  <div class="attempts" id="userAttempts">0 attempts</div>
+                </div>
+              </div>
+            </div>
+            <div class="user-info">
+              <p style="margin:0 0 10px 0; color:var(--muted)">Click <strong>Mine</strong> as fast as you like. Each click performs 4 random coin flips. Bots only mine once per second — you’ve got the edge.</p>
+              <ul style="margin:0; padding-left:1.1rem; color:#cbd5e1">
+                <li>First to exactly match the target wins the block.</li>
+                <li>If someone wins, the round freezes and you can start a new game.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="mineBtn2" class="btn" disabled>Mine Now</button>
+          </div>
+        </div>
+
+        <!-- MINERS SIDE -->
+        <div class="miners">
+          <h3>🤖 Simulated Miners (5 nodes, 1 tick/sec)</h3>
+          <div class="grid" id="minersGrid"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ----- Configuration -----
+    const SEQ_LEN = 5;            // number of coin flips per attempt
+    const MINER_COUNT = 5;        // number of simulated miners
+    const TICK_MS = 750;         // miners attempt once per second
+
+    // ----- State -----
+    let target = '';
+    let gameRunning = false;
+    let winner = null;            // { label, who: 'user' | 'miner', sequence }
+    let minerTimer = null;
+
+    // Tracking
+    let userTries = 0;
+    const miners = [];            // { id, label, tries, el, outputEl, attemptsEl, ringEl }
+
+    // ----- DOM -----
+    const targetEl    = document.getElementById('target');
+    const statusEl    = document.getElementById('status');
+    const startBtn    = document.getElementById('startBtn');
+    const resetBtn    = document.getElementById('resetBtn');
+    const mineBtn     = document.getElementById('mineBtn');
+    const mineBtn2    = document.getElementById('mineBtn2');
+    const userOutput  = document.getElementById('userOutput');
+    const userAttempts= document.getElementById('userAttempts');
+    const userCircle  = document.getElementById('userCircle');
+    const minersGrid  = document.getElementById('minersGrid');
+
+    // ----- Utils -----
+    const randHT = () => (Math.random() < 0.5 ? 'H' : 'T');
+    const randomSequence = (n=SEQ_LEN) => Array.from({length:n}, randHT).join('');
+    const setStatus = (msg) => statusEl.innerHTML = msg;
+
+    function enableMiningUI(enabled){
+      mineBtn.disabled = !enabled;
+      mineBtn2.disabled = !enabled;
+    }
+
+    function buildMiner(label){
+      const wrap = document.createElement('div');
+      wrap.className = 'node';
+      wrap.innerHTML = `
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="track" cx="60" cy="60" r="52" pathLength="100"></circle>
+          <circle class="progress" cx="60" cy="60" r="52" pathLength="100"></circle>
+        </svg>
+        <div class="center">
+          <div class="label">${label}</div>
+          <div class="output">—</div>
+          <div class="attempts">0 tries</div>
+        </div>`;
+      return {
+        el: wrap,
+        label,
+        outputEl: wrap.querySelector('.output'),
+        attemptsEl: wrap.querySelector('.attempts'),
+        ringEl: wrap.querySelector('.progress'),
+        tries: 0,
+        last: '—'
+      };
+    }
+
+    function mountMiners(){
+      minersGrid.innerHTML = '';
+      miners.length = 0;
+      const labels = ['Miner A','Miner B','Miner C','Miner D','Miner E'];
+      for(let i=0;i<MINER_COUNT;i++){
+        const m = buildMiner(labels[i] || `Miner ${i+1}`);
+        miners.push(m);
+        minersGrid.appendChild(m.el);
+      }
+    }
+
+    function startRings(){
+      miners.forEach(m => m.ringEl.style.animationPlayState = 'running');
+    }
+    function pauseRings(){
+      miners.forEach(m => m.ringEl.style.animationPlayState = 'paused');
+    }
+
+    function resetUserUI(){
+      userTries = 0;
+      userOutput.textContent = '—';
+      userAttempts.textContent = '0 attempts';
+      userCircle.classList.remove('winner','loser');
+    }
+
+    function resetMinerUI(){
+      miners.forEach(m => {
+        m.tries = 0;
+        m.last = '—';
+        m.outputEl.textContent = '—';
+        m.attemptsEl.textContent = '0 tries';
+        m.el.classList.remove('winner','loser');
+      });
+    }
+
+    function pickNewTarget(){
+      target = randomSequence(SEQ_LEN);
+      targetEl.textContent = target;
+    }
+
+    function endGame(win){
+      // win: { who: 'user'|'miner', label, sequence }
+      gameRunning = false;
+      winner = win;
+      enableMiningUI(false);
+      clearInterval(minerTimer); minerTimer = null;
+      pauseRings();
+      const youWon = win.who === 'user';
+      const msg = youWon
+        ? `🎉 <strong>You win!</strong> Matched <span class="kbd">${win.sequence}</span>.`
+        : `⛏️ <strong>${win.label}</strong> won with <span class="kbd">${win.sequence}</span>.`;
+      setStatus(`${msg} <span class="live">Round over.</span> Press <strong>New Game</strong> to play again.`);
+      // Visual emphasize
+      if(youWon){
+        userCircle.classList.add('winner');
+        miners.forEach(m => m.el.classList.add('loser'));
+      }else{
+        const winMiner = miners.find(m => m.label === win.label);
+        if(winMiner) winMiner.el.classList.add('winner');
+        userCircle.classList.add('loser');
+        miners.filter(m => m.label !== win.label).forEach(m => m.el.classList.add('loser'));
+      }
+      // Toggle controls
+      startBtn.style.display = 'none';
+      resetBtn.style.display = 'inline-block';
+    }
+
+    function userMine(){
+      if(!gameRunning) return;
+      const seq = randomSequence(SEQ_LEN);
+      userTries++;
+      userOutput.textContent = seq;
+      userAttempts.textContent = `${userTries} ${userTries===1? 'attempt' : 'attempts'}`;
+      if(seq === target){
+        endGame({ who:'user', label:'You', sequence: seq });
+      }
+    }
+
+    function tickMiners(){
+      miners.forEach(m => {
+        if(!gameRunning) return;
+        const seq = randomSequence(SEQ_LEN);
+        m.last = seq;
+        m.tries++;
+        m.outputEl.textContent = seq;
+        m.attemptsEl.textContent = `${m.tries} ${m.tries===1? 'try' : 'tries'}`;
+        if(seq === target && gameRunning){
+          endGame({ who:'miner', label:m.label, sequence: seq });
+        }
+      });
+    }
+
+    function startGame(){
+      // Reset state/UI
+      gameRunning = true; winner = null;
+      pickNewTarget();
+      setStatus(`🟢 Mining started. First to match <span class="kbd">${target}</span> wins. Bots tick every <span class="kbd">${(TICK_MS/1000).toFixed(0)}s</span>.`);
+      resetUserUI();
+      resetMinerUI();
+      enableMiningUI(true);
+      startRings();
+      clearInterval(minerTimer); // safety
+      minerTimer = setInterval(tickMiners, TICK_MS);
+      // Controls
+      startBtn.style.display = 'none';
+      resetBtn.style.display = 'none'; // during round, only show after win
+    }
+
+    function newGame(){
+      // Clear classes and show start button again
+      userCircle.classList.remove('winner','loser');
+      miners.forEach(m => m.el.classList.remove('winner','loser'));
+      targetEl.textContent = '—';
+      setStatus('Press <span class="kbd">Start Game</span> to generate a 4‑flip target like <span class="kbd">HTHH</span>.');
+      resetUserUI();
+      resetMinerUI();
+      pauseRings();
+      clearInterval(minerTimer); minerTimer = null;
+      gameRunning = false; winner = null;
+      enableMiningUI(false);
+      startBtn.style.display = 'inline-block';
+      resetBtn.style.display = 'none';
+    }
+
+    // ----- Wire up -----
+    mountMiners();
+    pauseRings();
+
+    startBtn.addEventListener('click', startGame);
+    resetBtn.addEventListener('click', newGame);
+    mineBtn.addEventListener('click', userMine);
+    mineBtn2.addEventListener('click', userMine);
+
+    // Keyboard shortcut: space = mine when enabled
+    window.addEventListener('keydown', (e)=>{
+      if(e.code === 'Space'){
+        if(!mineBtn.disabled){ e.preventDefault(); userMine(); }
+      }
+    });
+
+    // Ensure timers stop if user switches tab and a winner already decided
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden && !gameRunning && minerTimer){
+        clearInterval(minerTimer); minerTimer = null;
+      }
+    });
+  </script>
+</body>
+</html>

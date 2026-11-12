@@ -1,0 +1,40 @@
+name: Check and package companion
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: '1.8.24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r demos/quiz-engine-v2/requirements.txt
+      - run: make check
+      - run: python -m pytest tests/test_catalog.py tests/test_external_links.py tests/test_build_demo_images.py tests/test_zellij_state.py demos/quiz-engine-v2/tests demos/bitcoin-base/forensics/seeder/tests -q
+        env:
+          PYTHONPATH: demos/quiz-engine-v2
+          QUIZ_ENGINE_SAMPLE_QUIZ_DIR: ${{ github.workspace }}/quizes
+      - run: docker compose config --quiet
+      - run: make package
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm --prefix tests ci
+      - run: npm --prefix tests run test:unit
+      - run: tests/node_modules/.bin/playwright install --with-deps chromium
+      - name: Check browser comparisons
+        run: |
+          python3 -m http.server 9001 --directory _site > /tmp/site-test.log 2>&1 &
+          npm --prefix tests test
+        env:
+          BASE_URL: http://127.0.0.1:9001
+          UI_ONLY: '1'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: companion-artifacts
+          path: dist/

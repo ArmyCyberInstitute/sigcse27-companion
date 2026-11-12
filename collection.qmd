@@ -1,0 +1,80 @@
+---
+title: "Teaching What We Didn’t Know: companion artifacts"
+---
+
+Explore introductory lessons, cryptography and consensus lectures, interactive microlabs, and lab environments across four stages of blockchain curriculum development.
+
+This is a representative sample of the course material, rather than a comprehensive course listing.
+
+## Guides
+
+- [Using the thread explorer](docs/EXPLORER.md)
+- [Lesson and activity evolution](docs/EVOLUTION.md)
+- [Running the demonstrations](docs/DEMOS.md)
+- [Bitcoin network and exercise guide](docs/BITCOIN.md)
+- [Lab regression playbooks](tests/playbooks/README.md)
+- [Quiz samples and authoring](quizes/SAMPLE_PROVENANCE.md)
+
+The [artifact manifest](artifact-manifest.json) records source provenance. The final decks include red-bordered accuracy annotations with details in **Speaker notes**.
+
+## Licensing
+
+Licensing is described in [LICENSE](LICENSE), [NOTICE](NOTICE), and [the third-party index](THIRD_PARTY_LICENSES.md).
+
+## Early research
+
+- [Symmetric Cryptography & Hashing: The Backbone of Blockchain Integrity](<snapshots/early-work/lessons/day 3/day3_lecture2_symmetric_hashing.qmd>)
+- [Merkle Trees, Signatures, and Blockchain Integrity](<snapshots/early-work/lessons/day 3/day3_lecture3_merkle_signatures.qmd>)
+- [Consensus, Merkle Roots, and the Bitcoin Problem](<snapshots/early-work/lessons/day 3/day3_lecture4_consensus.qmd>)
+- [Trust, Coordination, and the Byzantine Problem](snapshots/early-work/lessons/day1_lesson2.qmd)
+- [Day 5: Reaching Consensus](snapshots/early-work/lessons/day5/blockchain_day_5_lesson_1.qmd)
+- [Day 5: Consensus Security and Adversarial Attacks](snapshots/early-work/lessons/day5/blockchain_day_5_lesson_3.qmd)
+
+## Pilot
+
+- [Trust and Distributed Systems: Foundations for Blockchain](snapshots/pilot/lessons/introduction/l03_i3_trust_and_distributed_systems_foundations_for_blockchain.qmd)
+- [Hashing and Merkle Trees](snapshots/pilot/lessons/primitives/l05_p2_hashing_and_merkle_trees.qmd)
+- [Asymmetric Encryption & Digital Signatures](snapshots/pilot/lessons/primitives/l07_p4_asymmetric_encryption_and_digital_signatures.qmd)
+- [Proof of Stake (PoS): Selection, Security, and Finality](snapshots/pilot/lessons/primitives/l15_p12_pos.qmd)
+
+## Before group review
+
+- [Trust and Distributed Systems: Foundations for Blockchain](snapshots/pre-group-review/lessons/introduction/l03_i3_trust_and_distributed_systems_foundations_for_blockchain.qmd)
+- [Hashing and Merkle Trees](snapshots/pre-group-review/lessons/primitives/l05_p2_hashing_and_merkle_trees.qmd)
+- [Asymmetric Encryption & Digital Signatures](snapshots/pre-group-review/lessons/primitives/l07_p4_asymmetric_encryption_and_digital_signatures.qmd)
+- [Proof of Stake (PoS): Selection, Security, and Finality](snapshots/pre-group-review/lessons/primitives/l15_p12_pos.qmd)
+
+## Final
+
+- [Consensus in Distributed Systems & Blockchains — An Introduction](snapshots/final/lessons/consensus_primitives/01-CM-consensus_in_distributed_systems_and_blockchains_intro.qmd)
+- [Proof of Stake (PoS): Selection, Security, and Finality](snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd)
+- [Ethereum "Mining", PoS, and Security](snapshots/final/lessons/ethereum/02-EF-ethereum_mining_pos_and_security.qmd)
+- [Trust and Distributed Systems: Foundations for Blockchain](snapshots/final/lessons/introduction/05-IN-trust_and_distributed_systems_foundations_for_blockchain.qmd)
+- [Hashing and Merkle Trees](snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd)
+- [Asymmetric Encryption & Digital Signatures](snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd)
+
+
+## Selected microlabs
+
+- [pilot microlabs](snapshots/pilot/assets/labs/index.html)
+- [pre-group-review microlabs](snapshots/pre-group-review/assets/labs/index.html)
+- [final microlabs](snapshots/final/assets/labs/index.html)
+
+The three stage indexes link to the local hash playground, Merkle-tree activity, and encryption/signature activity. The explorer compares distinct Merkle-tree and encryption/signature versions; repeated stages share a preview. All activity links use this website’s origin.
+
+## Highlighted microlabs
+
+- [Proof-of-work coin mining](index.html?microlab=coin-flip): race simulated miners and explore block production and difficulty adjustment.
+- [Smart-contract execution](index.html?microlab=smart-contract): inspect contract calls, state changes, and a reentrancy attack.
+- [MEV, builders, and relays](index.html?microlab=mev): order transactions, compare builder bids, and choose a proposer policy.
+
+Each activity opens its distinct pilot and final versions side by side. The timeline identifies the pre-group-review copy shared with the pilot; source views and single-preview layouts are also available.
+
+## Beamer sources
+
+- [Cryptographic primitives](source/snapshots/early-work/beamer/cryptographic_primitives.tex)
+- [Reaching consensus](source/snapshots/early-work/beamer/reaching_consensus.tex)
+- [Theme](source/snapshots/early-work/beamer/beamerthemed2s.sty)
+- [Color theme](source/snapshots/early-work/beamer/beamercolorthemed2s.sty)
+- [Inner theme](source/snapshots/early-work/beamer/beamerinnerthemed2s.sty)
+- [Outer theme](source/snapshots/early-work/beamer/beamerouterthemed2s.sty)

@@ -1,0 +1,218 @@
+We are building a course on blockchain for an audience
+of high school graduates who have 
+above-average technical aptitude, but no formal
+advanced education in mathematics or cryptography. 
+
+I'd like your help constructing a single lecture.
+Please provide your response as a downloadable
+text file so that the chat interface
+does not accidentally render any code in your reply.
+
+If you are a gemini model, your interface
+does not allow you to create downloadable files.
+In your case, output the valid quarto template
+as a json string and format it as a
+javascript code snippet in the reply.
+
+Material is structured in sections, which
+are composed of "days," which are then composed of
+individual lessons as lectures. Lectures
+are formatted as quarto revealjs 
+presentations, in which the slides
+are a visual cue for the students and
+notes are provided as a complete script
+for the instructor.
+
+Accuracy is most important. When working on a 
+given slide, conduct research and
+only include information derived from
+a verifiable primary source. Include your sources
+in the instructor notes, either by URL or 
+in chicago style. 
+
+This is a task that requires
+strong reasoning skills.
+
+If your model supports it, generate an outline
+for yourself for each slide, and then work
+one slide at a time and store the output in 
+your working text file. 
+
+Before beginning writing, conduct research on the topic,
+but ensure you only use primary sources. Look up
+any resources provided and then add additional
+ones if appropriate. Do not ask the user
+for input before beginning work.
+If you have a question,
+use your best judgement.
+
+Lecture Information: Day 1, lecture 4:
+
+<Lesson Information here> 
+
+-   If you add to this, it must be from a primary source and must be referenced. 
+All citations must be provided in the instructor notes in the form:
+- [title](url)
+
+
+Estimated lecture time: 60min
+A given slide take no more than 5min and no less than 1min.
+Variability in slide length is okay and encouraged.
+There is no prescribed slide count, except that it should generally
+be at least 12 slides, but less than 30.
+
+On the first slide of every lesson, it must begin with a concrete experience or emotional hook
+that is provided to the instructor in the instructor notes.
+
+On the last slide of every lesson, the instructor notes should include some questions
+to ask the students as a check on learning.
+
+Slide Content:
+* All slides must use clean, consistent layouts.
+* Most slides should include a visual element. Suggest one for me in the instructor notes or create a placeholder.
+ If appropriate, use mermaidjs or graphviz to embed a graphic directly. When embedding graphics, use the two-column notation.
+ You can use 2-3 charts embedded mermaid or graphviz charts, but the rest should be suggested graphics or visual aids. When
+ suggesting a visual aid, provide it as a prompt for image-generating genAI models like dalle.
+* Content must be engaging, specific, operationally relevant, and visually compelling.
+
+Instructor Notes
+Each slide must contain a ::: {.notes} block with the following sections in this order:
+
+1. Key Points
+  * Concise bullets with the student takeaways.
+2. Instructor Notes and Script
+  * Long-form narrative (3–5 paragraphs).
+  * Rich in technical detail, context, and analogies.
+  * No markdown formatting inside notes—plain text only, with *, -, + list hierarchy where needed.
+  * Suggested dialogue, accessible at ~8th grade reading level.
+  * Must explain graphics, connect to the big picture, and use analogies.
+3. References
+  * List of cited sources, in a clickable markdown format leading to the source. 
+  If no URL is available, use chicago style.
+
+Content Depth
+* Each slide’s notes should be appropriate to the content being taught (Key Points + Instructor Notes + Script + References).
+* Instructor Notes must provide enough depth to answer technical questions and connect concepts to adversarial operations.
+* Script should be explanatory, simplified, and directly tied to visuals.
+
+The slide syntax is open to anything compatible with the latest quarto.
+Here is a sample example, including frontmatter.
+
+All slides should be at level 2 ("## title here").
+
+There should be a line break before text and a bulleted list.
+
+---
+title: "Example Title"
+author: "Army Cyber Institute"
+format: 
+  aci-revealjs:
+    slide-level: 2
+date: last-modified
+day: X
+lesson: Y
+human-review: false
+ai-review: false
+correctness: false
+pedagogical: false
+suitability: false
+quality: false
+skip-title-lift: true
+scrollable: true
+---
+
+## Slide One
+
+
+::: {.notes}
+Key Points:
+
+* List 3–5 concise takeaways
+
+Instructor Notes:
+[3–5 paragraphs of narrative tex.  Rich technical background, operational context, analogies.]
+
+Script:
+
+- "Word-for-word suggested dialogue for instructors, simplified, explanatory, and tied to visuals."
+
+References:
+
+- [title](url)
+:::
+
+**bold text**
+
+- simple bulleted slide
+- example second bullet.
+
+## Slide Two
+
+::: {.column width="50%"}
+
+- bullets on the slide in the left
+- bullet 2
+
+:::
+
+::: {.column width="50%"}
+chart or graphic can go here
+:::
+
+
+## Smaller Example {.smaller}
+
+- sometimes a slide has a lot of words. 
+- Too many words can be poor slide design. But sometimes it is necessary.
+- When using too many words, use .smaller to help the text fit better on the slide.
+
+## Sample footnote
+
+- Green ^[footnote]
+- Brown
+- Purple ^[A second footnote]
+
+::: aside
+Some additional commentary that displays at the bottom before the footnotes
+:::
+
+## Math Equations
+
+- LaTeX can be rendered as both inline and block. 
+
+Inline: $$ y = X{\color{blue}\beta} + \varepsilon $$
+
+## Math Equations (cont.)
+
+Block:
+$$
+\begin{align}
+(x+1)^2 &= (x+1)(x+1) \\
+& = x(x+1) + 1(x+1) \\
+& = (x^2+x) + (x+1) \\
+& = x^2 + (x + x) + 1 \\
+& = x^2 + 2x + 1
+\end{align}
+$$
+
+No title
+
+## Additional Features
+
+- standard markdown tables
+- absolute positioning for images
+- r-stack layout helpers
+- r-fit-text
+- center, stretch, and animations
+- element matching with animations
+- fragments
+
+
+::: {.notes}
+These features can be referenced at: 
+
+https://quarto.org/docs/presentations/revealjs/advanced.html
+:::
+
+
+

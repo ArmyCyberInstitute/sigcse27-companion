@@ -1,0 +1,1443 @@
+---
+title: "Day 5: Reaching Consensus"
+subtitle: "Section II: Blockchain Fundamentals"
+author: "Army Cyber Institute"
+institute: "U.S. Military Academy"
+date: ""
+bibliography: ../Blockchain.bib
+smaller: true
+link-citations: true
+csl: ../ieee.csl
+format: 
+  aci-revealjs:
+    scrolling: true
+    slide-level: 2
+skip-title-lift: true
+title-slide-attributes:
+  data-sync-id: "consensus-title pos-title"
+---
+
+## Foundations of Consensus {.smaller data-sync-id="consensus-foundations"}
+**Consensus definition**
+  : *General agreement; unanimity; the judgment arrived at by most of those concerned*. ^[@miriamwebster_consensus_nodate]
+
+* *Consensus* algorithms provides formal guarantees for agreement in decentralized blockchain systems. ^[@bano_consensusageblockchains_2017]
+* Properties: **S**afety, **L**iveness, **V**alidity, **A**greement (SLVA). ^[@porat_consensusproblemcs244b_2017]
+* Today's lectures covers consensus properties, models, mechanics, benefits, and weaknesses.
+
+```{mermaid}
+flowchart LR
+  %% Layout: two columns — property grid (left) and glance box (right)
+  subgraph Props[" "]
+    direction TB
+    s[Safety]:::blue
+    l[Liveness]:::green
+    v[Validity]:::yellow
+    a[Agreement]:::red
+
+    %% lightweight edges to keep a 2x2 grid layout
+    s --- l
+    s --- v
+    l --- a
+    v --- a
+  end
+
+  Props --> G["SLVA at a Glance<br/><br/>• Safety: No conflicting commits<br/>• Liveness: Eventual progress<br/>• Validity: Only valid values decided<br/>• Agreement: Correct nodes converge"]:::box
+```
+
+
+::: {.notes}
+Key Points:
+	-	Today’s focus: SLVA properties, fault/timing models, quorum mechanics.
+	-	Compare consensus families (CFT, BFT, Nakamoto).
+	-	Close with trade-offs and bridge to PoW/PoS.
+
+Instructor Notes:
+
+Script:
+- "Good morning, everyone. Today is the day we turn all the cryptographic bricks you’ve learned—hashes, signatures, Merkle trees—into a building people can actually live in: a ledger that many independent machines agree on."
+:::
+
+## Consensus Roadmap {data-sync-unmatched="true"}
+:::: {.columns}
+::: {.column width="40%"}
+* Properties & models: **SLVA**, fault tolerance, and timing.
+* **Core mechanics**: quorums, rounds, and timeouts.
+* Consensus families: 
+  - *Crash-fault tolerance (CFT)* ^[@lamport_byzantinegeneralsproblem_1982]
+  - *Byzantine-fault tolerance (BFT)* ^[@fischer_impossibilitydistributedconsensus_1985]
+  - *Nakamoto* ^[@nakamoto_bitcoinpeertopeerelectronic_2008]
+* Application: strengths, weaknesses, and trade-offs.
+:::
+::: {.column width="60%"}
+::: {.callout-note appearance="minimal" icon=false title="Publication review"}
+The human-added graphic in the original draft was removed during publication review due to copyright issues.
+:::
+:::
+::::
+
+::: {.notes}
+Slide 3 — Consensus Lesson Roadmap
+
+Key Points:
+-	Consensus = formal guarantees for agreement without central authority.
+-	SLVA properties define correctness.
+-	Course arc: properties → models → mechanics → families → trade-offs.
+
+Instructor Notes:
+
+Script:
+- "Consensus is not magic; it’s a contract. The contract reads: ‘If the world behaves within these bounds, we guarantee these outcomes.’ That mindset will make you dangerous—in a good way—when you evaluate real systems."
+- "In this context, when I say ‘consensus,’ I want you to hear four key promises that implies: safety, liveness, validity, and agreement. 
+  - Safety means we never end up with two incompatible truths. 
+  - Liveness means we don’t get stuck forever—we keep making decisions. 
+  - Validity means only well‑formed, rule‑abiding blocks make it in. 
+  - Agreement means correct participants converge on the same history.”
+- “Our plan is straightforward: 
+  - First, we’ll name the properties and the assumptions they rest on. 
+  - Then we’ll look at the mechanics—quorums, rounds, timeouts—that protocols use to turn unreliable networks into reliable decisions. 
+  - With that foundation we’ll map the major families: crash‑fault tolerant protocols like Raft, Byzantine‑fault tolerant protocols like Practical Byzantine-fault Tolerance (pBFT) and its modern cousins, and Nakamoto‑style longest/heaviest chain in open networks. 
+  - Along the way we’ll keep a running checklist so that in the next lectures, when we analyze Bitcoin and Ethereum, you can say with confidence what they do, why it works, and where the trade‑offs live.”
+- “As we go, keep asking yourself: under what faults and what timing do these guarantees hold? ”
+
+Guiding questions & answers
+- Q: What does consensus add beyond crypto?
+- A: A single canonical history; crypto checks validity, consensus selects the winning history.
+- Q: Why start with properties?
+- A: They are system-agnostic yardsticks that let us compare very different protocols.
+
+References:
+ - @porat_consensusproblemcs244b_2017
+ - @xiao_surveydistributedconsensus_2019
+ - @bano_consensusageblockchains_2017
+:::
+
+## Consensus in the Real World {data-sync-id="consensus-real-world"}
+* Consensus algorithms apply processes that we use in the physical world to formalize agreement within a group
+* Consider the following examples:
+```{mermaid}
+flowchart LR
+  %% Human Concept → Digital Mechanism
+
+  J[Jury / Supermajority Vote] -->|"Quorum (e.g., $$2t+1$$ votes)"| Q[Quorum]
+  R[Referee / Coordinator] --> L[Protocol Leader]
+  S[Shot Clock / Deadline] -->|"Timeout (triggers view change)"| T[Timeout]
+```
+
+::: {.notes}
+Slide 4 — From Human Agreement to Algorithms
+
+Key Points:
+-	Human processes map to protocol mechanics.
+-	Jury/supermajority = quorum; referee = leader; shot clock = timeout.
+-	Sets stage for formal SLVA + timing/fault models.
+
+Instructor Notes:
+ - Start with intuition students already have: in human settings, we avoid contradictory outcomes by requiring supermajorities and by following procedures led by a coordinator or referee. We also set deadlines to avoid deadlock. Distributed systems manifest these same ideas as quorums, leaders or coordinators, and timeouts that trigger recovery steps.
+ - We will pin down the four properties used to evaluate every consensus protocol: Safety, Liveness, Validity, and Agreement. These properties are the common language across classical distributed systems papers and modern blockchain research. When the class analyzes a new protocol later, the first step is to ask which properties hold and under which assumptions.
+ - Finally, preview the families we will compare: crash-fault tolerant protocols (like Paxos/Raft), Byzantine-fault tolerant protocols (like pBFT and its descendants), and Nakamoto-style longest-chain protocols for open membership. The preview helps students anticipate how the remainder of the lesson builds layer by layer.
+
+Script:
+ - “To warm up, I want to map human processes you already know to the distributed mechanisms we’ll study. Think about a jury. We require a supermajority to avoid contradictory verdicts; in systems, that becomes a quorum—collect more signed votes than any competing group could muster. Think about a referee in sports. They coordinate the flow of play; in protocols, that’s a leader or coordinator. Finally, think about a shot clock. It prevents endless stalling; in protocols, that’s a timeout that says, ‘enough waiting—move to the next plan.’”
+ - “Here’s today’s roadmap. We’ll formalize our property checklist—safety, liveness, validity, agreement. We’ll place ourselves on a timeline of assumptions: fully asynchronous networks where delays can be unbounded, partially synchronous networks that eventually calm down, and synchronous ones with known bounds. Then we’ll look at mechanics: how quorum certificates act like stamped receipts you can carry between views, how timeouts trigger leader rotation, and how all of this ensures progress without trusting any one machine.”
+ - “By the end, we’ll use this lens to draw a map of consensus families. When I say ‘CFT,’ I want you to imagine a small, trusted cluster inside a company. When I say ‘BFT,’ picture a consortium of organizations who don’t fully trust each other but can govern membership. When I say ‘Nakamoto,’ picture the open internet—anyone can join, but they have to bring costly resources. Keep this map in your head as we move forward.”
+
+Q & A:
+- Q: What problem does a timeout solve?
+- A: It turns uncertainty (‘did they fail or are they slow?’) into a concrete event that triggers view change.
+
+References:
+ - @ongaro_searchunderstandableconsensus_2014
+ - @castro_practicalbyzantinefault_1999
+ - @pease_reachingagreementpresence_1980
+:::
+
+## Consensus Properties Defined {data-sync-id="consensus-properties"} 
+:::: {.columns}
+::: {.column width="55%"}
+```{mermaid}
+flowchart LR
+  %% SLVA → Guarantees mapping
+
+  subgraph Property
+    direction TB
+    S[Safety]:::blue
+    L[Liveness]:::green
+    V[Validity]:::yellow
+    A[Agreement]:::red
+  end
+
+  subgraph Guarantees
+    direction TB
+    F[Finality]:::gbox
+    P[Progress]:::gbox
+    I[Integrity]:::gbox
+    C[Consistency]:::gbox
+  end
+
+  S --> F
+  L --> P
+  V --> I
+  A --> C
+```
+[@bano_consensusageblockchains_2017]
+
+:::
+::: {.column width="45%"}
+* **Safety**: Nothing bad ever happens. Correct nodes *never* decide conflicting values. 
+* **Liveness**: Something good eventually happens. Correct nodes *eventually* reach a decision.
+* **Validity**: The system respects application rules. Only *admissible* values are decided.
+* **Agreement**: Correct nodes that decide converge on the *same* value.
+:::
+::::
+
+::: {.notes}
+Slide 5 — Consensus Properties Defined
+
+Key Points:
+-	Consensus correctness is measured by SLVA (Safety, Liveness, Validity, Agreement)
+  - Safety = no conflicting outcomes. 
+  - Liveness = system keeps moving.
+	- Validity = only proper transactions/blocks finalized.
+	- Agreement = honest nodes converge on one history.
+
+Instructor Notes:
+ - These four properties form the yardstick for reasoning about consensus correctness. Safety protects users from irreversible contradictions—no two correct nodes should ever finalize different histories. Agreement captures the idea that correct participants end up with the same decision, even if their network views differ during the run.
+ - Validity ties the protocol to the application layer. In blockchain settings, a valid value is typically a block whose transactions satisfy signature and balance rules; in classical replicated state machines, it can be any value that passes the state machine’s input validation. Validity prevents the system from finalizing nonsense.
+ - Liveness is easily misunderstood. A system can be fast in the best case and still fail to be live under realistic delays. Liveness proofs always rely on some model of time or randomness (for example, partial synchrony or a common coin). In practice, liveness is why protocols include timeouts, leader rotation, and backoff.
+
+Script:
+ - “Let’s lock down the vocabulary. Safety first. A protocol is safe if two correct nodes can never finalize conflicting values. In a ledger, that means we never have two different blocks both considered final at the same height. You can be slow and still be safe; you can be fast and not be safe—speed is not safety.”
+ - “Liveness next. Liveness says that under the assumptions we state—about message delays, failures, and clocks—the system eventually decides. It doesn’t promise constant speed; it promises that waiting long enough will produce progress. Validity ties the protocol to the application: only admissible values pass. For a blockchain, that means blocks whose transactions have valid signatures and sufficient balances. Agreement captures convergence: if two correct nodes finalize, they finalize the same value.”
+ - “Why do we care? Because these are the yardsticks you’ll use to critique every protocol you meet. When someone says ‘finality,’ your follow‑up should be, ‘Under which assumptions? With what probability or determinism? And how do you prove it?’ We’ll practice that habit all day.”
+
+Q & A:
+- Q: Is fast finality the same as liveness?
+- A: No. Liveness is eventual progress under assumptions, not best-case speed.
+
+References:
+ - @bano_consensusageblockchains_2017
+:::
+
+## Failure & Timing Models {data-sync-id="consensus-failures consensus-timing consensus-flp-dls"}
+* Faults: Crash-fault tolerance (**CFT**) vs Byzantine‑fault tolerance (**BFT**).
+* Timing: Asynchronous → Partial Synchrony → Synchrony.
+* Landmarks^[These acronyms are taken from the primary authors of each paper: Fischer, Lynch, & Patterson (FLP) and Dwork, Lynch, & Stockmeyer (DLS), respectively.]: 
+  - FLP impossibility theorem: no deterministic termination in pure async with one fault. ^[@fischer_impossibilitydistributedconsensus_1985]
+  - DLS algorithm: progress under partial synchrony. ^[@pease_reachingagreementpresence_1980]
+```{mermaid}
+graph TD
+    subgraph "Fault Models"
+        CFT[Crash-Fault];
+        BFT[Byzantine-Fault];
+    end
+
+    subgraph "Timing Models"
+        A["Asynchronous<br/><i>(FLP Impossibility)</i>"] --> PS["Partially Synchronous<br/><i>(DLS Result)</i>"] --> S[Synchronous];
+    end
+
+    style CFT fill:#e6f3ff
+    style BFT fill:#ffe6e6
+    style A fill:#f0f0f0
+    style PS fill:#ccffcc
+    style S fill:#f0f0f0
+```
+
+::: {.notes}
+Slide 6 — Failure & Timing Models
+
+Key Points:
+-	Consensus depends on fault + timing assumptions.
+-	CFT = nodes fail silently; BFT = nodes may be malicious.
+-	Timing can be asynchronou (no bounds), synchronous (strict bounds), or partial synchrony (realistic).
+-	FLP result: in pure async, can’t guarantee both safety and liveness with even 1 fault.
+
+Instructor Notes:
+ - Assumptions about faults and time are the foundation on which safety and liveness proofs are built. In crash-fault models, processes can fail by stopping but not by sending contradictory messages. In Byzantine-fault models, processes can behave arbitrarily and even collude—this is the model that matches adversarial, permissionless environments.
+ - Timing models describe how unpredictable the network can be. In a fully asynchronous model, messages can be delayed arbitrarily long, and clocks cannot be relied upon. Partial synchrony captures the common real-world case where the network behaves erratically for a while but eventually stabilizes so that delays are bounded. Strict synchrony assumes known bounds at all times.
+ - The familiar $t < n/3$ bound for Byzantine consensus under partial synchrony ensures that any two supermajority quorums of size $2t+1$ share at least $t+1$ correct members. That overlap prevents conflicting decisions. Understanding how quorum size, fault tolerance, and message patterns interact is key to evaluating protocol designs and committee sizing.
+
+Script:
+ - “Now, to understand what can be guaranteed, we have to be honest about the world we run in. Fault models first. Crash faults are the easy ones: a node stops or restarts but doesn’t lie. Byzantine faults are the hard ones: a node can equivocate, collude, send different messages to different peers—anything an adversary might do.”
+ - “Timing models next. In a fully asynchronous world there are no bounds on message delay. Fischer‑Lynch‑Paterson famously proved that in that world, a deterministic protocol cannot guarantee termination if even one process can fail. That’s sobering, and it’s why practical protocols assume partial synchrony: after some unknown ‘Global Stabilization Time,’ delays become bounded well enough to make timeouts meaningful. In strictly synchronous systems, you know the bounds from the start.”
+ - “Keep the triad in mind: fault model, timing model, and the guarantees you claim. Change any one, and the theorem you rely on may no longer apply. Our protocols will buy liveness with timeouts once the network calms down, and they’ll buy safety with quorum overlap regardless of delays.”
+
+Q & A:
+- Q: In practice, what model fits internet deployments?
+- A: Partial synchrony—eventually, delays are bounded well enough for progress.
+:::
+
+## Core Mechanics {data-sync-id="consensus-practical consensus-rounds consensus-quorums consensus-timeouts"}
+:::: {.columns}
+::: {.column width="30%"}
+Quorums:  
+  : *ensure overlapping decisions for safety*. 
+```{mermaid}
+graph LR
+    subgraph "Safety Guarantee"
+        SafetyNote("Any set of two $$2t+1$$<br><i>must intersect</i>")
+    end
+    style SafetyNote fill:#fff0b3,stroke:#333
+```
+:::
+::: {.column width="40%"}
+Rounds (phases): 
+  : *make evidence auditable and ordering unambiguous.*
+```{mermaid}
+flowchart LR
+  subgraph BFT_Round["BFT Round"]
+    P["Propose"] --> V["Vote"]
+    V --> C["Commit"]
+    QC["Quorum Certificate<br/><i>(formed from $$2t+1$$ votes)</i>"] --> V
+  end
+
+  classDef node fill:#f0f0f0,stroke:#333
+  classDef qc fill:#fff0b3,stroke:#333
+  class P,V,C node
+  class QC qc
+```
+:::
+::: {.column width="30%"}
+Timeouts: 
+  : *detect stalls and trigger view change/leader rotation.*
+:::
+::::
+
+::: {.notes}
+Slide 7 — Quorums, Rounds, and Timeouts
+
+Key Points:
+-	Quorum overlap ensures safety.
+-	Phases: propose → vote → commit.
+-	Timeouts drive leader change when progress stalls.
+
+Instructor Notes:
+ - Most practical consensus protocols organize execution into rounds or phases and require participants to collect a threshold of signed messages before advancing. This structure ensures that progress can be audited and that messages from different rounds are not confused, even when the network reorders them.
+ - Quorums are the central safety device. By requiring a supermajority to advance (e.g., $2t+1$ votes), the protocol guarantees that any two decisions share at least one correct voter, preventing the possibility of finalizing two conflicting values. This holds even if the current leader is faulty or the network is experiencing delays.
+ - Because real networks are noisy, protocols rely on timeouts to detect when a round has stalled. A timeout triggers a view change: the system rotates to a new leader or coordinator and continues. Under partial synchrony, once the network stabilizes, these timeouts are large enough to avoid premature rotation while still guaranteeing liveness.
+
+Script:
+ - “Let’s unpack the mechanics you’ll see repeatedly. Quorums first. If up to $t$ participants can be faulty, we require $2t+1$ matching votes so that any two decision sets overlap in at least $t+1$ correct voters. That overlap is the seatbelt that prevents two conflicting commits. The number is not decorative—it’s the reason proofs go through.”
+ - “Rounds and phases next. By structuring progress into phases—propose, vote, commit—we attach evidence to each step. A quorum certificate is simply a collection of threshold‑many signatures attesting, ‘In round $r$, we voted for value $v$.’ Because these certificates are portable, they can be presented to a new leader during view change to prove what is safe to extend.”
+ - “Timeouts are our liveness lever. If nothing happens for long enough, we treat silence as a signal to rotate leadership or increase timers. Under partial synchrony, once the network settles, those timers become larger than the worst‑case delay, and the system stops thrashing and starts committing. Put differently: timeouts turn ‘I’m not sure’ into deterministic action.”
+
+Q & A:
+- Q: Why not require 100% agreement?
+- A: It would destroy liveness under even benign failures; supermajorities strike the balance.
+
+References:
+ - @castro_practicalbyzantinefault_1999
+ - @crain_dbftefficientbyzantine_2018
+:::
+
+## Comparing Consensus Families {data-sync-id="consensus-families"}
+```{mermaid}
+graph TD
+    subgraph "Consensus Families"
+        CFT["CFT (e.g., Raft)"]
+        BFT["BFT (e.g., pBFT)"]
+        Nakamoto["Nakamoto (e.g., PoW)"]
+    end
+    subgraph "Properties"
+        I["Identity: Known/Trusted"]
+        A["Adversary: Crash"]
+        F["Finality: Deterministic"]
+
+        I2["Identity: Known/Governed"]
+        A2["Adversary: Byzantine"]
+        F2["Finality: Deterministic"]
+
+        I3["Identity: Open/Anonymous"]
+        A3["Adversary: Rational/Byzantine (<50%)"]
+        F3["Finality: Probabilistic"]
+    end
+    CFT --> I & A & F
+    BFT --> I2 & A2 & F2
+    Nakamoto --> I3 & A3 & F3
+```
+:::: {.columns}
+::: {.column width="33%"}
+* **Crash-fault (CFT)**
+  - authenticated cluster
+  - crash-only
+  - majority quorums
+  - *deterministic* finality
+:::
+::: {.column width="33%"}
+* **Practical Byzaltine-fault (BFT)**
+  - adversarial faults
+  - $2$ thresholds
+  - *deterministic* finality under *partial synchrony*.
+:::
+::: {.column width="33%"}
+* **Nakamoto**
+  - open membership
+  - resource-based or *Sybil* resistance
+  - *probabilistic* finality
+:::
+::::
+
+::: {.notes}
+Slide 8 — Consensus Families: CFT, BFT, Nakamoto
+
+Key Points:
+-	CFT = efficient, deterministic, trusted settings.
+-	BFT = strong guarantees, small committees, higher cost.
+-	Nakamoto = open networks, probabilistic finality, high energy.
+
+Instructor Notes:
+ - Crash-fault tolerant protocols excel in single-organization clusters where participants are authenticated and failures look like crashes. They are simple, efficient, and widely deployed in databases and internal services. However, they do not address equivocation or collusion and therefore are not suitable for adversarial environments.
+ - Byzantine-fault tolerant protocols extend the model to arbitrary faults. They exchange authenticated messages and require a supermajority to finalize, yielding deterministic finality under partial synchrony when the number of faulty nodes is below a third of the total. These properties align well with consortium blockchains that can manage membership.
+ - Nakamoto-style consensus dispenses with fixed membership and instead weights influence by scarce resources (e.g., proof-of-work). Finality becomes probabilistic: the chance of a reorganization decays as additional blocks confirm the decision. That probabilistic contract is the trade-off that buys openness in permissionless systems.
+
+Script:
+ - “With the building blocks in place, let’s draw the map of consensus families. Crash‑fault tolerant protocols—think Raft and Paxos—assume known participants and no lies. They give deterministic finality in small clusters and are widely used inside databases and control planes. If you run etcd or Consul, you’re already using CFT.”
+ - “Byzantine‑fault tolerant protocols—pBFT and its descendants—assume some participants may lie or collude. They require supermajorities to move and produce deterministic finality when the number of faulty replicas stays below a third. They shine in consortium settings where you can govern who validates and you want low‑latency finality.”
+ - “Nakamoto‑style protocols assume open membership and use scarce resources—proof‑of‑work, or in later systems, stake—to make Sybil attacks expensive. Their finality is probabilistic: the deeper a transaction is under new blocks, the lower the chance it gets reversed. This trade‑off purchases openness at the cost of latency and energy.”
+
+Q & A:
+- Q: Why not run BFT with thousands of public validators?
+- A: Messaging/coordination overhead and identity management dominate at that scale.
+
+References:
+ - @ongaro_searchunderstandableconsensus_2014
+ - @castro_practicalbyzantinefault_1999
+ - @bano_consensusageblockchains_2017
+:::
+
+## Why Consensus Matters in Blockchains {data-sync-id="consensus-blockchains"}
+* Trust minimization replaces central operators with protocol + incentives.
+* Consensus prevents double-spends by converging on one canonical ledger.
+* Openness vs. control implies probabilistic vs. deterministic finality.
+```{mermaid}
+graph TD
+    subgraph Fork
+        B0 --> B1
+        B1 --> B2a["Block 2a (Alice pays Carol)"]
+        B1 --> B2b["Block 2b (Alice pays Dave)"]
+    end
+
+    B1 -- "Heaviest Chain Selected" --> C2a_final["Block 2a"]
+    C2a_final --> C3["+$$1$$ Block"] --> C4["+$$k$$ Confirmations"]
+
+    B2b -- "Orphaned (Double-Spend Invalidated)" --> X[ ]
+    style X fill:none,stroke:none
+
+    subgraph "Risk Meter"
+        C2a_final -.-> HighRisk(High Risk)
+        C4 -.-> LowRisk(Low Risk)
+    end
+
+    style HighRisk fill:#ffcccc,stroke:#ff0000
+    style LowRisk fill:#ccffcc,stroke:#009900
+    classDef orphaned fill:#ffcccc,stroke:#ff0000,stroke-width:2px;
+    class B2b orphaned;
+```
+
+::: {.notes}
+Slide 9 — Why Consensus Matters in Blockchains
+
+Key Points:
+-	Consensus prevents double-spending.
+-	Establishes canonical ledger without central operator.
+-	Type of finality (deterministic vs probabilistic) shapes user policy.
+
+Instructor Notes:
+ - Consensus is the bridge between cryptographic validity and economic finality. Without agreement, signatures and hashes prove that blocks are well formed, but they do not tell us which of two conflicting blocks should be the authoritative history. Users and applications require a single, globally consistent ledger to settle value and enforce contracts.
+ - In permissionless settings, probabilistic finality is acceptable because the residual risk can be made economically negligible by waiting for more confirmations. Merchants, exchanges, and smart contracts encode policies—such as requiring $k$  confirmations—that convert an abstract probability into a practical safety margin.
+ - In consortium settings, where membership is known and regulated, adopting BFT consensus yields deterministic finality with lower latency and predictable throughput. The trade-off is reduced openness and the need for governance over validator identities. Students should begin to recognize how organizational context drives protocol choice.
+
+Script:
+ - “Why does consensus matter for blockchains? Because cryptography alone can’t choose between two valid but conflicting histories. Imagine I pay Alice at 10:00 and then try to pay Bob with the same coins at 10:01. Both transactions pass signature checks. If different parts of the network see them in different orders, who’s right? Without consensus, we’d have permanent disagreement and broken commerce.”
+ - “Consensus gives us a tie‑breaker everyone agrees to follow. In permissionless settings, the tie‑breaker is ‘extend the heaviest chain’ and accept that certainty grows with depth. In consortium settings, the tie‑breaker is ‘finalize when enough named validators sign,’ giving deterministic finality. Either way, the goal is a single canonical ledger that users can rely on to settle value and enforce contracts.”
+ - “As we compare systems, keep translating properties into user policy. A merchant waiting for $k$  confirmations is turning a probabilistic contract into a business rule. A bank using a BFT chain is turning quorum thresholds into an SLA. That’s the bridge from theory to practice.”
+
+Q & A:
+- Q: Why do exchanges require more confirmations for higher-value transfers?
+- A: To lower reorg risk in proportion to the value at risk.
+
+References:
+ - @garay_bitcoinbackboneprotocol_2014
+ - @nakamoto_bitcoinpeertopeerelectronic_2008
+:::
+
+## Crash-Fault Tolerance (CFT) Basics {data-sync-id="consensus-cft"}
+* Assumes nodes crash or restart but don’t lie (e.g. no *malicious intent*).
+* Leader proposes; majority acknowledges; commit on overlap.
+* Great for internal replicated services; not for adversarial settings.
+```{mermaid}
+sequenceDiagram
+    participant F1 as Follower
+    participant L as Leader
+    participant F2 as Follower
+    L->>+F1: Propose Entry
+    L->>+F2: Propose Entry
+    F1-->>-L: Acknowledge
+    F2-->>-L: Acknowledge
+    Note over L: Majority ($$2/3$$) acknowledged
+    L->>F1: Commit Entry
+    L->>F2: Commit Entry
+```
+::: {.notes}
+Slide 10 — Crash-Fault Tolerance (CFT) Basics
+
+Key Points:
+-	Assumes crashes only, no malice.
+-	Majority overlap protects safety.
+-	Used in config stores, not adversarial blockchains.
+
+Instructor Notes:
+ - CFT protocols like Raft and Paxos are the workhorses of state machine replication in benign environments. A leader proposes values, followers acknowledge, and a majority quorum is required to commit. If the leader fails, a new leader is elected. The algorithm’s simplicity makes it easy to reason about and implement correctly.
+ - Safety derives from quorum overlap: any two majorities share at least one member, preventing the possibility of committing two different values in the same log position. Liveness follows from timely leader election and the assumption that crashed nodes eventually recover or are replaced.
+ - However, CFT assumes faults are accidental, not adversarial. A malicious leader could equivocate—sending different proposals to different followers—without violating the model. This is why CFT is a poor fit for public or adversarial blockchains, where participants may attempt to subvert the protocol.
+
+Script:
+- “Crash‑fault tolerance first, because many of you have used it without naming it. In Raft or Paxos, one node acts as leader and proposes log entries. Followers acknowledge. When a majority ($(n/2)+1$) has the entry, it’s committed. If the leader crashes, we run an election with randomized timeouts to pick a new one.”
+- “Why does this work? Majority overlap. Any two majorities share at least one node, so once an entry is committed, a new leader can’t unknow it without violating the overlap. That’s safety. Liveness comes from the fact that elections eventually succeed when the leader truly fails and the network is healthy.”
+- “Where does it break? If the leader lies—sends different entries to different followers—the model is violated. CFT assumes failures are accidental, not adversarial. That’s fine inside a trusted cluster; it’s not fine on the open internet. That gap motivates Byzantine‑fault tolerant designs.”
+
+Q & A:
+- Q: Is majority ($n/2+1$) always sufficient?
+- A: For crashes, yes; for Byzantine faults you need $2t+1$ with $t < n/3$
+
+References:
+- @ongaro_searchunderstandableconsensus_2014
+:::
+
+## Byzantine Fault Tolerance (BFT): Essentials {.smaller data-sync-id="consensus-bft consensus-finality consensus-rounds"}
+* Implementations include *practical BFT (pBFT)* and *weak-coordinator (WAN-friendly) BFT*
+* Up to $t < n/3$ Byzantine nodes under partial synchrony^[@pease_reachingagreementpresence_1980].
+* Multi-phase voting
+  - quorum certificates (QCs) as proof
+  - deterministic finality
+* Fit for consortium chains with governed membership.
+```{mermaid}
+graph TD
+    subgraph "Phase 1: Pre-Prepare"
+        P[Leader Proposes]
+    end
+    subgraph "Phase 2: Prepare"
+        R1_P[Replica 1 Agrees]
+        R2_P[Replica 2 Agrees]
+        R3_P["Replica 3 (Malicious) Silent"]
+        R4_P[Replica 4 Agrees]
+    end
+    subgraph "Phase 3: Commit"
+        QC["Quorum Certificate (QC)<br/>$$2t+1$$ 'Prepare' Votes"]
+        R1_C[Replica 1 Commits]
+        R2_C[Replica 2 Commits]
+        R4_C[Replica 4 Commits]
+    end
+    P --> R1_P & R2_P & R4_P
+    R1_P & R2_P & R4_P --> QC
+    QC --> R1_C & R2_C & R4_C
+```
+
+::: {.notes}
+Slide 11 — Byzantine Fault Tolerance (BFT): Essentials
+
+Key Points:
+- Assumes $n > 3t$, tolerates $t$ Byzantine nodes.
+-	Multi-phase voting, quorum certificates.
+-	Deterministic finality; suited for permissioned systems.
+
+Instructor Notes:
+ - BFT protocols are engineered to survive arbitrary misbehavior. Each step requires gathering a threshold of signed votes, forming a quorum certificate that serves as irrefutable evidence that a supermajority supports a value. Nodes use QCs to advance rounds and to prevent the acceptance of conflicting values.
+ - Deterministic finality is a defining benefit: once a value is committed, no amount of network reordering or adversarial messaging can uncommit it, provided the fault threshold and timing assumptions hold. This property is valuable for regulated domains where rollback is unacceptable.
+ - The costs are real: message complexity can be quadratic in the number of validators, and handling faulty leaders requires robust view-change procedures. Many practical systems mitigate these costs by fixing committee sizes, rotating membership, or optimizing networks for wide-area latency.
+
+Script:
+- “Byzantine‑fault tolerant protocols defend against lies and collusion by replacing ‘trust the leader’ with ‘trust a supermajority.’ In pBFT’s classic form, the primary proposes, replicas echo the proposal in a prepare phase, and once $2t+1$ matching prepares are seen, they move to commit. A quorum certificate—literally the set of $2t+1$ signatures—serves as proof.”
+- “The beauty of the approach is that safety doesn’t hinge on any one machine. Even if the primary is malicious, it cannot produce conflicting certificates because any two $2t+1$ sets must overlap in at least t+1 honest replicas, and those replicas will not sign contradictions. Liveness is ensured under partial synchrony by timeouts and view changes: if the primary stalls, replicas rotate to a new one and carry forward certificates as receipts.”
+- “You pay for this strength with more messages and more complex leader changes, so practical deployments fix committee sizes and engineer networks to keep latency predictable. In return you get deterministic finality: when a block is committed, it stays committed.”
+
+Q & A:
+- Q: Why exactly $t < n/3$?
+- A: It ensures any two $2t+1$ quorums share $≥ t+1$ correct nodes, blocking conflicting commits.
+
+References:
+- @castro_practicalbyzantinefault_1999
+- @pease_reachingagreementpresence_1980
+
+:::
+
+## Weak-Coordinator and WAN-Friendly BFT {data-sync-unmatched="true"}
+* Coordinator suggests but doesn’t gate progress; replicas advance on threshold evidence.
+* Improves tail latency and throughput across lossy, geo-distributed networks.
+* Blockchain-specific validity can combine contributions from multiple correct proposers.
+
+:::: {.columns}
+::: {.column}
+```{mermaid}
+graph TD
+    subgraph "Scenario 1: Blocking Leader"
+        direction LR
+        B1[Block N] --> B2_Fail("Leader Fails!")
+        B2_Fail -- "System Stalls" --> B3_Rec[View Change]
+        B3_Rec -- "Recovery" --> B4[Block N+1]
+    end
+    style B2_Fail fill:#ffcccc,stroke:#cc0000,stroke-width:2px
+```
+:::
+::: {.column}
+```{mermaid}
+graph TD
+    subgraph "Scenario 2: Weak Coordinator"
+        direction LR
+        W1[Block N] --> W2[Block N+1] --> W3[Block N+2]
+        Coordinator[Faulty Coordinator] -.-> W2
+    end
+    style Coordinator fill:#fff0b3,stroke:#333,stroke-dasharray: 5 5
+```
+:::
+::::
+
+::: {.notes}
+Slide 12 — Weak Coordinator (WAN-Friendly) BFT
+
+Key Points:
+-	Strong leader = bottleneck.
+-	Weak coordinator suggests but doesn’t block progress.
+-	Improves performance in WAN; safety unchanged.
+
+Instructor Notes:
+- Traditional BFT protocols often hinge on a single leader to sequence proposals, which can introduce stalls if that leader is slow or faulty. *Weak-coordinator* designs relax this reliance by allowing honest replicas to make progress when they observe sufficient evidence, even if the coordinator underperforms.
+- This change matters in wide-area networks, where round-trip times vary and packet loss is routine. By allowing multiple honest nodes to contribute to progress, the protocol reduces tail latency and smooths performance without weakening safety. Quorum certificates remain the arbiter of correctness.
+- Several modern blockchain-oriented BFT protocols incorporate these ideas, along with application-specific validity predicates that allow a decided block to incorporate transactions proposed by multiple correct nodes. The result is better throughput and utilization while preserving deterministic finality.
+
+Script:
+- “Modern BFT variants relax the leader’s role further with what we’ll call a *‘weak coordinator.’* Think of the *coordinator* as a traffic cop rather than a gate. Honest replicas don’t wait for royal decrees; they move forward when they see enough evidence—enough signatures—to be confident a value is safe to extend.”
+- “This matters on a wide‑area network where delays vary. If the coordinator is slow but the network is otherwise healthy, replicas can still aggregate votes and form certificates that allow progress. Safety still comes from quorum intersection; the coordinator speeds convergence by suggesting values consistent with the highest known certificates.”
+- “The net effect is better tail latency and fewer stalls, without sacrificing the proof obligations that make BFT trustworthy. When you see ‘highest QC wins’ later, this is what it’s about: keep extending what has the strongest evidence.”
+
+Q & A:
+- Q: If the coordinator is faulty, do we stall?
+- A: No—replicas progress on thresholds; the coordinator is advisory.
+
+References:
+- @crain_dbftefficientbyzantine_2018
+:::
+
+## Nakamoto Rule: The Heaviest Chain Wins {data-sync-id="consensus-nakamoto"}
+:::: {.columns}
+::: {.column}
+* Open membership
+  - Sybil resistance via scarce resource (e.g., **priority of work** or **PoW**).
+* Viewing the chain as a tree, accepts history that consists of the *longest/heaviest path*.
+* Probabilistic finality
+  - reorg risk decays with confirmation *depth*.
+:::
+::: {.column}
+```{mermaid}
+gitGraph
+   commit id: "Block 1"
+   commit id: "Block 2"
+   branch fork
+   checkout fork
+   commit id: "Block 3' (Work: 3, Abandoned)" type: HIGHLIGHT
+   checkout main
+   commit id: "Block 3"
+   commit id: "Block 4 (Work: 4, Adopted)"
+```
+:::
+::::
+
+::: {.notes}
+Slide 13 — Nakamoto-Style: Longest/Heaviest Chain
+
+Key Points:
+-	Normal case = 3 phases.
+-	Pre-prepare sets request + view.
+-	Prepare QC + Commit QC = finality.
+-	View change maintains progress under faults.
+
+Instructor Notes:
+- Nakamoto’s breakthrough was to convert consensus in an open, adversarial network into a probabilistic race. By tying block production to an external, scarce resource, the protocol makes Sybil attacks expensive and aligns incentives so that most participants extend the same branch of history.
+- Representing the chain as a tree is conceptually useful: multiple branches can exist transiently when competing blocks are found near-simultaneously. The protocol’s rule to build on the longest (or heaviest) branch gradually prunes these forks, and the probability that a confirmed transaction is later reversed falls as additional blocks accrue.
+- The contracts here are probabilistic rather than absolute. Users choose security levels (e.g., number of confirmations) that fit their risk tolerance. Network conditions and concentration of mining power influence these probabilities—topics we will quantify in the subsequent lectures on Bitcoin and Ethereum.
+
+Script:
+- “Switching gears to Nakamoto‑style consensus. Picture the blockchain not as a single line but as a tree: sometimes two miners find blocks near‑simultaneously, and two tips exist. The rule is simple: extend the valid chain with the most accumulated work—the heaviest chain.”
+- “Why does this converge? Because producing valid blocks is costly, and rational miners want to maximize expected reward. Mining on the heaviest chain gives the highest chance that your block will end up in the accepted history. Over time, one branch gains a lead; the other becomes a stale side branch and is abandoned.”
+- “Finality here is probabilistic, not binary. A transaction that is one block deep could be replaced by a competing branch; a transaction six blocks deep is far harder to dislodge. Users translate that probability curve into policy by waiting for an appropriate number of confirmations given the value at risk.”
+
+Q & A:
+- Q: Why can’t an attacker just rewrite history at will?
+- A: They must outpace the honest resource majority—cost grows with depth.
+
+References:
+- @nakamoto_bitcoinpeertopeerelectronic_2008
+- @garay_bitcoinbackboneprotocol_2014
+
+:::
+
+## Confirmations & Probabilistic Finality {data-sync-id="consensus-nakamoto"}
+* Reorg probability decreases with each additional confirmation.
+* Appropriate $k$  depends on value at risk, adversary hash share, and propagation conditions.
+
+*Probabilistic Finality*
+ : A state where the likelihood of a transaction being reversed decreases as it gets deeper in the blockchain, but never reaches zero. Users manage this risk by waiting for a policy-based number of confirmations ($k$).
+```{mermaid}
+flowchart LR
+    subgraph Blockchain
+        direction LR
+        B_prev[...] --> TX[TX]
+        TX --> K1[k=1] --> K2[k=2] --> K3[k=3] --> K4[k=4] --> K5[k=5] --> K6[k=6]
+    end
+
+    subgraph legend ["6 Confirmations"]
+        direction LR
+        K1 --- K6
+    end
+    style legend fill:none,stroke:none,stroke-dasharray: 5 5
+
+    subgraph Risk
+        HighRisk["High Risk"];
+        LowRisk["Low Risk"];
+    end
+
+    TX -.-> HighRisk
+    K6 -.-> LowRisk
+
+    style HighRisk fill:#ffcccc,stroke:#ff0000
+    style LowRisk fill:#ccffcc,stroke:#009900
+```
+
+::: {.notes}
+Slide 14 — Confirmations & Probabilistic Finality
+
+Key Points:
+-	Chain with most accumulated work = canonical ledger.
+-	Honest strategy = mine on heaviest chain.
+-	Sybil resistance through resource cost.
+
+Instructor Notes:
+- Consensus is engineering under constraints. If you need open participation and cannot vet identities, you must pay for Sybil resistance—hence the resource expenditure of PoW. If you control membership, BFT protocols provide strong guarantees at lower energy cost but require governance and careful operations.
+- Performance envelopes differ. BFT can achieve sub-second finality in small to medium committees, but its communication cost grows with committee size. PoW supports thousands of participants across the globe at the cost of higher latency and lower throughput. These differences are not flaws; they are design consequences.
+- When evaluating a system, begin with the identity and threat model, choose the finality contract that fits your risk appetite, and then reconcile the choice with latency, throughput, geography, and operations. This rubric helps avoid cargo-culting a protocol into the wrong context.
+
+Script:
+- “Let’s make confirmations concrete. Suppose an attacker controls a fraction $α$ of total hash power. The honest network controls $1−α$. If a transaction is $k$ blocks deep, the attacker must mine a private branch at a faster effective rate than the honest network to catch up and overtake. Analyses like the Bitcoin Backbone model show that the probability of a successful catch‑up falls roughly exponentially with $k$  when $α < 0.5$.”
+- “Two real‑world factors shift the curve. First, propagation delay: if honest blocks take longer to reach miners, honest power is effectively wasted, giving attackers a relative boost. Second, concentration: if a few pools dominate, coordination and strategy matter more. That’s why exchanges use different $k$ for different assets and network conditions.”
+- “The punchline is not ‘six confirmations.’ The punchline is ‘pick $k$ that matches your risk and the threat model today.’ Tomorrow, we’ll put numbers to these ideas.”
+
+Q & A:
+- Q: Why do some services use $k=20+$?
+- A: To protect very large transfers or operate in high-risk network conditions.
+
+References:
+- @garay_bitcoinbackboneprotocol_2014
+- @decker_informationpropagationbitcoin_2013
+
+:::
+
+## Forks, Reorgs, and Network Dynamics {data-sync-id="ethereum-forks"}
+:::: {.columns}
+::: {.column width="40%"}
+* Short forks arise naturally; long/recurring forks signal stress or attack.
+* Reorgs occur when an alternative branch overtakes the current tip.
+:::
+::: {.column width="60%"}
+```{mermaid}
+graph TD
+    subgraph "Normal Operation"
+        B1 --> B2 --> B3
+    end
+    subgraph "Fork Event (Network Latency)"
+        B3 --> B4a[Block 4a]
+        B3 --> B4b[Block 4b]
+    end
+    subgraph "Reorg (Heaviest Chain Wins)"
+        B4b --> B5b[Block 5b]
+        Info("Chain $$B$$ is now heavier")
+        B5b -.-> Info
+        B4a -- Orphaned --> X[ ]
+        style X fill:none,stroke:none
+        style Info fill:#e6f3ff,stroke:#3366cc
+        classDef orphaned fill:#ffcccc,stroke:#ff0000,stroke-width:2px;
+        class B4a orphaned;
+    end
+```
+:::
+::::
+
+::: {.notes}
+Slide 15 — Forks, Reorgs, and Network Dynamics
+
+Key Points:
+-	Finality is probabilistic, not absolute.
+-	Reorg risk decreases with more confirmations.
+-	No point of zero risk; confirmations = confidence level.
+
+Instructor Notes:
+- Two short case studies make the decision framework concrete. For public payments where anyone can participate, permissionless consensus with probabilistic finality is appropriate; the system’s parameters (difficulty, block interval) and user policies (confirmations) determine risk and latency.
+- For inter-bank settlement, the participants, roles, and liabilities are known. A BFT protocol provides deterministic finality with clear governance of validator sets, auditable voting, and predictable latency—better matching regulatory and operational requirements.
+- The key lesson is to fit protocol to purpose. Start from assumptions, articulate the finality you promise to users, and only then optimize for performance and cost. The remainder of the course will apply this method to real systems.
+
+Script:
+- “Forks and reorganizations are part of life in longest‑chain systems. Short‑lived forks usually indicate healthy competition—two blocks found close together. Long, frequent, or patterned forks can signal stress: network partitions, eclipsed nodes, or strategic behavior like selfish mining.”
+- “Operationally, you should watch the orphan—or stale—rate and the distribution of propagation delays. A sudden increase in stales or widening delay tails might indicate a relay outage or a partition. If one region is consistently behind, you might be looking at an eclipse affecting a subset of peers.”
+- “When a reorg happens, a block that was on the main chain becomes stale because another branch became heavier. Honest nodes switch; transactions from the stale block return to the mempool. Design your applications so they react gracefully: don’t trigger irreversible actions until risk is commensurate with value.”
+
+Q & A:
+- Q: One metric to put on a dashboard?
+- A: Orphan/stale rate with percentiles of propagation delays.
+
+References:
+- @decker_informationpropagationbitcoin_2013
+- @eyal_majoritynotenough_2014
+:::
+
+## Incentives & Alignment {data-sync-unmatched="true"}
+* Rewards (blocks, fees) guide participants to extend the canonical chain.
+* Penalties (slashing) make equivocation and downtime costly in PoS/BFT.
+```{mermaid}
+graph TD
+    A{Miner's Choice} --> B["Mine on Heaviest Chain (Honest)"]
+    A --> C["Mine on Own Fork (Selfish)"]
+    
+    B --> B1["+ Block Reward"]
+    B --> B2["+ Transaction Fees"]
+    B --> B3["Highest Probability of Success"]
+    
+    C --> C1["Risk Losing Reward"]
+    C --> C2["Expends Energy for Nothing"]
+    C --> C3["Low Probability of Success"]
+
+    style B fill:#ccffcc
+    style C fill:#ffcccc
+```
+
+::: {.notes}
+Slide 16 — Incentives & Alignment (High Level)
+
+Key Points:
+-	Incentives enforce honest strategies.
+-	PoW: rewards tie to longest chain.
+-	PoS/BFT: penalties (slashing) deter deviation.
+-	Incentives complement protocol correctness.
+
+Instructor Notes:
+- To prepare students for the Bitcoin lecture, preview how the longest-chain rule converts resource expenditure into probabilistic safety, and how confirmations let users trade latency for risk reduction. We will also examine miner economics and the effects of network partitions on reorganization probabilities.
+- For Ethereum’s PoS era, foreshadow validator selection, attestations, and BFT-style finality that sits atop the chain growth mechanism. We will connect today’s concepts—quorums, certificates, and partial synchrony—to how finality is achieved in practice and how incentives (e.g., slashing) maintain discipline.
+- Encourage students to bring questions about finality policies and risk tolerance. The analytic lens we built today is meant to make those choices explicit rather than intuitive: assumptions in, guarantees out.
+
+Script:
+- “Protocols constrain what’s possible; incentives shape what’s optimal. In open systems, proof‑of‑work makes participation costly and pays out rewards to those who extend the canonical chain. The honest strategy—publish quickly, mine on the heaviest tip—maximizes expected revenue for most participants.”
+- “In BFT and proof‑of‑stake systems, we align behavior by putting value at risk. Validators who equivocate or fail to participate can be slashed. The aim is the same as in PoW: make the honest path the best‑paying path. But note the different costs—energy on one side, capital and governance on the other.”
+- “A key lesson: incentives complement but do not replace safety and liveness proofs. You still need quorum intersection for safety and timing assumptions for progress; incentives just reduce the probability that rational actors try to skate around the rules.”
+
+Q & A:
+- Q: Can incentives ‘paper over’ weak safety?
+- A: No. They complement protocol guarantees but do not substitute for them.
+
+References:
+- @bano_consensusageblockchains_2017
+
+:::
+
+## Trade-offs: A Visual Summary {data-sync-id="consensus-families"}
+* Crash-fault tolerance (CFT)
+  - efficient for trusted clusters
+  - no adversarial resilience
+* Byzantine-fault tolerance (BFT)
+  - strong finality/low latency at small–medium committees
+  - higher coordination cost as $n$ grows
+* Priority-of-work (PoW) 
+  - open participation, simple membership
+  - higher latency and significant energy externalities
+
+::: {.notes}
+Slide 17 — Trade-offs: Scalability, Latency, Finality, Energy
+
+Key Points:
+-	Consensus families balance different trade-offs.
+-	CFT = fast, efficient, weak adversary model.
+-	BFT = strong finality, poor scalability.
+-	Nakamoto = open, resilient, costly/slow.
+
+Instructor Notes:
+- Treat this slide as the turning point from property checklists to engineering trade-space analysis. Walk students through the axes explicitly—throughput, commit latency, finality confidence, and resource cost—and remind them that every protocol draws a polygon that leaves some area uncovered. For example, deterministic BFT protocols can commit in a single network round once $2f+1$ votes arrive, but only when the committee is tightly coordinated and the network is within partial synchrony bounds.
+- Tie each axis back to mechanics they already know. Message complexity in pBFT-style systems grows roughly $O(n^{2})$ per round because each validator must see overlapping certificates, so scaling the committee from $20$ to $100$ nodes increases both bandwidth and signature verification load by an order of magnitude. Longest/heaviest-chain protocols keep per-block messaging near $O(n)$ but push finality into the probabilistic domain—$P(reorg)$ decays exponentially with confirmations, yet you must wait $k$ blocks to get that guarantee. Proof-of-stake designs sit between the two: lower message cost than full BFT when committees are small, but slashing and lock-up introduce economic risk that must be governed.
+- Use the visualization to anchor decision-making conversations. Ask, “If we shrink latency, what happens to openness? If we widen participation, where do we pay—energy, governance, or capital?” Encourage instructors to challenge students to plot real systems (Bitcoin, Tendermint, HotStuff, Solana) on the radar so they see how theoretical constraints manifest in production deployments.
+
+Script:
+- “Let’s zoom out to trade‑offs. If you want openness—anyone can participate—you pay with resource‑based Sybil resistance and with higher latency to get confidence. If you want low‑latency deterministic finality, you generally need governed membership and smaller committees, and you pay with coordination and governance complexity.”
+- “Message complexity matters. Many BFT protocols require each validator to talk to many others in a round, which grows with committee size. That’s fine for a few dozen validators across organizations; it’s not fine for thousands spread around the globe. Conversely, longest‑chain protocols scale participation more easily but cap throughput to keep forks manageable.”
+- “There’s no single winner. The decision is about which envelope contains your requirements. That’s why we built a rubric rather than a slogan.”
+
+Q & A:
+- Q: Why not ‘add more nodes’ to speed BFT?
+- A: More nodes often increase message cost; throughput can fall.
+
+References:
+- @castro_practicalbyzantinefault_1999
+- @bano_consensusageblockchains_2017
+
+:::
+
+## Permissioned vs. Permissionless {data-sync-id="consensus-families"}
+:::: {.columns}
+::: {.column width="50%"}
+Permissioned
+  : known identities, governance, deterministic finality.
+```{mermaid}
+graph TD
+    subgraph "Permissioned (e.g., Consortium)"
+        direction LR
+        id1[Bank A]
+        id2[Bank B]
+        id3[Bank C]
+        id1 & id2 & id3 --> BFT[BFT Consensus]
+    end
+```
+:::
+::: {.column width="50%"}
+Permissionless 
+  : open entry, economic/resource Sybil resistance, probabilistic finality.
+```{mermaid}
+graph TD
+    subgraph "Permissionless (e.g., Public Blockchain)"
+        direction LR
+        p1[Anon Peer]
+        p2[Anon Peer]
+        p3[...]
+        p1 & p2 & p3 --> Nakamoto[Nakamoto Consensus]
+    end
+```
+:::
+::::
+Hybrids
+  : stake-elected rotating committees.
+
+::: {.notes}
+Slide 18 — Permissioned vs Permissionless
+
+Key Points:
+-	Define membership: permissionless vs permissioned.
+-	Fault model: crash vs Byzantine.
+-	Timing assumption: async vs partial sync vs sync.
+-	Finality type, performance needs, governance model.
+
+Instructor Notes:
+- Frame this slide as a question of identity authority. In a permissioned network you can name every validator up front, distribute keys via a membership service, and rely on legal or contractual remedies in addition to protocol guarantees. That lets you pick deterministic-finality BFT variants, schedule maintenance windows, and require hardware security modules and attested runtimes because you know who is operating each node.
+- Permissionless settings flip those assumptions. Without a registrar to authorize nodes, you need Sybil resistance grounded in physics (PoW) or economics (stake plus slashing). Stress that the consensus protocol now has to tolerate strategic behavior: miners or validators may collude, churn, or attempt censorship, so liveness arguments rest on incentives and network propagation rather than policy enforcement. Operational concerns also change—think peer discovery, denial-of-service absorption, and public monitoring of fork rates.
+- Point out that most modern systems land somewhere on a spectrum: proof-of-stake often uses permissionless stake-weighted entry but still forms rotating committees that behave like permissioned BFT while they are active. Encourage instructors to map concrete governance artifacts (validator onboarding docs, staking contracts, compliance audits) to the permissioned/permissionless divide so students see the socio-technical coupling.
+
+Script:
+- “All of this rolls up to a simple fork in the road: permissioned or permissionless. If you can govern who runs validators—think a dozen banks, or business units inside a company—you can use BFT and promise deterministic finality with auditable votes and predictable latency. Your risks move to governance: who’s on the set, how are keys managed, how are failures handled?”
+- “If you can’t or won’t govern membership—think global public payments—you need economic or resource‑based Sybil resistance. That pushes you toward PoW historically, or PoS with strong slashing and finality layers today. Your finality becomes probabilistic or two‑step (probabilistic growth plus BFT‑style checkpoints), and user policy becomes part of the safety story.”
+- “Hybrid designs exist—stake‑elected rotating committees, for example—but they inherit the trade‑offs of both worlds. Always start with identity and threat models; the rest follows.”
+
+Q & A:
+- Q: Why do regulated workflows favor BFT?
+- A: Predictable latency and deterministic finality fit SLAs and audits.
+
+References:
+- @hyperledgerfabricdocs_chaincodedevelopers_2018
+- @castro_practicalbyzantinefault_1999
+
+:::
+
+## Selecting a Consensus Model: Practical Rubric {data-sync-unmatched="true"}
+:::: {.columns .align-items-center}
+::: {.column width="40%"}
+1. Identity & threat
+2.  Finality contract
+3.  Performance envelope 
+4.  Operations & incentives.
+:::
+::: {.column width="60%"}
+```{mermaid}
+graph TD
+    A["Use Case Requirements"] --> B{"Identity & Threat Model"};
+    B -- "Anonymous / Open" --> C["Permissionless (Nakamoto/PoS)"];
+    B -- "Known / Governed" --> D["Permissioned (BFT/CFT)"];
+    C --> E["Finality: Probabilistic"];
+    D --> F["Finality: Deterministic"];
+```
+::: {.column width="25%"}
+* Case **A**: public payments (permissionless + confirmations)
+:::
+::: {.column width="10%"}
+:::
+::: {.column width="25%"}
+* Case **B**: inter-bank (BFT + deterministic finality).
+:::
+:::
+::::
+
+
+::: {.notes}
+Slide 19 — Selecting a Consensus: Practical Rubric
+
+Key Points:
+-	Permissionless requires Sybil resistance (PoW, PoS).
+-	Permissioned relies on governance and admission control.
+-	Different missions demand different consensus choices.
+
+Instructor Notes:
+- Use this slide to model the due-diligence conversation you expect students to lead with stakeholders. 
+  - Step one is documenting the identity and threat model in plain language: who can propose blocks, what failures are plausible (crashes, equivocation, collusion), and what regulatory or geopolitical constraints exist. That document drives everything else.
+- Step two is the finality contract—quantify what “final” means. 
+  - For deterministic protocols, that might be:
+    - “commit certificate with $2f+1$ signatures within $≤2$ seconds.” 
+  - For probabilistic chains, make them compute a confirmation depth using the adversary hash-share estimates from the Backbone analysis: 
+    - $Pr[reorg ≥ k] ≈ (α/β)^{k}$ when adversary fraction is $α$ and honest share $β$. 
+- Step three, the performance envelope, forces trade-offs among latency, throughput, and geographic dispersion; tie back to the radar chart on the previous slide.
+- Finally, step four covers operations and incentives. Who monitors fork rates? How are keys rotated? What happens during upgrades or incident response, and what economic penalties deter misbehavior? Emphasize that producing a written set of assumptions, guarantees, and operational playbooks is itself a deliverable—one that keeps future audits and stakeholders aligned when the system is stressed.
+
+Script:
+- “Here’s a practical rubric you can take to a whiteboard with stakeholders. 
+  - Step one: identity and threat model. Who can write blocks, and what can go wrong—crashes, lies, collusion? 
+  - Step two: the finality contract. Do you need deterministic finality within seconds, or can you live with risk that decays with confirmations?”
+  - “Step three: performance envelope. What latency and throughput do you need at what geographic spread? Step four: operations and incentives. Who monitors, upgrades, and responds to incidents? What penalties exist for misbehavior? When you document these four, your consensus choice will usually fall out naturally.”
+- “Two quick sketches: Public payments—open entry, global reach, varying value—fit longest/heaviest‑chain growth with a confirmations policy. Inter‑bank settlement—known parties, compliance, predictable SLAs—fits a BFT protocol with fixed committees and audit trails. Different worlds, different tools.”
+
+Q & A:
+- Q: What’s the biggest pitfall?
+- A: Choosing a protocol that doesn’t match identity/threat assumptions.
+
+References:
+- @bano_consensusageblockchains_2017
+- @hyperledgerfabricdocs_chaincodedevelopers_2018
+
+:::
+
+## CFT Deep Dive: Paxos vs Raft {data-sync-id="consensus-cft"}
+:::: {.columns}
+::: {.column width="50%"}
+* Paxos: minimal core with subtle composition
+```{mermaid}
+graph TD
+    subgraph "Paxos Roles"
+        P[Proposer] <--> A[Acceptor] <--> L[Learner]
+    end
+    Raft["Raft (Designed for Understandability)"] --> LE
+    Paxos_Desc["Paxos (Proven Correct, Hard to Implement)"] --> P
+```
+:::
+::: {.column width="50%"}
+* Raft: decomposed for clarity (election, log replication, safety).
+```{mermaid}
+graph TD
+    subgraph "Raft Modules"
+        LE[Leader Election] --> LR[Log Replication] --> S[Safety]
+    end
+```
+:::
+::::
+* Both require majorities; both handle crashes; neither resists Byzantine lies.
+
+::: {.notes}
+Slide 20 — CFT Deep Dive: Paxos vs Raft (At a Glance)
+
+Key Points:
+-	Raft: strong leader, log replication, designed for clarity.
+-	Paxos: minimal core, stable leader after election, less intuitive.
+-	Both assume crash faults, deliver deterministic finality.
+
+Instructor Notes:
+- Revisit Paxos and Raft with an engineer’s eye so students see why both still matter. Paxos is the minimal proof of safety: proposers generate ballots, acceptors respond with promises and acceptances, and learners observe quorums; Multi-Paxos amortizes the prepare phase but keeps the same safety invariant. Raft reorganizes those pieces into leader election and log replication modules with explicit term numbers, commit indices, and heartbeat timers that translate cleanly into production code.
+- Highlight that both protocols rely on strict majority overlap, and that leader failover is managed by monotonic term numbers and log-matching rules. Walk through a concrete failure: the leader replicates entry $x$ to two of five nodes then crashes. Because any new leader must win a majority vote and because candidates reject terms that would truncate committed entries, $x$ survives—this is the safety proof in action. Mention the performance tricks practitioners use: batching entries, pipelining append entries, installing snapshots to compact logs.
+- Close by reminding them why these designs stop short in adversarial settings. Neither protocol defends against equivocation or double voting; they assume nodes either follow the algorithm or crash. That assumption is valid for internal databases or control planes with strong authentication, but it is exactly what permissionless or hostile environments cannot guarantee, hence the pivot to BFT.
+- Invite questions about operational playbooks. In production, teams pair these algorithms with monitoring of election churn, log replication lag, and snapshot durations because those metrics predict when liveness is at risk. Encourage instructors to reference tooling examples (etcd, Consul, Spanner’s Paxos derivative) so students understand how theory surfaces in dashboards and incident runbooks.
+
+Script:
+- “Because many of you have touched Raft‑backed systems, let’s contrast Paxos and Raft briefly. 
+  - Paxos is a minimal, elegant core with subtle composition puzzle pieces; 
+  - Raft repackages the same ideas into modules that map directly to code: leader election with randomized timeouts, log replication with heartbeats, and a safety rule called the log‑matching property.”
+- “In both, a leader proposes entries, followers acknowledge, and when a majority has an entry, it’s considered committed. On crash, a new leader is elected. The magic is again majority overlap: any two majorities share at least one member, so committed entries can’t be overwritten by a new leader without violating overlap.”
+- “Remember the limitation: neither protocol defends against equivocation. That’s fine inside a trusted cluster, and it’s why these systems are ubiquitous in databases and coordination services. But for adversarial environments, we need the BFT machinery we saw earlier.”
+
+Q & A:
+- Q: Why is Raft often preferred in practice?
+- A: Easier to reason about modules while preserving the same CFT guarantees.
+
+References:
+- @ongaro_searchunderstandableconsensus_2014
+:::
+
+## pBFT Phases & View Change {data-sync-id="consensus-rounds consensus-finality consensus-timeouts"}
+* Normal case: pre-prepare → prepare → commit, each with $2t+1$ messages.
+* View change: rotate primary on timeout; carry certificates to preserve safety.
+```{mermaid}
+sequenceDiagram
+    participant P as Primary
+    participant R1 as Replica 1
+    participant R2 as Replica 2
+    participant R3 as Replica 3
+    
+    P->>R1: 1. Pre-Prepare
+    P->>R2: 1. Pre-Prepare
+    P->>R3: 1. Pre-Prepare
+
+    R1-->>R2: 2. Prepare
+    R1-->>R3: 2. Prepare
+    R2-->>R1: 2. Prepare
+    R2-->>R3: 2. Prepare
+    R3-->>R1: 2. Prepare
+    R3-->>R2: 2. Prepare
+
+    Note over R1,R3: Quorum of 'Prepare' messages seen
+    
+    R1-->>R2: 3. Commit
+    R1-->>R3: 3. Commit
+    R2-->>R1: 3. Commit
+    R2-->>R3: 3. Commit
+    R3-->>R1: 3. Commit
+    R3-->>R2: 3. Commit
+```
+
+::: {.notes}
+Slide 21 — pBFT Phases & View Change
+
+Key Points:
+-	$n > 3t$, tolerate up to $t$ Byzantine nodes.
+-	Quorum Certificates = 2t+1 signed votes.
+-	Commit rule ensures deterministic finality.
+-	View changes preserve safety under faulty leaders.
+
+Instructor Notes:
+- Map the pBFT happy-path carefully so instructors can answer implementation questions. Pre-prepare carries the client request digest, sequence number, and view; prepare echoes that digest so every replica can build a $2f+1$ certificate proving that a supermajority saw this proposal in this view. When a replica collects enough prepares it records the certificate and moves to commit, broadcasting another $2f+1$ messages. Stress the determinism: once a replica executes after $2f+1$ commits, the result is final—there is no probabilistic tail.
+- Spend time on view-change mechanics because that is where many real deployments stumble. Each replica maintains its highest prepared and committed certificates and includes them in view-change messages; the new primary must propose a value consistent with the highest prepared certificate to avoid safety violations. This is why replicas never discard certificates prematurely and why the protocol keeps stable checkpoints to cap state growth.
+- Acknowledge the engineering weight: $O(n^2)$ messages per request, signature verification cost, and the need for deterministic ordering to prevent replay. Note how production systems mitigate it—batching client requests into blocks, using aggregate signatures to compress certificates, and pipelining multiple outstanding requests. These details help instructors answer “why do BFT committees typically stop at a few dozen members?” without hand-waving.
+- Wrap by contrasting pBFT with its modern descendants. HotStuff collapses the three pBFT phases into a single linear pipeline by rotating the leader every block and leveraging threshold signatures, while Tendermint uses a simpler prevote/precommit structure but similar quorum math. Drawing those comparisons equips instructors to explain why many contemporary chains cite pBFT lineage even when the message pattern looks different.
+
+Script:
+- “Let’s walk pBFT’s normal path. The primary proposes a block or command—pre‑prepare. Replicas validate it and echo their support in the prepare phase. When a replica sees $2t+1$ matching prepares, it knows a supermajority is aligned for that value in this view, so it broadcasts a commit. Upon collecting $2t+1$ commits, it executes—deterministic finality achieved.”
+- “What if the primary is slow or malicious? We run a view change. Replicas present the highest certificates they’ve seen—those are the receipts proving what’s safe to extend. A new primary is chosen, proposes a value consistent with those receipts, and the protocol resumes. Safety is preserved because no conflicting value can collect two supermajorities at the same height.”
+- “pBFT’s strength is that once you cross the commit threshold, you’re done—no waiting for additional confirmations. Its challenge is engineering: more messages, more signatures, and careful handling of leader rotation. That’s why committees are often sized modestly and networks are tuned for predictable latency.”
+
+Q & A:
+- Q: What happens if we shortcut thresholds?
+- A: You can lose quorum intersection and break safety.
+
+References:
+- @castro_practicalbyzantinefault_1999
+:::
+
+## Weak-Coordinator BFT: Specifics {data-sync-unmatched="true"}
+:::: {.columns}
+::: {.column}
+* Use ‘highest QC wins’ to align proposals and avoid regressions.
+* Replica-driven progress on thresholds; coordinator guidance reduces conflicts.
+* Termination guaranteed under partial synchrony without relying on a single leader gate.
+:::
+::: {.column}
+```{mermaid}
+graph TD
+    subgraph "State"
+        QC_H["Highest Known QC"]
+    end
+    subgraph "Coordinator (Advisory)"
+        C["Suggests Block<br/>extending QC_H"]
+    end
+    subgraph "Replicas (Decision Makers)"
+        R{"Vote on Proposal?"}
+        V["Form New QC"]
+    end
+    QC_H --> C --> R
+    R -- "Yes (extends QC_H)" --> V
+    R -- "No (conflicts)" --> X[Discard]
+```
+:::
+::::
+
+::: {.notes}
+Slide 22 — Weak-Coordinator BFT: Specifics
+
+Key Points:
+-	Coordinator not on critical path.
+-	Replicas advance independently with QCs.
+-	Boosts throughput across WAN; safety unaffected.
+
+Instructor Notes:
+- Use this slide to connect the abstract idea of a weak coordinator to concrete protocols like HotStuff, Jolteon, and Narwhal/Bullshark. Replicas maintain the highest quorum certificate (QC) they have seen; the coordinator merely suggests the next block that extends that QC. Because the voting rule is “only sign blocks that extend your highest QC,” safety is enforced locally without trusting the coordinator to serialize everything.
+- Walk through how liveness emerges under partial synchrony. When the network is unstable, replicas may time out the current round and bump their view number, but they never lose the highest QC—they carry it forward. Once message delays fall below the assumed bound, any correct coordinator can propose a chain tip that all correct replicas recognize as safe, and enough votes arrive in a single round to form a new QC. Highlight that this pattern enables linear message complexity when combined with threshold signatures, a major advantage over classic pBFT.
+- Also mention the practical benefits: reduced tail latency because the coordinator no longer serializes every vote, and flexibility to overlap consensus with data dissemination layers (mempool DAGs feeding certified blocks). Encourage instructors to contrast this with the rigid leader role in pBFT so students appreciate why modern BFT designs adopt the weak-coordinator abstraction.
+- If the class has seen HotStuff in literature, point out the chaining of QCs (lockedQC, prepareQC, commitQC) and how safety rules prevent conflicting commits even with leader churn. For Narwhal/Bullshark, explain how separating data availability (the DAG mempool) from ordering (QC-driven consensus) addresses WAN throughput limits while keeping the same weak-coordinator guarantees.
+
+Script:
+- “Weak‑coordinator BFT formalizes a practical instinct: don’t let one slow mouth block a choir. Each replica tracks the highest quorum certificate it has observed. The coordinator proposes extensions that build on that safe prefix, but replicas will only accept proposals consistent with their highest evidence.”
+- “If the coordinator is slow or equivocates, replicas can still aggregate votes and form the next certificate, because the rule for progress is ‘collect enough signatures,’ not ‘wait for the coordinator.’ Under partial synchrony, timeouts ensure that after the network calms down, the system keeps climbing the ladder of higher and higher certificates.”
+- “This design tends to reduce tail latency and the frequency of expensive leader changes in wide‑area settings, while keeping the exact same safety argument: any two $2t+1$ certificates overlap in at least $t+1$ honest replicas.”
+
+Q & A:
+- Q: Do we ever need randomness here?
+- A: Some variants add it, but partial synchrony plus thresholds often suffice.
+
+References:
+- @crain_dbftefficientbyzantine_2018
+:::
+
+## PoW Assumptions & Attack Surfaces {data-sync-id="consensus-nakamoto"}
+* Assumptions: honest majority of hash power and timely propagation.
+* Attacks: selfish mining, eclipse/partition, propagation games, pool centralization.
+```{mermaid}
+graph TD
+    A["PoW Security"]
+    A -- "Depends on" --> B["Honest Hash Power > 50%"]
+    A -- "Depends on" --> C["Timely Block Propagation"]
+    B -- "Weakens" --> D["Attack: 51% Attack"]
+    C -- "Weakens" --> E["Attack: Selfish Mining"]
+    C -- "Weakens" --> F["Attack: Eclipse/Partition"]
+```
+::: {.notes}
+Slide 23 — PoW Assumptions & Attack Surfaces (Preview)
+
+Key Points:
+-	Assumes honest majority and timely propagation.
+-	Attacks: selfish mining, eclipse/partition.
+-	Mitigations: relay networks, diverse peers, conservative confirmation policies.
+
+Instructor Notes:
+- Anchor the preview in quantitative assumptions. State explicitly that Bitcoin-style security proofs assume an honest majority of hash power ($α < 0.5$) and that block propagation is fast enough that honest miners share a common view of the tip most of the time. Reference the Backbone analysis: chain growth, chain quality, and common-prefix lemmas all depend on those parameters.
+- Detail the major attack surfaces. Selfish mining lets an attacker with hash fraction $γ$ and propagation advantage $ε$ earn more than $γ$ revenue once $γ$ exceeds roughly $0.33$ without countermeasures; show how withholding blocks manipulates honest miners into wasting work. Eclipse attacks exploit the unstructured peer-to-peer network to isolate a victim, feeding stale headers so they mine on obsolete tips. Network partitions stretch the common-prefix window, making deep reorganizations more likely until connectivity is restored.
+- Preview mitigations you will cover in the Bitcoin lecture: relay networks (e.g., FIBRE) reduce propagation time, randomized peer selection and anchor connections reduce eclipse risk, and economic policies (delayed coinbase maturity, fee variance) limit short-term profit from misbehavior. Giving these concrete levers helps instructors field “is PoW still safe if…” questions and tees up the deeper math you will explore later.
+- Flag emerging research so instructors can reference current debates—e.g., sub-50% attacks using compact blocks and spy mining, or the impact of hash-derivative markets on miner incentives. Emphasize that these analyses stress the same assumptions (hash power distribution, propagation) and therefore reinforce the “contract” framing introduced earlier.
+
+Script:
+- “Before tomorrow’s Bitcoin deep dive, let’s flag assumptions and attack surfaces. Security assumes the honest majority controls more hash power than attackers and that blocks propagate quickly enough that honest miners typically mine on the same tip. When those assumptions wobble, opportunities appear.”
+- “Selfish mining is the classic example: by selectively withholding blocks, a miner with sufficient hash share and a propagation advantage can increase their relative revenue beyond their share. Eclipse attacks isolate a victim’s peers so they see a distorted view of the tip. Network partitions can cause extended competing branches.”
+- “Mitigations include relay networks to speed propagation, peer diversity to resist eclipses, and conservative confirmation policies during incidents. Tomorrow we’ll quantify profitability thresholds and see how these strategies interact with confirmations.”
+
+Q & A:
+- Q: Is selfish mining always profitable?
+- A: No—depends on network advantage and relative hash share.
+
+References:
+- @eyal_majoritynotenough_2014
+- @decker_informationpropagationbitcoin_2013
+:::
+
+## Energy & Externalities {data-sync-id="pos-comparison"}
+* PoW burns energy to make Sybil attacks uneconomical in open membership.
+* BFT/PoS reduce energy but increase governance and capital-at-risk complexity.
+```{mermaid}
+graph TD
+    subgraph "Security Model"
+        PoW["Proof-of-Work"]
+        PoS_BFT["Proof-of-Stake / BFT"]
+    end
+    subgraph "Cost / Externality"
+        Energy["Cost: Energy Consumption"]
+        Gov["Cost: Governance & Locked Capital"]
+    end
+    PoW --> Energy
+    PoS_BFT --> Gov
+```
+
+::: {.notes}
+Slide 24 — Energy & Externalities (Design Implications)
+
+Key Points:
+-	PoW costs energy, enables open participation.
+-	PoS/BFT shift cost to capital or governance.
+-	Costs change form, not eliminated.
+
+Instructor Notes:
+- Situate energy within the broader notion of externalized cost. Proof-of-work consumes electricity at scale—on the order of tens of terawatt-hours annually for major networks—to make Sybil attacks economically infeasible. Translate that into a per-block security budget: at current rewards, sustaining a 51% attack requires burning millions of dollars in energy every hour, and that expense is what underpins openness.
+- Contrast that with proof-of-stake and BFT systems, which replace energy expenditure with governance and escrowed capital. Validators post stake or enter contractual agreements; misbehavior triggers slashing or legal remedies. Walk through real risks: stake centralization reduces the Nakamoto coefficient, governance capture can rewrite rules, and human-operated committees introduce latency into incident response. Energy is lower, but the attack surface shifts to policy and economics.
+- Encourage instructors to frame energy as a design decision tied to mission requirements. Military or regulated environments may accept higher governance overhead to avoid energy consumption, while public-goods advocates debate whether PoW’s energy use is justified by censorship resistance. Make sure they articulate that every mechanism chooses where to pay—power bills, locked capital, or institutional coordination.
+- For additional depth, relate energy budgets to environmental, social, and governance (ESG) reporting. Public chains increasingly publish carbon-intensity estimates, while permissioned deployments document validator compliance and audit results. Having those artifacts on hand helps answer stakeholder questions about sustainability versus control.
+
+Script:
+- “Energy and externalities are part of consensus design, not an afterthought. Proof‑of‑work converts electricity into Sybil resistance, anchoring openness in physics. That cost is visible and controversial, but it buys a specific property: anyone can join by bringing energy and hardware.”
+- “BFT and proof‑of‑stake reduce energy use by replacing physical cost with governance and economic cost. You need processes for validator admission, key management, monitoring, and penalties for misbehavior. Capital is locked and at risk; governance choices affect who holds power.”
+- “When you compare systems, be explicit about which costs you’re willing to bear. There is no free option—only different places where you pay.”
+
+Q & A:
+- Q: Is PoS greener without downsides?
+- A: Greener on energy, but with different risks: governance capture, slashing policy errors, stake centralization.
+
+References:
+- @bano_consensusageblockchains_2017
+:::
+
+## Governance, Parameters, and Upgrades {data-sync-id="pos-parameters"}
+* Safety depends on parameters (committee size, thresholds, timeouts, block interval).
+* Upgrades require coordination: on-chain votes, off-chain social consensus, or consortium boards.
+```{mermaid}
+graph TD
+    A["Consensus Protocol"] --> B{"Parameters"};
+    B --> B1["Committee Size"];
+    B --> B2["Thresholds (e.g., 2t+1)"];
+    B --> B3["Timeouts"];
+    
+    A --> C{"Upgrade Mechanism"};
+    C --> C1["Permissionless: Social Consensus"];
+    C --> C2["Permissioned: On-Chain Governance"];
+
+    subgraph "Operational Practice"
+        direction LR
+        B & C
+    end
+```
+
+::: {.notes}
+Slide 25 — Governance, Parameters, and Upgrades
+
+Key Points:
+-	Consensus depends on parameters (committee size, thresholds, timeouts).
+-	Permissionless upgrades via social consensus.
+-	Permissioned upgrades via formal governance.
+-	Many failures trace to misconfiguration.
+
+Instructor Notes:
+- Drive home that consensus parameters are part of the safety proof, not tunables to tweak casually. Committee size determines the maximum number of faults $f$ the system can tolerate ($n = 3f + 1 in BFT$); quorum thresholds ($2f+1$) must align with that. Timeouts interact with network assumptions—setting them below observed round-trip times will cause spurious view changes and threaten liveness.
+- Use concrete examples. If a consortium shrinks from $21$ validators to $15$ without updating the configuration, the assumed fault tolerance drops from $f = 6$ to $f = 4$; forgetting to adjust quorum rules can silently invalidate safety guarantees. Similarly, upgrading a PoS chain to reduce the inactivity leak window changes the liveness recovery path and must be modelled before deployment. Stress the need for change control: staged rollouts, feature flags, and rollback plans.
+- Remind instructors that in permissionless settings, “governance” often means messy social consensus (soft forks, miner signaling), while in permissioned systems it means formal charters, voting thresholds, and audit trails. Consensus reliability is as much about these socio-technical processes as it is about message diagrams.
+- Encourage them to discuss observability: configuration drift detectors, quorum-health dashboards, and automated pre-flight checks before enacting validator-set changes. These operational guardrails often matter more than the raw algorithm when a production network is under stress.
+
+Script:
+- “Real systems live or die on parameters and upgrades. Committee size, threshold values, timeout strategies, block intervals—these are not mere tunables; they define your safety and liveness envelopes. A mis‑sized committee or a too‑aggressive timeout can turn a correct design into an unreliable system.”
+- “Treat your assumptions as contractual. Document them. Enforce invariants in code—e.g., never accept a configuration where $2t+1$ cannot be met. Plan upgrades with staged rollouts and rollbacks. In public chains, recognize the role of social consensus; in consortia, define clear governance with quorum rules and audit trails.”
+- “The meta‑point: consensus isn’t just an algorithm, it’s an operational practice.”
+
+Q & A:
+- Q: Who sets parameters in a consortium?
+- A: The governance body defined in the charter; changes require quorum and audit trails.
+
+References:
+- @hyperledgerfabricdocs_chaincodedevelopers_2018
+- @castro_practicalbyzantinefault_1999
+:::
+
+## Mini Case Studies {data-sync-unmatched="true"}
+::: {.columns}
+::: {.column width="50%"}
+* Public payments: permissionless + confirmations policy; tolerate probabilistic finality for openness.
+```{mermaid}
+graph TD
+    subgraph "Case A: Public Payments (e.g., Bitcoin)"
+        R1["Reqs: Openness, Censorship Resistance"]
+        I1["Identity: Anonymous"]
+        C1["Choice: Nakamoto (PoW)"]
+        R1 --> I1 --> C1
+    end
+```
+:::
+::: {.column width="50%"}
+* Interbank settlement: permissioned BFT + deterministic finality; audit trails and SLAs.
+```{mermaid}
+graph TD
+    subgraph "Case B: Interbank Settlement"
+        R2["Reqs: Predictable Latency, Compliance"]
+        I2["Identity: Known, Regulated"]
+        C2["Choice: BFT"]
+        R2 --> I2 --> C2
+    end
+```
+:::
+::::
+
+::: {.notes}
+Slide 26 — Mini Case Studies: Public Payments vs Interbank Settlement
+
+Key Points:
+-	Public payments (Bitcoin): open, censorship resistant, Nakamoto consensus.
+-	Interbank: known parties, regulated, BFT consensus.
+-	Consensus must fit mission + trust environment.
+
+Instructor Notes:
+- Use the case studies to show how requirements map to protocol choice. 
+- For public payments, enumerate the assumptions: 
+  - anyone can join, 
+  - latency tolerance is measured in minutes for high-value transfers
+  - censorship resistance matters
+  - monetary value spans retail to wholesale
+- Explain how longest-chain consensus plus a dynamic confirmation policy covers those needs, and how operators monitor orphan rates and mempool health to adjust $k$ during incidents.
+- For interbank settlement, outline the compliance and audit mandates:
+  - known participants vetted by regulators
+  - deterministic finality within a few seconds
+  - detailed logging
+  - strict recovery objectives
+- Show how BFT with hardware-secured keys, dual-control operations, and deterministic commit times satisfies these constraints. Mention integration with legacy rails (SWIFT, RTGS) that expect explicit acknowledgment and rollback procedures.
+- Encourage students to compare runbooks. 
+  - What metrics do you watch (fork rate versus latency SLA)? Who has pager duty? How do you rotate validators? T
+  - hat operational lens reinforces that consensus is embedded in an ecosystem of monitoring, governance, and legal obligations.
+- Add a third miniature vignette if time permits—e.g., supply-chain consortium or tactical edge network—to illustrate hybrid deployments where intermittent connectivity or contested environments force creative combinations (local BFT committees with periodic anchoring to a public chain). That helps students think beyond binary categorizations.
+
+Script:
+- “Two quick case studies to cement the rubric: 
+  + Public payments. 
+    + Requirements: anyone can participate
+    + global reach
+    + variable transaction values
+    + tolerance for waiting longer for safety on large transfers. 
+  + Choice: 
+    + A longest/heaviest‑chain protocol with a confirmations policy that scales with value and observed network health. 
+  + Operations: 
+    + monitor stale rate and propagation 
+    + adjust $k$  during incidents.”
+  + “Interbank settlement. 
+    + Requirements: 
+      + known, regulated participants
+      + predictable low latency
+      + auditability
+      + low tolerance for rollback
+    + Choice: 
+      + a BFT protocol with fixed committees, hardware security for keys, and strict view‑change observability. 
+    + Operations: 
+      + formal change control for validator sets
+      + SLAs on commit latency.”
+- “Both are blockchains. Both are ‘secure.’ They simply optimize for different missions. That is the mindset I want you to carry into design reviews.”
+
+Q & A:
+- Q: Could a bank run PoW for settlement?
+- A: Possible, but it rarely satisfies latency/determinism/governance requirements.
+
+References:
+- @hyperledgerfabricdocs_chaincodedevelopers_2018
+- @castro_practicalbyzantinefault_1999
+- @nakamoto_bitcoinpeertopeerelectronic_2008
+:::
+
+## Bridge to Lecture 2: Consensus **Approaches** {data-sync-unmatched="true"}
+* You now have the lens: SLVA, models, mechanics, families, trade-offs.
+* Next: Bitcoin PoW math & incentives; then Ethereum PoS + BFT finality.
+```{mermaid}
+graph TD
+    A["This Lecture: Consensus Theory"]
+    A --> B["Analytical Lens<br/>(SLVA, Models, Families)"]
+    
+    B --> C["Next Lecture: Bitcoin"]
+    B --> D["Following Lecture: Ethereum"]
+    
+    C --> C1["PoW Mechanics"]
+    C --> C2["Incentives & Attack Math"]
+    
+    D --> D1["PoS Validator Selection"]
+    D --> D2["BFT Finality Layer"]
+```
+
+::: {.notes}
+Slide 27 — Bridge to Bitcoin & Ethereum (Next Lectures)
+
+Key Points:
+-	Students now know SLVA, models, mechanics, families, trade-offs.
+-	Next: deepest dive into Nakamoto consensus, PoW, and PoS.
+-	Prepares them for incentive models and real-world blockchain consensus.
+
+Instructor Notes:
+- Set expectations for the next modules by explicitly connecting today’s abstractions to upcoming case studies. Remind students that Bitcoin’s safety proofs hinge on the honest majority and on the exponential decay of reorg probability; they should be ready to plug numbers into those formulas to justify confirmation policies for different transaction values. Encourage them to revisit the Bitcoin whitepaper’s network discussion and the Backbone paper so they can critique the assumptions intelligently.
+- Preview Ethereum’s post-Merge architecture as a hybrid: block proposals follow a longest-chain heuristic (LMD-GHOST), while the Casper FFG finality gadget adds BFT-style checkpoints with slashing. Make sure instructors can explain how attestations, sync committees, and finality epochs map into the SLVA framework—they will be fielding questions about how proof-of-stake enforces safety without physical work.
+Close by suggesting preparatory questions: “Given an attacker with 30% hash power, how many confirmations would you require for a $10M transfer?” or “What happens to Ethereum finality if a third of validators go offline?” That primes students to apply the analytical toolkit rather than passively consume the next lectures.
+- Mention optional enrichment: Backbone (Garay et al.), selfish mining profitability curves, Ethereum’s Gasper spec, and real incident postmortems (e.g., Ethereum finality delays in May 2023). Providing curated references equips instructors to steer motivated students toward deeper primary sources.
+
+Script:
+- “To close, let’s set the bridge to the next lectures. You now have a lens: properties—safety, liveness, validity, agreement—assumptions about faults and time, mechanics like quorums and timeouts, families—CFT, BFT, Nakamoto—and a way to reason about trade‑offs.”
+- “Tomorrow we’ll apply this lens to Bitcoin. We’ll quantify confirmation depth as a function of attacker hash share and network delay. We’ll look at miner incentives and strategies that stress assumptions. - After that, we’ll study Ethereum’s proof‑of‑stake era, where a BFT‑style finality layer sits atop chain growth, and incentives include slashing.”
+- “As prep, skim the Bitcoin paper’s network discussion and the Backbone analysis of confirmations. Come ready to choose a confirmation policy for a  10,000$ payment versus a  10$ million one—and to defend your choice using the assumptions and guarantees framework we built today.”
+
+Q & A:
+- Q: What should I read next?
+- A: Bitcoin whitepaper’s network section and the Backbone paper on confirmations.
+
+References:
+- @nakamoto_bitcoinpeertopeerelectronic_2008
+- @garay_bitcoinbackboneprotocol_2014
+:::
+
+## References {data-sync-id="consensus-references pos-references ethereum-references"}

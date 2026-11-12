@@ -1,0 +1,2428 @@
+---
+title: "Hashing and Merkle Trees"
+subtitle: 'Section II: Blockchain Foundations'
+author: Army Cyber Institute
+lesson: 5
+date: ""
+bibliography: ../references/Blockchain.bib
+csl: ../references/ieee.csl
+link-citations: true
+skip-title-lift: true
+format:
+  aci-revealjs:
+    slide-level: 2
+aci-mermaid: true
+human-review: true
+ai-review: false
+correctness: false
+pedagogical: false
+suitability: false
+quality: false
+title-slide-attributes:
+  data-sync-id: "hashing-title"
+---
+
+
+## Objectives and Roadmap {data-sync-id="hashing-objectives"}
+
+- Define a cryptographic hash function
+
+- Explain key properties: preimage, second‑preimage, collision resistance, and avalanche.
+
+- Understand the historical narrative of hashing in timestamping and document notarization.
+
+- Build and verify Merkle tree commitments and inclusion proofs; discuss variants and pitfalls.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Objectives and Roadmap** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Objectives and Roadmap. In this segment we frame the problem the slide addresses and explain why it matters in practice. The immediate objective is to connect the abstract idea to an engineering question students will encounter outside the classroom. For this slide, the anchor concepts are: Clarify what a cryptographic hash function is and is not.; Explain key properties: preimage, second‑preimage, collision resistance, and avalanche.; Understand the historical narrative of hashing in timestamping and document notarization.; Build and verify Merkle tree commitments and inclusion proofs; discuss variants and pitfalls.. As you present, begin by restating the problem in your own words, then contrast the naive approach with the disciplined, security‑minded approach. Students with systems backgrounds will appreciate concrete failure modes; students with less exposure will benefit from simple thought experiments that expose hidden assumptions.
+
+
+
+Key concepts and definitions. Clarify terminology precisely before diving into examples. Distinguish informal intuition from the formal property or construction we actually rely on. For instance, when we describe a hash as ‘one‑way,’ we mean there is no known polynomial‑time algorithm to invert it; when we discuss a Merkle proof, we mean a verifiable path of sibling digests from a specific leaf to a published root under a fixed concatenation rule. Emphasize determinism, unambiguous encodings, and protocol conventions that eliminate room for disagreement between correct implementations.
+
+
+
+Historical and real‑world background. Students engage more deeply when they see where an idea came from and how it is used today. Tie the material to document timestamping, content‑addressed storage, software supply‑chain verification, and blockchain headers. Be explicit about incentives: systems evolve because organizations need scalable integrity, auditability, or cost savings. Address why industry moved away from older hash families and what properties modern designs are selected to aims to ensure.
+
+
+
+Common misconceptions and how to preempt them. Many learners conflate hashing with encryption, believe that collisions ‘never happen,’ or assume that concatenation order cannot matter. Counter these myths with small counterexamples and vivid analogies. Show how even perfectly reasonable‑looking shortcuts (hashing hex strings instead of bytes, reversing endianness unintentionally) break equivalence between implementations. Remind students that cryptography is about *assumptions* and *interfaces*, not magic.
+
+
+
+Teaching strategy and pacing. Begin each explanation with a concrete question, elicit quick predictions, then reveal the formal rule or equation that governs the answer. Alternate viewpoints—diagrammatic intuition, step‑by‑step algorithms, and succinct equations—so students with different strengths can latch on. Use the board to track input, intermediate values, and outputs; narrate why each step is necessary and what could go wrong if omitted. Call out the difference between specification choices and unavoidable mathematical limits.
+
+
+
+Connections forward and backward. Situate this slide in the arc of the lecture: which earlier slides does it rely on, and which later slides will rely on it? Make the dependencies explicit so note‑takers can annotate. Explain how the concept will reappear in upcoming modules on digital signatures, peer‑to‑peer networking, and consensus. Where applicable, preview how the same abstraction is adapted in other ecosystems (e.g., binary Merkle trees versus tries).
+
+
+
+As you list objectives, preview the assessment: by the end, students should be able to compute a small Merkle root by hand and articulate which hash property defends against which attack scenario.
+
+
+
+**Script:** “Let’s dive into Objectives and Roadmap. I want to start with a question you can answer intuitively before we formalize anything: what would happen if we ignored Clarify what a cryptographic hash function is and is not., Explain key properties: preimage, second‑preimage, collision resistance, and avalanche., Understand the historical narrative of hashing in timestamping and document notarization., Build and verify Merkle tree commitments and inclusion proofs; discuss variants and pitfalls.? Hold that answer for a moment and picture a real system you use daily—a messaging app, a version control platform, or an online wallet. These systems make strong promises about integrity and history. We’ll unpack how those promises depend on the abstractions on this slide.”
+
+
+
+“First, I will define the terms carefully, then I’ll give you a mental model you can keep in your toolkit. Write down the exact rule we will apply repeatedly—what the inputs are, what the operation is, and how we check the result. As I narrate, I will annotate a concrete example on the board so you can see the shape of the computation and the places where mistakes creep in. If you already know part of this, focus on the differences between the informal gloss and the precise specification.”
+
+
+
+“Quick pulse check: by show of hands, who thinks the naive shortcut would still work, and who thinks it would fail? Turn to a neighbor for thirty seconds and justify your intuition. Now let’s test those hypotheses against the formal property. I’ll ask a few of you to share your reasoning—pay attention to the *assumptions* you used, because changing the environment changes the answer.”
+
+
+
+“Here is an analogy to anchor your thinking. Treat the digest like a sealed, uniquely numbered envelope: once the number is fixed and publicly recorded, you can later open the envelope to reveal the contents, and anyone can check that the number matches what was recorded. But if you mix up the numbering scheme or allow ambiguous labels, two different envelopes might accidentally share a number. Our job is to choose schemes where that is astronomically unlikely, and to use them in ways that never admit ambiguity.”
+
+
+
+“Now, step‑by‑step, we will apply the rule to a concrete input. I’ll narrate each intermediate value and write it down. As we go, ask yourself: if I had to code this, what exactly would I pass to the hash function, in what order, and how would I serialize it? Where would I store position bits? What would I do if I encountered an odd number of children at a level? These questions are not administrative details—they are the points where security and correctness are won or lost.”
+
+
+
+“Before we move on, I want to probe understanding with three specific questions. One: which property prevents an adversary from making a different input that maps to the same value once you have published a commitment? Two: why does concatenation order matter in a binary tree commitment, and how would you convey that to someone reviewing your code? Three: if we cut the output size from 256 bits to 128 bits, what gets easier for an attacker, and by roughly how much?”
+
+
+
+“Big picture: this slide’s abstraction buys us a aims to ensure we cannot cheaply obtain any other way. We pay with computation and careful specification, and in return we get global integrity that scales. As we transition to the next slide, keep the core rule in mind—we will reuse it, layer it, and stress‑test it in the activity.”
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Objectives and Roadmap** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Objectives and Roadmap**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## What Is a Cryptographic Hash Function? {data-sync-id="hashing-definition"}
+
+- **Definition:** A deterministic algorithm that maps input of any length → fixed-length digest.  
+- **Formally:** $h : \{0,1\}^* \rightarrow \{0,1\}^n$
+- **Key properties:**  
+  - Deterministic: same input → same output.  
+  - Fast to compute.  
+  - Infeasible to invert (one-way).  
+  - Collision-resistant (no two distinct inputs share same hash).  
+- Output length typically 256 or 512 bits (e.g., SHA-256).
+
+<!--
+(visual: funnel diagram showing messages of varying lengths compressing into equal-size outputs)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Establishes precise definition and function of cryptographic hashes.  
+
+- Introduces mathematical notation and key design criteria.  
+
+- Prepares for deeper look at individual properties next.  
+
+
+
+**Instructor Notes and Script**
+
+Define hashing formally but explain visually—data of any size is compressed into a digest.  
+
+Stress determinism and one-wayness.  
+
+Demonstrate with a short live example if possible (e.g., hash “HELLO” in a Python REPL to get a fixed 256-bit output).  
+
+Clarify that cryptographic hashes differ from checksum algorithms like CRC; they are resistant to deliberate tampering, not just accidents.  
+
+Mention SHA-256’s central role in Bitcoin and other blockchains for linking data.  
+
+
+
+**Script**
+
+“A hash is a digital fingerprint: typically the same for the same data, infeasible under standard assumptions to fake, and useless to reverse.”  
+
+
+
+**References**
+
+- @nationalinstituteofstandardsandtechnologyus_securehashstandard_2015  
+
+- @boneh_hashfunctions_2020
+
+- @menezes_handbookappliedcryptography_2011
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **What Is a Cryptographic Hash Function?**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **What Is a Cryptographic Hash Function?**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **What Is a Cryptographic Hash Function?** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Hash Function Properties** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **What Is a Cryptographic Hash Function?**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Hash Function Properties {.smaller data-sync-id="hashing-properties"}
+
+| Property | Meaning | Importance |
+|-----------|----------|-------------|
+| **Pre-image resistance** | Hard to find input for given hash. | Protects passwords and commitments. |
+| **Second pre-image resistance** | Hard to find another input with same hash. | Prevents forgery. |
+| **Collision resistance** | Hard to find *any* two inputs with same hash. | Ensures uniqueness and integrity. |
+| **Avalanche effect** | Tiny input change → major output change. | Detects even 1-bit alteration. |
+| **Uniform Distribution** | Outputs should be uniformly distributed | no structural shortcuts should exist. |
+
+<!--
+
+(visual: arrows showing different inputs converging into unique, unpredictable outputs; second image showing drastic bit-flips in output)
+
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Defines and differentiates all four major properties.  
+
+- Connects theoretical security to practical applications.  
+
+- Reinforces irreversibility and sensitivity.  
+
+
+
+**Instructor Notes and Script**
+
+Walk through each property:  
+
+- *Pre-image resistance* protects hashed passwords—knowing the hash doesn’t reveal the password.  
+
+- *Second pre-image resistance* ensures you can’t swap one message for another.  
+
+- *Collision resistance* ensures no two documents produce the same fingerprint.  
+
+- *Avalanche effect* ensures sensitivity; one bit change yields completely different output.  
+
+Demonstrate avalanche with a real example if tools are available.  
+
+Note that these properties are tested through years of public analysis—SHA-256 and SHA-3 still hold, MD5 and SHA-1 no longer do.  
+
+
+
+**Script**
+
+“Good hashes act like chaos machines.  
+
+One letter changes, and the entire fingerprint mutates — proof of both sensitivity and integrity.”  
+
+
+
+**References**
+
+- NIST FIPS 180-4, 2015.  
+
+- Boneh & Shoup, *IntenseCrypto.org Lecture 07*, 2021.  
+
+- Katz & Lindell, 2021.
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Hash Function Properties**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Hash Function Properties**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Hash Function Properties** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Pre-Image Resistance** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Hash Function Properties**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## Pre-Image Resistance {.smaller data-sync-id="hashing-preimage"}
+
+- **Definition:** Given a hash value $y$, it should be computationally infeasible to find any input $x$ such that $h(x) = y$.  
+- **Intuition:** Hashing is a one-way street — easy to go forward, practically impossible to reverse.  
+- **Example:**  
+  - Given `ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f`,  
+    finding the original input (e.g., “password123”) should be infeasible.  
+- **Applications:**  
+  - Password storage  
+  - Commitment schemes  
+  - Blockchain mining puzzles
+
+<!--
+(visual: one-way arrow labeled “message → hash” with a blocked reverse path)
+-->
+
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+
+
+- Highlights the “one-wayness” central to hash security.  
+
+- Shows that hashes protect sensitive data even if public.  
+
+- Connects conceptually to real applications like password databases and Bitcoin proof-of-work.
+
+
+
+**Instructor Notes and Script**
+
+Explain that pre-image resistance underpins the “irreversibility” of hashes.  
+
+Emphasize “computationally infeasible” — not mathematically infeasible under standard assumptions, but effectively infeasible under standard assumptions with modern computing.  
+
+Demonstrate with an online SHA-256 generator or short Python snippet.
+
+
+
+**Script**
+
+
+
+**References**
+
+
+
+- @nationalinstituteofstandardsandtechnologyus_securehashstandard_2015
+
+- @katz_introductionmoderncryptography_2020
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Pre-Image Resistance**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Pre-Image Resistance**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Pre-Image Resistance** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Second Pre-image Resistance** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Pre-Image Resistance**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## Second Pre-image Resistance {data-sync-id="hashing-second-preimage"}
+
+- **Definition:** Given one input $x_1$, it should be infeasible to find another distinct input $x_2 \neq x_1$ such that $h(x_1) = h(x_2)$.  
+- **Intuition:** You can’t find a “different message” that produces the same hash.  
+- **Example:**  
+  - If $h(\text{"Alice pays Bob \$10"})$ is known,  
+    an attacker shouldn’t be able to find another message like "Alice pays Mallory \$100" with the same digest. 
+- **Use Case:** Prevents document or transaction substitution attacks.
+
+<!--
+(visual: two distinct documents leading to same hash — marked “impossible”)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+
+
+- Distinguishes from pre-image resistance — this assumes you *know one message* and are looking for another.  
+
+- Protects digital signatures, documents, and certificates from substitution attacks.  
+
+- Reinforces that secure hashes make every document fingerprint unique.
+
+
+
+**Instructor Notes and Script**
+
+Clarify the difference between pre-image and second pre-image resistance:  
+
+- Pre-image: find *any* input for a given hash.  
+
+- Second pre-image: find a *different* input for a known one.  
+
+Provide a motivating example from file integrity or signed messages.
+
+
+
+**Script**
+
+“Even if you know the message, you can’t forge another one that looks identical under the hash — that’s integrity protection in action.”
+
+
+
+**References**
+
+
+
+- @boneh_hashfunctions_2020
+
+- @menezes_handbookappliedcryptography_2011
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Second Pre-image Resistance**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Second Pre-image Resistance**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Second Pre-image Resistance** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Collision Resistance** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Second Pre-image Resistance**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## Collision Resistance {.smaller data-sync-id="hashing-collision"}
+
+- **Definition:** It should be infeasible to find *any* two distinct inputs $x_1, x_2$ such that $h(x_1) = h(x_2)$.  
+- **Intuition:** No two different messages share the same fingerprint.  
+- **Example:**  
+  - MD5 and SHA-1 are **broken** because practical collisions have been found.  
+  - SHA-256 and SHA-3 are currently **collision resistant**.  
+- **Why it matters:**  
+  - Essential for digital signatures, certificates, and blockchains.  
+  - Prevents malicious “document swapping” (e.g., signed PDF forgery).
+
+<!--
+(visual: two inputs trying to hit same hash output, with red “X”)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+
+
+- Strongest property — implies second pre-image resistance.  
+
+- Real-world failures (MD5, SHA-1) show how collisions enable attacks.  
+
+- Modern standards require at least 128-bit security (≈ $2^{128}$ effort).
+
+
+
+**Instructor Notes and Script**
+
+Explain birthday paradox: collisions become likely after about $2^{n/2}$ hashes for an $n$-bit digest.  
+
+Relate to practical examples like forged certificates or versioned data integrity.  
+
+Optionally show “SHAttered” example — two PDFs with identical SHA-1 hash.
+
+
+
+**Script**
+
+“When two different messages share a fingerprint, the whole system breaks — collisions are the ultimate integrity failure.”
+
+
+
+**References**
+
+
+
+- @stevens_firstcollisionfull_2017
+
+- @nationalinstituteofstandardsandtechnologyus_securehashstandard_2015
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Collision Resistance**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Collision Resistance**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Collision Resistance** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Avalanche Effect** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Collision Resistance**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## Avalanche Effect {data-sync-id="hashing-avalanche"} 
+
+- A hallmark of good hash and cipher design.  
+- **Definition:** A one-bit change in input causes roughly half the output bits to flip.  
+- Ensures:  
+  - No visible correlation between input and output.  
+  - Robust diffusion — even minimal edits radically alter results.  
+- Demonstration:  
+  - Hash("HELLO") → `3615f80c9d293ed7...`  
+  - Hash("HELLo") → `c6f4b0a7af12e91b...`
+
+<!--
+(visual: side-by-side binary matrices, before/after bit-flip, with 50% bits highlighted in red)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Visual proof of the avalanche property.  
+
+- Shows why small plaintext changes yield unpredictable ciphertext or hash outputs.  
+
+- Reinforces diffusion’s role in data integrity.  
+
+
+
+**Instructor Notes and Script**
+
+Use the example of a single-character change creating a completely different digest.  
+
+Explain that avalanche effect connects to Shannon’s diffusion principle: every input bit influences every output bit.  
+
+Highlight that without avalanche, attackers could infer structure or relationships between similar messages.  
+
+Optional live demo: hash two nearly identical strings and compare outputs.  
+
+
+
+**Script**
+
+“Change one letter, flip half the bits.  
+
+That chaos is deliberate — it hides every trace of your message’s structure.”  
+
+
+
+**References**
+
+- @nationalinstituteofstandardsandtechnologyus_securehashstandard_2015
+
+- @boneh_hashfunctions_2020
+
+- @stinson_cryptographytheorypractice_2022
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Avalanche Effect**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Avalanche Effect**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Avalanche Effect** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Uniform Distribution of Output** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Avalanche Effect**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Uniform Distribution of Output {.smaller data-sync-id="hashing-uniform"}
+
+- **Definition:** Hash outputs should be uniformly distributed across the entire output space $\{0,1\}^n$.  
+- **Intuition:** Every possible digest value is equally likely — no patterns or biases.  
+- **Consequences:**  
+  - Prevents clustering that could reveal input structure.  
+  - Ensures fair random-like behavior in protocols (e.g., load balancing, mining).  
+- **Verification:**  
+  - Empirically tested with randomness and chi-squared tests.  
+  - Affects entropy and unpredictability.
+
+<!--
+(visual: histogram showing flat, even distribution of hash outputs)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Uniformity ensures that small input patterns don’t cause uneven output distribution.  
+
+- Supports statistical randomness — necessary for unpredictability and fairness.  
+
+- Critical for probabilistic protocols like proof-of-work and random beacon generation.
+
+
+
+**Instructor Notes and Script**
+
+Explain that uniform distribution ensures “no bias” — every hash output looks random.  
+
+Show how biased distributions could break security (e.g., easier guessing, predictable behavior).  
+
+Demonstrate with visual hash or entropy histogram examples.
+
+
+
+**Script**
+
+“A strong hash scatters outputs perfectly — no clumps, no patterns, just pure digital randomness.”
+
+
+
+**References**
+
+- @katz_introductionmoderncryptography_2020
+
+- @stinson_cryptographytheorypractice_2022
+
+- @nationalinstituteofstandardsandtechnologyus_securehashstandard_2015
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Uniform Distribution of Output**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Uniform Distribution of Output**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Uniform Distribution of Output** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Math Spotlight: Birthday Paradox and Work Factors** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Uniform Distribution of Output**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Math Spotlight: Birthday Paradox and Work Factors {.smaller data-sync-id="hashing-birthday"}
+
+- **Birthday paradox:** Collisions become likely far sooner than intuition suggests — only after about $2^{n/2}$ hashes for an $n$-bit output.
+  - Analogy: only ~23 people are needed for a 50% chance two share a birthday, not 183!
+
+- **Work factors:**
+  - Collision search ≈ $2^{n/2}$  
+  - Pre-image / Second pre-image search ≈ $2^n$
+  - Hence: 128-bit collision security ⇒ 256-bit hash output.
+
+- **Expected collisions:**  
+  For $k \ll 2^{n/2}$ random hashes:  
+  $\displaystyle E[\text{collisions}] \approx \frac{k^2}{2^{n+1}}$
+
+::: {.callout-note appearance="simple"}
+  Choose digest lengths ensuring $2^{n/2}$ work is infeasible — e.g., *SHA-256* or *SHA-3*.
+
+:::
+<!--
+(visual: birthday cake + hash graph illustrating $2^{n/2}$ curve)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+
+
+- The birthday paradox dramatically reduces the effective collision resistance compared to $2^n$.  
+
+- 256-bit hashes yield ~128-bit collision security, considered sufficient through the next few decades.  
+
+- Reinforce that “collision search” ≠ “hash cracking” — they have different cost exponents.
+
+
+
+**Instructor Notes and Script**
+
+
+
+Explain that the “birthday paradox” is not just trivia — it’s central to cryptographic collision analysis.  
+
+Show how the number of required attempts halves in the exponent: $2^{n/2}$ vs $2^n$.  
+
+Illustrate with the 23-people example and maybe a Python demo generating random hashes until the first collision.
+
+
+
+**Script**
+
+
+
+“Collisions sneak up faster than you’d think — like two birthdays in a room of just 23 people.  
+
+For a 256-bit hash, you need about $2^{128}$ tries — still safe, but that’s why 128-bit outputs are no longer enough.”
+
+
+
+**References**
+
+
+
+- @katz_introductionmoderncryptography_2020
+
+- @boneh_hashfunctions_2020
+
+- @menezes_handbookappliedcryptography_2011
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Math Spotlight: Birthday Paradox and Work Factors**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Math Spotlight: Birthday Paradox and Work Factors**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Math Spotlight: Birthday Paradox and Work Factors** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Micro lab: Hashing** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Math Spotlight: Birthday Paradox and Work Factors**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## Micro lab: Hashing {data-sync-id="hashing-hashing-lab"}
+
+[Use the following microlab to demonstrate
+the principles of hashing using real algorithms](../../assets/labs/micro-hashing/)
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Micro lab: Hashing** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~8–12 min
+
+
+
+**Instructor Notes**
+
+Use the demo to demonstrate the different concepts discussed about hashing. 
+
+
+
+* Use the avalanche demos to show the avalance behavior. Show how changing
+
+even a single character changes the entire hash. Show this for *SHA1* and *SHA256*. 
+
+* Set the algorithm to MD5 and then select the built in collision demo. 
+
+* Next, run the uniform distribution on either of the sha algorithms and md5. 
+
+* Finally, switch to the homemade algorithm. Show how the avalanche demo
+
+fails for the Hello example. Further, show the uniform distribution for
+
+this homemade algorithm. 
+
+
+
+The uniform distribution just starts at 0 and hashes the next number.
+
+For good hashes, this produces a uniform distribution. But for the homemade
+
+algorithm, this is not the case. 
+
+
+
+Also worth mentioning that *SHA1* is broken: 
+
+  - https://sha-mbles.github.io/ 
+
+  - https://shattered.io/ 
+
+
+
+References:
+
+- @leurent_sha1shambles_2020
+
+- @cwiamsterdam_shattered_2017
+
+- @stevens_firstcollisionfull_2017
+
+
+
+**Script (talk track)**
+
+“Here’s the point of this slide: **Micro lab: Hashing**. First, define it plainly. Then ask: *what must be true for this to be safe or correct?* Finally, tie it to the blockchain setting—where we assume adversaries, partial failures, and incentives.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Micro lab: Hashing**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Micro lab: Hashing**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Micro lab: Hashing** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **SHA Family Overview** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Micro lab: Hashing**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## SHA Family Overview {.smaller data-sync-id="hashing-sha-family"}
+
+| Algorithm | Output (bits) | Status | Notes |
+|------------|---------------|--------|-------|
+| **SHA-1** | 160 | Deprecated | Collisions found |
+| **SHA-2** | 224–512 | Secure | Bitcoin uses SHA-256 |
+| **SHA-3** | 224–512 | Secure | Keccak sponge construction |
+
+- SHA-3 complements, not replaces, SHA-2.  
+- Both widely deployed for integrity, digital signatures, and blockchain linking.  
+- Continuous public evaluation ensures resistance to emerging attacks.  
+
+<!--
+(visual: timeline bar showing SHA-1 → SHA-2 → SHA-3 evolution, with red X over SHA-1)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Summarizes SHA evolution and current security status.  
+
+- Distinguishes between structural designs (Merkle–Damgård vs Keccak).  
+
+- Reinforces idea of ongoing cryptographic scrutiny.  
+
+
+
+**Instructor Notes and Script**
+
+Walk through the lineage:  
+
+SHA-1 (1995) → broken; SHA-2 (2001) → current workhorse; SHA-3 (2015) → future-proof alternative.  
+
+Explain that SHA-2 uses traditional block compression, SHA-3 introduces a new sponge-based model for flexibility.  
+
+Note that both families are federally approved and remain secure today.  
+
+Link to blockchain by noting that SHA-256 defines Bitcoin’s mining and block IDs.  
+
+
+
+**Script**
+
+“Hashing standards evolve like armor.  
+
+SHA-1 cracked, SHA-2 still strong, SHA-3 built for the next generation of attacks.”  
+
+
+
+**References**
+
+- @nationalinstituteofstandardsandtechnologyus_securehashstandard_2015 
+
+- @bertoni_keccakreferenceversion_2011 
+
+- @stevens_firstcollisionfull_2017
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **SHA Family Overview**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **SHA Family Overview**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **SHA Family Overview** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Constructions: Merkle–Damgård vs. Sponge** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **SHA Family Overview**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Constructions: Merkle–Damgård vs. Sponge {.smaller data-sync-id="hashing-construction-comparison hashing-merkle-damgard hashing-sponge hashing-length-extension hashing-hmac"}
+
+- Merkle–Damgård: algorithm consists of iterated compression on blocks with padding and length field (SHA‑1/2).
+
+- Sponge: algorithm consists of absorb–permute–squeeze on a fixed permutation with capacity/rate split (SHA‑3/Keccak).
+
+- Length‑extension caveat for Merkle–Damgård: H(m) enables computing H(m || pad || m′) in naive MAC designs. Vulnerable to
+hashe extension attacks.
+
+- **Mitigations:** Use HMAC for MACs
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Constructions: Merkle–Damgård vs. Sponge** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Constructions: Merkle–Damgård vs. Sponge. In this segment we frame the problem the slide addresses and explain why it matters in practice. The immediate objective is to connect the abstract idea to an engineering question students will encounter outside the classroom. For this slide, the anchor concepts are: Merkle–Damgård: iterated compression on blocks with padding and length field (SHA‑1/2).; Sponge: absorb–permute–squeeze on a fixed permutation with capacity/rate split (SHA‑3/Keccak).; Length‑extension caveat for Merkle–Damgård: H(m) enables computing H(m || pad || m′) in naive MAC designs.; Mitigations: Use HMAC for MACs; domain separation and finalization for commitment schemes.. As you present, begin by restating the problem in your own words, then contrast the naive approach with the disciplined, security‑minded approach. Students with systems backgrounds will appreciate concrete failure modes; students with less exposure will benefit from simple
+
+thought experiments that expose hidden assumptions.
+
+
+
+Key concepts and definitions. Clarify terminology precisely before diving into examples. Distinguish informal intuition from the formal property or construction we actually rely on. For instance, when we describe a hash as ‘one‑way,’ we mean there is no known polynomial‑time algorithm to invert it; when we discuss a Merkle proof, we mean a verifiable path of sibling digests from a specific leaf to a published root under a fixed concatenation rule. Emphasize determinism, unambiguous encodings, and protocol conventions that eliminate room for disagreement between correct implementations.
+
+
+
+Historical and real‑world background. Students engage more deeply when they see where an idea came from and how it is used today. Tie the material to document timestamping, content‑addressed storage, software supply‑chain verification, and blockchain headers. Be explicit about incentives: systems evolve because organizations need scalable integrity, auditability, or cost savings. Address why industry moved away from older hash families and what properties modern designs are selected to aims to ensure.
+
+
+
+Common misconceptions and how to preempt them. Many learners conflate hashing with encryption, believe that collisions ‘never happen,’ or assume that concatenation order cannot matter. Counter these myths with small counterexamples and vivid analogies. Show how even perfectly reasonable‑looking shortcuts (hashing hex strings instead of bytes, reversing endianness unintentionally) break equivalence between implementations. Remind students that cryptography is about *assumptions* and *interfaces*, not magic.
+
+
+
+Teaching strategy and pacing. Begin each explanation with a concrete question, elicit quick predictions, then reveal the formal rule or equation that governs the answer. Alternate viewpoints—diagrammatic intuition, step‑by‑step algorithms, and succinct equations—so students with different strengths can latch on. Use the board to track input, intermediate values, and outputs; narrate why each step is necessary and what could go wrong if omitted. Call out the difference between specification choices and unavoidable mathematical limits.
+
+
+
+Connections forward and backward. Situate this slide in the arc of the lecture: which earlier slides does it rely on, and which later slides will rely on it? Make the dependencies explicit so note‑takers can annotate. Explain how the concept will reappear in upcoming modules on digital signatures, peer‑to‑peer networking, and consensus. Where applicable, preview how the same abstraction is adapted in other ecosystems (e.g., binary Merkle trees versus tries).
+
+
+
+**Script:** “Let’s dive into Constructions: Merkle–Damgård vs. Sponge. I want to start with a question you can answer intuitively before we formalize anything: what would happen if we ignored Merkle–Damgård: iterated compression on blocks with padding and length field (SHA‑1/2)., Sponge: absorb–permute–squeeze on a fixed permutation with capacity/rate split (SHA‑3/Keccak)., Length‑extension caveat for Merkle–Damgård: H(m) enables computing H(m || pad || m′) in naive MAC designs., Mitigations: Use HMAC for MACs; domain separation and finalization for commitment schemes.? Hold that answer for a moment and picture a real system you use daily—a messaging app, a version control platform, or an online wallet. These systems make strong promises about integrity and history. We’ll unpack how those promises depend on the abstractions on this slide.”
+
+
+
+“First, I will define the terms carefully, then I’ll give you a mental model you can keep in your toolkit. Write down the exact rule we will apply repeatedly—what the inputs are, what the operation is, and how we check the result. As I narrate, I will annotate a concrete example on the board so you can see the shape of the computation and the places where mistakes creep in. If you already know part of this, focus on the differences between the informal gloss and the precise specification.”
+
+
+
+“Quick pulse check: by show of hands, who thinks the naive shortcut would still work, and who thinks it would fail? Turn to a neighbor for thirty seconds and justify your intuition. Now let’s test those hypotheses against the formal property. I’ll ask a few of you to share your reasoning—pay attention to the *assumptions* you used, because changing the environment changes the answer.”
+
+
+
+“Here is an analogy to anchor your thinking. Treat the digest like a sealed, uniquely numbered envelope: once the number is fixed and publicly recorded, you can later open the envelope to reveal the contents, and anyone can check that the number matches what was recorded. But if you mix up the numbering scheme or allow ambiguous labels, two different envelopes might accidentally share a number. Our job is to choose schemes where that is astronomically unlikely, and to use them in ways that never admit ambiguity.”
+
+
+
+“Now, step‑by‑step, we will apply the rule to a concrete input. I’ll narrate each intermediate value and write it down. As we go, ask yourself: if I had to code this, what exactly would I pass to the hash function, in what order, and how would I serialize it? Where would I store position bits? What would I do if I encountered an odd number of children at a level? These questions are not administrative details—they are the points where security and correctness are won or lost.”
+
+
+
+“Before we move on, I want to probe understanding with three specific questions. One: which property prevents an adversary from making a different input that maps to the same value once you have published a commitment? Two: why does concatenation order matter in a binary tree commitment, and how would you convey that to someone reviewing your code? Three: if we cut the output size from 256 bits to 128 bits, what gets easier for an attacker, and by roughly how much?”
+
+
+
+“Big picture: this slide’s abstraction buys us a aims to ensure we cannot cheaply obtain any other way. We pay with computation and careful specification, and in return we get global integrity that scales. As we transition to the next slide, keep the core rule in mind—we will reuse it, layer it, and stress‑test it in the activity.”
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Constructions: Merkle–Damgård vs. Sponge** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Constructions: Merkle–Damgård vs. Sponge**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## Aside: Hash Salting {.smaller data-sync-id="hashing-salting"}
+
+- **Definition:** A *salt* is a random, unique value added to each input before hashing.  
+  - Formally: $h = \text{Hash}(\text{salt} \,\|\, \text{password})$
+  - Salt is stored *in cleartext* alongside the hash.
+
+- **Purpose:**  
+  - Defeats precomputed **rainbow table** attacks.  
+  - Ensures identical inputs produce **different hashes**.  
+  - Forces attackers to recompute hashes for each user.
+
+- **Properties:**  
+  - Each salt should be **unique** (ideally random 128 bits).  
+  - Salts **don’t need to be secret** — just unpredictable.  
+  - Common in password databases, key derivation, and digital commitments.
+
+- **Example:**  
+  - $h_1 = \text{SHA256}(\text{"A9F2"} \,\|\, \text{"password"})$  
+  - $h_2 = \text{SHA256}(\text{"B1C4"} \,\|\, \text{"password"})$ → different result.
+
+<!--
+(visual: diagram showing same password hashed with different salts → distinct digests)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+
+
+- Salts randomize hash inputs and invalidate precomputed attack tables.  
+
+- They ensure **per-instance uniqueness**, preventing attackers from linking users with identical passwords.  
+
+- A salt differs from a **pepper** — which is secret and common across hashes.
+
+
+
+**Instructor Notes and Script**
+
+Start by recalling that unsalted password hashes are identical for users with the same password — e.g., every “123456” user shares the same digest.  
+
+Show how adding a random salt breaks this equivalence.  
+
+Explain rainbow tables: attackers precompute millions of hash-password pairs. A random salt invalidates all those precomputations.
+
+
+
+Optionally, demonstrate salting interactively: generate a hash with one salt, then a new salt, and compare results live.
+
+
+
+**Script**
+
+“A salt makes every hash unique — like seasoning every dish differently.  
+
+Even if two users pick the same password, their salted hashes will never match.”
+
+
+
+**References**
+
+
+
+- @temoshok_digitalidentityguidelines_2025
+
+- @bonneau_reliablestorage56bit_2014
+
+- @katz_introductionmoderncryptography_2020
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Aside: Hash Salting**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Aside: Hash Salting**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Aside: Hash Salting** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Hashing as Commitment** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Aside: Hash Salting**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Hashing as Commitment {data-sync-id="hashing-commitment"}
+
+- A document can be represented by its hash.
+- The hash is unique to its contents.
+- Publishing the hash “commits” you to the document without revealing it.
+
+<!--
+(Visual: Flowchart showing “Document → Hash function → Short digest.”)
+-->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+Key Points:
+
+- Hashes serve as tamper-proof commitments.
+
+- Commitment can be public without exposing the actual data.
+
+- Forms the basis for chaining timestamps.
+
+
+
+Instructor Notes:
+
+Haber and Stornetta recognized they didn’t need to publish entire documents — only their hash. A hash acts like a digital fingerprint: unique, irreversible, and tied to the original content. Publishing the hash proves the document existed at that time, while keeping the content private.
+
+This idea anticipates modern proof-of-existence systems, where people anchor sensitive data (like contracts) by publishing only the digest.
+
+
+
+Script:
+
+"A pivotal insight was that you don’t need to publish the full contents of a document to prove it existed at a certain time; you can publish a cryptographic hash instead. A good hash function compresses any input into a fixed‑size digest that’s easy to compute but infeasible to reverse or collide intentionally. That digest becomes a commitment: it uniquely “stands for” the original data without revealing it. Timestamping can therefore work by recording hashes, not the documents themselves. Later, anyone who has the original file can recompute its hash and check that it matches the committed value tied to a time. If it matches, the verifier gains confidence that the specific data existed no later than the recorded moment, while the content remains private unless the owner chooses to disclose it. This simple move—commit with a hash, timestamp the commitment—preserves confidentiality and dramatically reduces storage and publication burden. It also sets up the next leap: using those digests as links so that time can be chained forward in a way that makes undetected tampering impractical.
+
+"
+
+
+
+References:
+
+- @haber_howtimestampdigital_1991
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Hashing as Commitment**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Hashing as Commitment**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Hashing as Commitment** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **Merkle Trees: Motivation** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Hashing as Commitment**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Merkle Trees: Motivation {data-sync-id="hashing-merkle-motivation"}
+
+- **Problem:** How can we represent and verify a *large collection* of items with a single short value?
+- **Goal:** Detect any tampering and prove membership of an item **without** revealing or re‑sending everything.
+- **Key idea:** Build a tree of hashes so that one small value (the **root hash**) commits to *all* leaves.
+- **Payoff:**
+  - **Fast verification**: proofs size grows like $O(\log n)$.
+  - **Tamper‑evident**: any change propagates up to the root.
+  - **Storage‑friendly**: keep one root instead of all items.
+
+<!-- (visual: many documents compressed into a single “root hash” badge) -->
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Merkle Trees: Motivation** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Takeaways**
+
+- Merkle trees provide: (1) a compact commitment to large datasets, (2) efficient membership proofs, and (3) tamper evidence relying on robust hash functions and clear rules.
+
+- These ideas power many integrity‑critical systems students will encounter.
+
+
+
+**Notes for Instructor**
+
+- Recap the big three benefits: compactness, efficiency, and security assumptions.
+
+- Reiterate the importance of deterministic construction rules so independently built trees match.
+
+- Offer short follow‑ups students can explore independently: sparse trees for indexed data, higher‑arity trees, and transparency or audit applications.
+
+- Prepare two quick check‑for‑understanding questions:
+
+  1) What information must a prover send to verify one item’s inclusion?
+
+  2) Why does swapping left/right siblings break verification?
+
+
+
+**Suggested Script**
+
+“To wrap up: a Merkle tree turns a huge collection into one short root, and it gives us tiny, verifiable proofs for individual items. With a strong hash and precise formatting rules, any tampering is exposed because the root changes. You’ll see this pattern again whenever we need scalable integrity checks.”
+
+
+
+**References**
+
+- @katz_introductionmoderncryptography_2020
+
+- @menezes_handbookappliedcryptography_2011
+
+- @nationalinstituteofstandardsandtechnologyus_securehashstandard_2015
+
+- @dang_recommendationapplicationsusing_2012
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Merkle Trees: Motivation**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Merkle Trees: Motivation**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Merkle Trees: Motivation** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Merkle Trees: Motivation**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## What Is a Merkle Tree? {data-sync-id="hashing-merkle-definition"}
+
+- A **Merkle tree** is a **hash tree**:
+  - **Leaves:** $\ell_i = H(x_i)$ where $x_i$ is the $i$‑th data block.
+  - **Internal node:** $h = H(\text{left} \parallel \text{right})$.
+  - **Root:** the top hash commits to *all* leaves below.
+- **Concatenation** $\parallel$ is order‑sensitive: $H(a\parallel b) \ne H(b\parallel a)$ in general.
+- The **root hash** is a *commitment* to the whole dataset.
+
+<!-- (visual: binary tree with leaves L1..L4, internal nodes labeled H(L1||L2), etc.) -->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Stress the *directionality* (left vs right) and that ordering matters.
+
+- Leaves are usually hashed first, then combined upward.
+
+
+
+**Instructor Script**
+
+“A Merkle tree is just a binary tree where data sits at the leaves, and every parent is the hash of its children. The single value at the top summarizes everything below.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **What Is a Merkle Tree?**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **What Is a Merkle Tree?**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **What Is a Merkle Tree?** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Building a Binary Merkle Tree** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Instructor Notes (expansion)**
+
+Add one concrete example (operational or adversarial), one common pitfall/misconception, and one ‘why this matters’ sentence for the course thread. Aim for 3–5 sentences so a substitute instructor can confidently present this slide.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **What Is a Merkle Tree?**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## Building a Binary Merkle Tree {.smaller data-sync-id="hashing-merkle-building"}
+
+1. Split your dataset into items $x_1,\ldots,x_n$.
+2. Compute leaf hashes: $\ell_i = H(\text{LeafTag}\parallel x_i)$.
+3. Pair adjacent hashes and compute parents: $p_j = H(\text{NodeTag}\parallel \ell_{2j-1} \parallel \ell_{2j})$.
+4. Repeat step 3 until a single **root** remains.
+5. If $n$ is odd, define a rule (e.g., **duplicate** the last hash or **carry it up**) and apply it consistently.
+
+- **Tags** (a.k.a. *domain separation*): include a short constant like `LeafTag` vs `NodeTag` to avoid ambiguity.
+
+<!-- (visual: step‑by‑step animation of pairing and hashing, with odd leaf case highlighted) -->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Domain separation prevents ambiguity between a leaf and an internal node with the same bitstring.
+
+- Implementation must fix a rule for odd counts and stick to it.
+
+
+
+**Instructor Script**
+
+“We hash leaves with a *leaf tag* and internal nodes with a *node tag*. If we ever have an odd one out, we follow a published rule—like duplicating the last leaf—so everyone builds the same tree.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Building a Binary Merkle Tree**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Building a Binary Merkle Tree**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Building a Binary Merkle Tree** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Worked Example (4 Items)** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Building a Binary Merkle Tree**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+
+## Worked Example (4 Items) {.smaller  data-sync-id="hashing-merkle-example"}
+
+- Let items be $A,B,C,D$.
+- Leaves: $a=H(\text{Leaf}\parallel A)$, $b=H(\text{Leaf}\parallel B)$, $c=H(\text{Leaf}\parallel C)$, $d=H(\text{Leaf}\parallel D)$.
+- Parents: $p_1=H(\text{Node}\parallel a\parallel b)$, $p_2=H(\text{Node}\parallel c\parallel d)$.
+- **Root:** $r=H(\text{Node}\parallel p_1\parallel p_2)$.
+
+```{dot}
+digraph MerkleExample4 {
+rankdir=TB;
+bgcolor="transparent";
+
+graph [splines=true, nodesep=0.2, ranksep=0.2];
+
+node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+color="#0369a1", fillcolor="#e0f2fe"];
+
+R  [label="r = H(Node || p1 || p2)"];
+
+{rank=same;
+p1 [label="p1 = H(Node || a || b)"];
+p2 [label="p2 = H(Node || c || d)"];
+}
+
+/* Leaves */
+node [color="#9ca3af", fillcolor="#f3f4f6"];
+{rank=same;
+a [label="a = H(Leaf || A)"];
+b [label="b = H(Leaf || B)"];
+c [label="c = H(Leaf || C)"];
+d [label="d = H(Leaf || D)"];
+}
+
+/* Edges */
+R -> p1; R -> p2;
+p1 -> a; p1 -> b;
+p2 -> c; p2 -> d;
+
+edge [color="#64748b"];
+}
+
+
+```
+
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Show that a single bit flip in one item cascades up.
+
+- Reinforce that we never need to reveal the items just to check structure.
+
+
+
+**Instructor Script**
+
+“Compute leaf hashes, then parent hashes, then the root. If $B$ changes, $b$ changes, then $p_1$ changes, then the root $r$ changes. Tampering bubbles up.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Worked Example (4 Items)**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Worked Example (4 Items)**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Worked Example (4 Items)** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Merkle Proofs (Membership)** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Instructor Notes (expansion)**
+
+Add one concrete example (operational or adversarial), one common pitfall/misconception, and one ‘why this matters’ sentence for the course thread. Aim for 3–5 sentences so a substitute instructor can confidently present this slide.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Worked Example (4 Items)**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Merkle Proofs (Membership) {data-sync-id="hashing-merkle-proof"}
+
+- To prove an item $A$ is in the tree with root $r$:
+  1. Provide $A$ and its **authentication path**: the list of **sibling hashes** from the leaf up.
+  2. The verifier recomputes: $a=H(\text{Leaf}\parallel A)$, then combines with each sibling in the correct left/right order to reconstruct $r$.
+- If the recomputed root equals the claimed $r$, membership is verified.
+- **Proof size:** about $\lceil \log_2 n \rceil$ hashes.
+
+<!-- (visual: highlight one leaf and the sibling hashes needed on the path to the root) -->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Left/right *position* matters when combining with siblings.
+
+- The verifier needs only the item and $O(\log n)$ other hashes—not the whole tree.
+
+
+
+**Instructor Script**
+
+“A Merkle proof is a breadcrumb trail: the item’s hash plus just enough siblings to rebuild the root. If you get the same root, the item must have been included.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Merkle Proofs (Membership)**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Merkle Proofs (Membership)**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Merkle Proofs (Membership)** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Why Proofs Are Efficient** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Instructor Notes (expansion)**
+
+Add one concrete example (operational or adversarial), one common pitfall/misconception, and one ‘why this matters’ sentence for the course thread. Aim for 3–5 sentences so a substitute instructor can confidently present this slide.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Merkle Proofs (Membership)**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Why Proofs Are Efficient {data-sync-id="hashing-proof-efficiency"}
+
+- For $n$ leaves, depth is $\approx \log_2 n$ (binary tree).
+- **Proof length:** $\lceil \log_2 n \rceil$ hashes; e.g.,
+  - $n=1{,}000$ → about 10 hashes.
+  - $n=1{,}000{,}000$ → about 20 hashes.
+- **Verification time:** $O(\log n)$ hash calls.
+- **Storage:** You may store only the **root** (and a policy that defines how the tree is built).
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Big picture: logarithmic growth is the win.
+
+- Emphasize that the verifier does *not* need internal nodes if a proof is provided.
+
+
+
+**Instructor Script**
+
+“With a million entries, a proof is just around twenty hashes—fast to send and fast to check.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Why Proofs Are Efficient**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Why Proofs Are Efficient**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Why Proofs Are Efficient** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Tamper Evidence & Security Assumptions** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Instructor Notes (expansion)**
+
+Add one concrete example (operational or adversarial), one common pitfall/misconception, and one ‘why this matters’ sentence for the course thread. Aim for 3–5 sentences so a substitute instructor can confidently present this slide.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Why Proofs Are Efficient**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Tamper Evidence & Security Assumptions {.smaller data-sync-id="hashing-tamper-evidence"}
+
+- Security relies on properties of the hash function $H$:
+  - **Collision resistance:** infeasible to find $x\ne x'$ with $H(x)=H(x')$.
+  - **Second‑preimage resistance:** given $x$, hard to find $x'\ne x$ with same hash.
+- **Ordering matters:** use left/right labels and explicit concatenation.
+- **Domain separation:** tag leaves vs internal nodes (e.g., `0x00` for leaves, `0x01` for nodes).
+- **Canonical rules:** define odd‑leaf handling; define encoding of items.
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- If these rules aren’t fixed, two honest parties may build different roots for the same dataset.
+
+- Collisions would allow faking membership; hence choosing a modern hash is critical.
+
+
+
+**Instructor Script**
+
+“Merkle trees inherit their strength from the hash. We also need unambiguous formatting—what counts as left or right, and how we represent data—so everyone reconstructs the exact same root.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Tamper Evidence & Security Assumptions**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Tamper Evidence & Security Assumptions**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Tamper Evidence & Security Assumptions** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Design Choices & Variants** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Tamper Evidence & Security Assumptions**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Design Choices & Variants {data-sync-id="hashing-merkle-variants"}
+
+- **Branching factor:** binary vs $k$‑ary (trades depth for node size).
+- **Sorted vs original order:** some systems sort leaves for determinism; others preserve insertion order.
+- **Odd number of leaves:** duplicate last leaf, or promote it—pick one rule and publish it.
+- **Sparse trees:** massive key spaces with mostly empty leaves (useful when indices matter).
+- **Merkle Directed Acyclic Graph (DAG)s:** trees whose internal nodes can reference reusable subtrees (content‑addressed storage).
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Different choices can coexist; what matters is *specifying* the choices so proofs are interoperable.
+
+
+
+**Instructor Script**
+
+“Binary is common, but higher‑arity trees reduce depth. Sorting leaves can make trees reproducible across machines.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Design Choices & Variants**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Design Choices & Variants**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Design Choices & Variants** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Where You’ll See Them (Non‑Exhaustive)** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Instructor Notes (expansion)**
+
+Add one concrete example (operational or adversarial), one common pitfall/misconception, and one ‘why this matters’ sentence for the course thread. Aim for 3–5 sentences so a substitute instructor can confidently present this slide.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Design Choices & Variants**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Where You’ll See Them (Non‑Exhaustive) {data-sync-id="hashing-merkle-applications"}
+
+- **Content‑addressed data systems:** version control stores (e.g., commit graphs as hash‑linked structures).
+- **Transparency logs:** public, append‑only logs use Merkle roots to audit inclusion and history.
+- **Package & software updates:** metadata signed via Merkle roots to ensure integrity.
+- **P2P distribution:** file pieces verified by Merkle proofs during download.
+- **Filesystems & databases:** integrity trees over blocks/pages for fast corruption detection.
+
+<!-- (visual: collage of contexts: logs, repos, P2P, storage) -->
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+- Keep examples concrete but avoid diving into specific products; the concept generalizes widely.
+
+- Mention that the same math underpins many real systems students already use.
+
+
+
+**Instructor Script**
+
+“Anytime a system needs to commit to a big dataset and later prove small pieces of it are intact, Merkle trees are a go‑to tool.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Where You’ll See Them (Non‑Exhaustive)**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Where You’ll See Them (Non‑Exhaustive)**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Where You’ll See Them (Non‑Exhaustive)** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Practice: Micro Labs** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Where You’ll See Them (Non‑Exhaustive)**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Practice: Micro Labs {data-sync-id="hashing-merkle-labs"}
+
+Review the following interactive lab:
+
+* [Merkle-trees Lab](../../assets/labs/merkle-trees/)
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points**
+
+
+
+**Merkle Trees:**
+
+
+
+1. In the first demo, choose a sample text. They are AI-generated, non-copyright-infringing summaries of scenes 
+
+from Star Wars and Marvel. 
+
+
+
+1. Change the block size to 32 or 16, then click Generate Tree. 
+
+
+
+2. Try changing a hash or a text value and watch the proof fail and the chain turn red. Recalculate the tree to regenerate hashes. 
+
+
+
+**Script (talk track)**
+
+“Here’s the point of this slide: **Practice: Micro Labs**. First, define it plainly. Then ask: *what must be true for this to be safe or correct?* Finally, tie it to the blockchain setting—where we assume adversaries, partial failures, and incentives.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Practice: Micro Labs**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Practice: Micro Labs**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Practice: Micro Labs** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Where Hashing and Merkle Trees Meet Blockchain** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Practice: Micro Labs**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+
+## Where Hashing and Merkle Trees Meet Blockchain {data-sync-id="hashing-merkle-applications"}
+
+- Block headers include a Merkle root committing to all transactions in the block.
+
+- Consensus ties the header to economic or stake‑based cost; roots become hard to falsify retroactively.
+
+- Light clients rely on headers plus Merkle proofs to validate specific transactions efficiently.
+
+- Beyond transactions: trees commit to state, receipts, logs, and more across platforms.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Where Hashing and Merkle Trees Meet Blockchain** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Where Hashing and Merkle Trees Meet Blockchain. In this segment we frame the problem the slide addresses and explain why it matters in practice. The immediate objective is to connect the abstract idea to an engineering question students will encounter outside the classroom. For this slide, the anchor concepts are: Block headers include a Merkle root committing to all transactions in the block.; Consensus ties the header to economic or stake‑based cost; roots become hard to falsify retroactively.; Light clients rely on headers plus Merkle proofs to validate specific transactions efficiently.; Beyond transactions: trees commit to state, receipts, logs, and more across platforms.. As you present, begin by restating the problem in your own words, then contrast the naive approach with the disciplined, security‑minded approach. Students with systems backgrounds will appreciate concrete failure modes; students with less exposure will benefit from simple thought
+
+experiments that expose hidden assumptions.
+
+
+
+Key concepts and definitions. Clarify terminology precisely before diving into examples. Distinguish informal intuition from the formal property or construction we actually rely on. For instance, when we describe a hash as ‘one‑way,’ we mean there is no known polynomial‑time algorithm to invert it; when we discuss a Merkle proof, we mean a verifiable path of sibling digests from a specific leaf to a published root under a fixed concatenation rule. Emphasize determinism, unambiguous encodings, and protocol conventions that eliminate room for disagreement between correct implementations.
+
+
+
+Historical and real‑world background. Students engage more deeply when they see where an idea came from and how it is used today. Tie the material to document timestamping, content‑addressed storage, software supply‑chain verification, and blockchain headers. Be explicit about incentives: systems evolve because organizations need scalable integrity, auditability, or cost savings. Address why industry moved away from older hash families and what properties modern designs are selected to aims to ensure.
+
+
+
+Common misconceptions and how to preempt them. Many learners conflate hashing with encryption, believe that collisions ‘never happen,’ or assume that concatenation order cannot matter. Counter these myths with small counterexamples and vivid analogies. Show how even perfectly reasonable‑looking shortcuts (hashing hex strings instead of bytes, reversing endianness unintentionally) break equivalence between implementations. Remind students that cryptography is about *assumptions* and *interfaces*, not magic.
+
+
+
+Teaching strategy and pacing. Begin each explanation with a concrete question, elicit quick predictions, then reveal the formal rule or equation that governs the answer. Alternate viewpoints—diagrammatic intuition, step‑by‑step algorithms, and succinct equations—so students with different strengths can latch on. Use the board to track input, intermediate values, and outputs; narrate why each step is necessary and what could go wrong if omitted. Call out the difference between specification choices and unavoidable mathematical limits.
+
+
+
+Connections forward and backward. Situate this slide in the arc of the lecture: which earlier slides does it rely on, and which later slides will rely on it? Make the dependencies explicit so note‑takers can annotate. Explain how the concept will reappear in upcoming modules on digital signatures, peer‑to‑peer networking, and consensus. Where applicable, preview how the same abstraction is adapted in other ecosystems (e.g., binary Merkle trees versus tries).
+
+
+
+**Script:** “Let’s dive into Where Hashing and Merkle Trees Meet Blockchain. I want to start with a question you can answer intuitively before we formalize anything: what would happen if we ignored Block headers include a Merkle root committing to all transactions in the block., Consensus ties the header to economic or stake‑based cost; roots become hard to falsify retroactively., Light clients rely on headers plus Merkle proofs to validate specific transactions efficiently., Beyond transactions: trees commit to state, receipts, logs, and more across platforms.? Hold that answer for a moment and picture a real system you use daily—a messaging app, a version control platform, or an online wallet. These systems make strong promises about integrity and history. We’ll unpack how those promises depend on the abstractions on this slide.”
+
+
+
+“First, I will define the terms carefully, then I’ll give you a mental model you can keep in your toolkit. Write down the exact rule we will apply repeatedly—what the inputs are, what the operation is, and how we check the result. As I narrate, I will annotate a concrete example on the board so you can see the shape of the computation and the places where mistakes creep in. If you already know part of this, focus on the differences between the informal gloss and the precise specification.”
+
+
+
+“Quick pulse check: by show of hands, who thinks the naive shortcut would still work, and who thinks it would fail? Turn to a neighbor for thirty seconds and justify your intuition. Now let’s test those hypotheses against the formal property. I’ll ask a few of you to share your reasoning—pay attention to the *assumptions* you used, because changing the environment changes the answer.”
+
+
+
+“Here is an analogy to anchor your thinking. Treat the digest like a sealed, uniquely numbered envelope: once the number is fixed and publicly recorded, you can later open the envelope to reveal the contents, and anyone can check that the number matches what was recorded. But if you mix up the numbering scheme or allow ambiguous labels, two different envelopes might accidentally share a number. Our job is to choose schemes where that is astronomically unlikely, and to use them in ways that never admit ambiguity.”
+
+
+
+“Now, step‑by‑step, we will apply the rule to a concrete input. I’ll narrate each intermediate value and write it down. As we go, ask yourself: if I had to code this, what exactly would I pass to the hash function, in what order, and how would I serialize it? Where would I store position bits? What would I do if I encountered an odd number of children at a level? These questions are not administrative details—they are the points where security and correctness are won or lost.”
+
+
+
+“Before we move on, I want to probe understanding with three specific questions. One: which property prevents an adversary from making a different input that maps to the same value once you have published a commitment? Two: why does concatenation order matter in a binary tree commitment, and how would you convey that to someone reviewing your code? Three: if we cut the output size from 256 bits to 128 bits, what gets easier for an attacker, and by roughly how much?”
+
+
+
+“Big picture: this slide’s abstraction buys us a aims to ensure we cannot cheaply obtain any other way. We pay with computation and careful specification, and in return we get global integrity that scales. As we transition to the next slide, keep the core rule in mind—we will reuse it, layer it, and stress‑test it in the activity.”
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Where Hashing and Merkle Trees Meet Blockchain** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Where Hashing and Merkle Trees Meet Blockchain**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## Summary {data-sync-id="hashing-summary"}
+
+- A cryptographic hash provides binding commitments with strong one‑way and collision resistance.
+- A Merkle tree is a **hash‑based commitment** to a whole dataset.
+- **Membership proofs** use sibling hashes along a path to rebuild the root.
+- **Efficiency:** verification cost and proof size grow logarithmically.
+- **Security:** depends on a good hash function and unambiguous formatting rules.
+
+
+::: notes
+**Key Points**
+
+- Define the core concept on this slide: **Summary** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~2 min
+
+
+
+**Instructor Notes**
+
+**Instructor Script**
+
+“Merkle trees let us compress trust: a single short value speaks for a huge dataset, and tiny proofs let anyone verify membership quickly.”
+
+
+
+**Instructor Notes:** Context and motivation — Summary and Next Steps. In this segment we frame the problem the slide addresses and explain why it matters in practice. The immediate objective is to connect the abstract idea to an engineering question students will encounter outside the classroom. For this slide, the anchor concepts are: A cryptographic hash provides binding commitments with strong one‑way and collision resistance.; Merkle trees scale commitments to large datasets with succinct inclusion proofs.; Correctness lives in the details: encodings, ordering, and protocol conventions matter.; Next: digital signatures and peer‑to‑peer networking—how authenticity and dissemination pair with these commitments.. As you present, begin by restating the problem in your own words, then contrast the naive approach with the disciplined, security‑minded approach. Students with systems backgrounds will appreciate concrete failure modes; students with less exposure will benefit from simple thought experiments
+
+that expose hidden assumptions.
+
+
+
+Key concepts and definitions. Clarify terminology precisely before diving into examples. Distinguish informal intuition from the formal property or construction we actually rely on. For instance, when we describe a hash as ‘one‑way,’ we mean there is no known polynomial‑time algorithm to invert it; when we discuss a Merkle proof, we mean a verifiable path of sibling digests from a specific leaf to a published root under a fixed concatenation rule. Emphasize determinism, unambiguous encodings, and protocol conventions that eliminate room for disagreement between correct implementations.
+
+
+
+Historical and real‑world background. Students engage more deeply when they see where an idea came from and how it is used today. Tie the material to document timestamping, content‑addressed storage, software supply‑chain verification, and blockchain headers. Be explicit about incentives: systems evolve because organizations need scalable integrity, auditability, or cost savings. Address why industry moved away from older hash families and what properties modern designs are selected to aims to ensure.
+
+
+
+Common misconceptions and how to preempt them. Many learners conflate hashing with encryption, believe that collisions ‘never happen,’ or assume that concatenation order cannot matter. Counter these myths with small counterexamples and vivid analogies. Show how even perfectly reasonable‑looking shortcuts (hashing hex strings instead of bytes, reversing endianness unintentionally) break equivalence between implementations. Remind students that cryptography is about *assumptions* and *interfaces*, not magic.
+
+
+
+Teaching strategy and pacing. Begin each explanation with a concrete question, elicit quick predictions, then reveal the formal rule or equation that governs the answer. Alternate viewpoints—diagrammatic intuition, step‑by‑step algorithms, and succinct equations—so students with different strengths can latch on. Use the board to track input, intermediate values, and outputs; narrate why each step is necessary and what could go wrong if omitted. Call out the difference between specification choices and unavoidable mathematical limits.
+
+
+
+Connections forward and backward. Situate this slide in the arc of the lecture: which earlier slides does it rely on, and which later slides will rely on it? Make the dependencies explicit so note‑takers can annotate. Explain how the concept will reappear in upcoming modules on digital signatures, peer‑to‑peer networking, and consensus. Where applicable, preview how the same abstraction is adapted in other ecosystems (e.g., binary Merkle trees versus tries).
+
+
+
+Close by returning to the four promises you opened with and mapping each to a concrete engineering practice the students can apply this week—verify downloads by digest, read a block header and locate the Merkle root, and hand‑compute an inclusion proof for a toy tree.
+
+
+
+**Script:** “Let’s dive into Summary and Next Steps. I want to start with a question you can answer intuitively before we formalize anything: what would happen if we ignored A cryptographic hash provides binding commitments with strong one‑way and collision resistance., Merkle trees scale commitments to large datasets with succinct inclusion proofs., Correctness lives in the details: encodings, ordering, and protocol conventions matter., Next: digital signatures and peer‑to‑peer networking—how authenticity and dissemination pair with these commitments.? Hold that answer for a moment and picture a real system you use daily—a messaging app, a version control platform, or an online wallet. These systems make strong promises about integrity and history. We’ll unpack how those promises depend on the abstractions on this slide.”
+
+
+
+“First, I will define the terms carefully, then I’ll give you a mental model you can keep in your toolkit. Write down the exact rule we will apply repeatedly—what the inputs are, what the operation is, and how we check the result. As I narrate, I will annotate a concrete example on the board so you can see the shape of the computation and the places where mistakes creep in. If you already know part of this, focus on the differences between the informal gloss and the precise specification.”
+
+
+
+“Quick pulse check: by show of hands, who thinks the naive shortcut would still work, and who thinks it would fail? Turn to a neighbor for thirty seconds and justify your intuition. Now let’s test those hypotheses against the formal property. I’ll ask a few of you to share your reasoning—pay attention to the *assumptions* you used, because changing the environment changes the answer.”
+
+
+
+“Here is an analogy to anchor your thinking. Treat the digest like a sealed, uniquely numbered envelope: once the number is fixed and publicly recorded, you can later open the envelope to reveal the contents, and anyone can check that the number matches what was recorded. But if you mix up the numbering scheme or allow ambiguous labels, two different envelopes might accidentally share a number. Our job is to choose schemes where that is astronomically unlikely, and to use them in ways that never admit ambiguity.”
+
+
+
+“Now, step‑by‑step, we will apply the rule to a concrete input. I’ll narrate each intermediate value and write it down. As we go, ask yourself: if I had to code this, what exactly would I pass to the hash function, in what order, and how would I serialize it? Where would I store position bits? What would I do if I encountered an odd number of children at a level? These questions are not administrative details—they are the points where security and correctness are won or lost.”
+
+
+
+“Before we move on, I want to probe understanding with three specific questions. One: which property prevents an adversary from making a different input that maps to the same value once you have published a commitment? Two: why does concatenation order matter in a binary tree commitment, and how would you convey that to someone reviewing your code? Three: if we cut the output size from 256 bits to 128 bits, what gets easier for an attacker, and by roughly how much?”
+
+
+
+“Big picture: this slide’s abstraction buys us a aims to ensure we cannot cheaply obtain any other way. We pay with computation and careful specification, and in return we get global integrity that scales. As we transition to the next slide, keep the core rule in mind—we will reuse it, layer it, and stress‑test it in the activity.”
+
+
+
+References:
+
+- @bayer_improvingefficiencyreliability_1993
+
+- @haber_howtimestampdigital_1991
+
+- @massias_designsecuretimestamping_1999
+
+- @nakamoto_bitcoinpeertopeerelectronic_2008
+
+- @nakamotoinstitute_bitcoinlibraryprimary_2014
+
+- @narayanan_bitcoincryptocurrencytechnologies_2016
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Summary** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **Summary**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+## References {data-sync-id="hashing-references"}

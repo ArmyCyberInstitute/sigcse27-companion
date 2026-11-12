@@ -1,0 +1,594 @@
+{
+  "intro": {
+    "title": "Bitcoin Fundamentals",
+    "summary": "Two labs. Lab 1 runs a private regtest node so you can pull the chain apart without affecting anyone else. Lab 2 shares a live ClassNet chain with the rest of the room — every transaction you broadcast is visible to your classmates.",
+    "labs": [
+      {
+        "id": "lab-primer",
+        "title": "Primer · Terminal & Zellij",
+        "summary": "Get comfortable with the lab workstation before you touch Bitcoin. Practice basic shell movement, learn how zellij tabs and panes work, and know how to scroll back when output flies by."
+      },
+      {
+        "id": "lab-1",
+        "title": "Lab 1 · Regtest",
+        "summary": "Master the core CLI commands of Bitcoin Core in a private, sandboxed environment. You will create a blockchain from scratch, manage two wallets to simulate a transaction between two people, and inspect block headers to understand how Proof of Work is constructed."
+      },
+      {
+        "id": "lab-2",
+        "title": "Lab 2 · ClassNet",
+        "summary": "Join the ClassNet shared blockchain. You will publish a wallet address on your personal static site, discover peers, transact on a live network, use an automated agent to simulate congestion, and try to break the rules with a double-spend."
+      }
+    ],
+    "chapters": [
+      {
+        "id": "primer-basics",
+        "lab": "lab-primer",
+        "title": "Primer · Navigate the Workstation",
+        "summary": "Learn the shell layout, the zellij shortcuts, and the tab/pane controls you will use throughout the lab."
+      },
+      {
+        "id": "lab1-setup",
+        "lab": "lab-1",
+        "title": "Lab 1 · Setup",
+        "summary": "Spin up a private regtest node on its own ports and mine the first coins."
+      },
+      {
+        "id": "lab1-anatomy",
+        "lab": "lab-1",
+        "title": "Lab 1 · Anatomy",
+        "summary": "Inspect block headers, decode the bits field, and follow the chain of ownership through a real transaction."
+      },
+      {
+        "id": "lab1-python",
+        "lab": "lab-1",
+        "title": "Lab 1 · Python Deep Dive",
+        "summary": "Parse raw transaction hex with python-bitcoinlib to see how Bitcoin serializes data on the wire."
+      },
+      {
+        "id": "lab1-merkle",
+        "lab": "lab-1",
+        "title": "Lab 1 · Merkle Root Challenge",
+        "summary": "Corrupt a block on disk, watch verifychain reject it, then restore the valid Merkle root."
+      },
+      {
+        "id": "lab1-cleanup",
+        "lab": "lab-1",
+        "title": "Lab 1 · Cleanup",
+        "summary": "Shut down the private regtest node before moving to ClassNet."
+      },
+      {
+        "id": "lab2-identity",
+        "lab": "lab-2",
+        "title": "Lab 2 · Identity & Sharing",
+        "summary": "Create your ClassNet wallet and publish your address on your personal static site."
+      },
+      {
+        "id": "lab2-peers",
+        "lab": "lab-2",
+        "title": "Lab 2 · Peers & Transactions",
+        "summary": "Discover a classmate through the Peers dropdown, send coins, and mine the transaction by hand."
+      },
+      {
+        "id": "lab2-congestion",
+        "lab": "lab-2",
+        "title": "Lab 2 · Congestion",
+        "summary": "Run the flood agent and watch the fee market form in the mempool."
+      },
+      {
+        "id": "lab2-double-spend",
+        "lab": "lab-2",
+        "title": "Lab 2 · Double Spend",
+        "summary": "Try to spend the same coins twice and see which layer of Bitcoin stops you."
+      },
+      {
+        "id": "lab2-explore",
+        "lab": "lab-2",
+        "title": "Lab 2 · Explore",
+        "summary": "Browse the shared chain in mempool and btc-explorer to find your and your classmates' transactions."
+      },
+      {
+        "id": "lab2-bonus",
+        "lab": "lab-2",
+        "title": "Lab 2 · Bonus",
+        "summary": "Optional stretch exercises: replace-by-fee, censorship via a malicious miner, and the difficulty adjustment."
+      }
+    ]
+  },
+  "exercises": [
+    {
+      "id": "primer-shell-and-tmux",
+      "chapter": "primer-basics",
+      "title": "Get Oriented Before Lab 1",
+      "goal": "This workstation is a Linux shell inside your browser, fronted by `ttyd` and managed with `zellij`. Before you start Bitcoin-specific work, make sure you can move around the filesystem, create a second tab, split a pane, and recover scrollback. Zellij shows available keys in a status bar at the bottom of the screen.",
+      "student_steps": [
+        "Confirm where you are and what is in your home directory:\n\n```\npwd\nls -a\n```",
+        "Practice moving around, then return home:\n\n```\ncd ~/scripts\nls\ncd ~\n```",
+        "Press `Ctrl+G`, then `t`, then `n` to open a new tab. Press `Ctrl+G`, then `t`, then `Left` to return to the previous one.",
+        "Press `Ctrl+G`, then `p`, then `r` to split the screen left/right. Use `Alt+Arrow` to move between panes. Type `exit` in the extra pane when you are done.",
+        "Press `Ctrl+G`, then `s` to enter scroll mode. Use the arrow keys or Page Up/Page Down, then press `Ctrl+G` to return to the live shell.",
+        "Zellij starts locked. If its controls are unlocked, press `Ctrl+G` to return to locked input before opening `nano`."
+      ],
+      "expected_observations": [
+        "`pwd` reports your home directory, and `ls -a` shows normal files plus dotfiles.",
+        "Zellij lets you create new tabs and panes without leaving the browser tab.",
+        "Scrollback works inside zellij even when the browser itself does not scroll the terminal output."
+      ],
+      "meaning": [
+        "The terminal is your main interface for the technical parts of this course, so basic shell movement needs to be automatic.",
+        "Zellij is how you keep logs, notes, scripts, and long-running processes visible at the same time without losing state."
+      ],
+      "transition": "With the workstation under control, move into Lab 1 and start a private regtest node."
+    },
+    {
+      "id": "lab1-start-regtest",
+      "chapter": "lab1-setup",
+      "title": "Start a Private Regtest Node",
+      "goal": "Your workstation is already running a ClassNet bitcoind in the background (you will use it in Lab 2). To keep Lab 1 isolated, start a **second** bitcoind on its own ports and its own data directory. You will drive this private node through a `btc-lab1` alias so there is no confusion about which chain you are talking to.",
+      "student_steps": [
+        "Work through this setup in order. The later `btc-lab1` commands depend on\nthe data directory and private regtest daemon created in the previous\nsteps.",
+        "Create a dedicated data directory:\n\n```\nmkdir -p ~/.bitcoin-regtest\n```",
+        "Launch regtest on unique ports with a fallback fee and tx index:\n\n```\nbitcoind -regtest -daemon \\\n  -datadir=$HOME/.bitcoin-regtest \\\n  -rpcport=18443 \\\n  -port=18444 \\\n  -fallbackfee=0.0001 \\\n  -txindex=1\n```",
+        "Define the `btc-lab1` alias — use it for **every** Lab 1 command:\n\n```\nalias btc-lab1=\"bitcoin-cli -regtest -datadir=$HOME/.bitcoin-regtest -rpcport=18443\"\n```",
+        "Confirm the alias works and the chain is empty:\n\n```\nbtc-lab1 getblockchaininfo\n```"
+      ],
+      "expected_observations": [
+        "`getblockchaininfo` reports `\"chain\": \"regtest\"` and `\"blocks\": 0`.",
+        "The ClassNet node is untouched — regtest is a completely separate blockchain."
+      ],
+      "meaning": [
+        "Regtest is Bitcoin's lab mode. Blocks can be mined instantly with no real proof of work, so you can experiment without waiting ten minutes per block.",
+        "Running two bitcoinds side by side shows why ports + datadirs matter: each node is its own chain, its own wallet, its own mempool."
+      ],
+      "transition": "Now that the node is up, mint the first coins by mining to a new wallet."
+    },
+    {
+      "id": "lab1-wallets-mine",
+      "chapter": "lab1-setup",
+      "title": "Genesis of a Chain — Wallets and First Blocks",
+      "goal": "Create two wallets — **student** and **alice** — so you can simulate a real transaction between two people later. Then mine 11 blocks to your student address. The 11 matters: coinbase outputs normally take 100 blocks to mature, but this classroom Bitcoin fork lowered the maturity to 10, so block #1's reward becomes spendable after block #11.",
+      "student_steps": [
+        "Create the two wallets:\n\n```\nbtc-lab1 createwallet \"student\"\nbtc-lab1 createwallet \"alice\"\n```",
+        "Generate an address on each:\n\n```\nSTUDENT_ADDR=$(btc-lab1 -rpcwallet=student getnewaddress)\nALICE_ADDR=$(btc-lab1 -rpcwallet=alice getnewaddress)\n```",
+        "Mine 11 blocks to the student wallet:\n\n```\nbtc-lab1 generatetoaddress 11 $STUDENT_ADDR\n```",
+        "Check the balance:\n\n```\nbtc-lab1 -rpcwallet=student getbalance\n```"
+      ],
+      "expected_observations": [
+        "The student wallet holds **50.0 BTC** — the block #1 coinbase reward, now mature after 10 additional blocks.",
+        "The alice wallet balance is still 0 — she has an address but no funds."
+      ],
+      "meaning": [
+        "Coinbase maturity is a consensus rule: it prevents a miner from spending a freshly-minted reward that a future fork could orphan.",
+        "Having two wallets in one node lets you act as both sides of a transaction without running a second daemon."
+      ],
+      "transition": "You have coins. Next, look under the hood at the block that produced them."
+    },
+    {
+      "id": "lab1-block-header",
+      "chapter": "lab1-anatomy",
+      "title": "Anatomy of a Block Header",
+      "goal": "A block isn't just a list of transactions — it's an 80-byte **header** that chains the block to the one before it, fingerprints every transaction inside it, and encodes the difficulty of the proof-of-work puzzle. Look at block #1 in detail.",
+      "student_steps": [
+        "Get block #1's hash:\n\n```\nBLOCK_HASH=$(btc-lab1 getblockhash 1)\necho $BLOCK_HASH\n```",
+        "Inspect the block as JSON:\n\n```\nbtc-lab1 getblock $BLOCK_HASH\n```",
+        "Read the header fields carefully:\n\n- `previousblockhash` — the link to the past (points at the genesis block).\n- `merkleroot` — the fingerprint of every transaction in this block.\n- `bits` — the compact encoding of the difficulty target.\n- `nonce` — the counter the miner incremented until the block hash fell below the target."
+      ],
+      "expected_observations": [
+        "`previousblockhash` matches the hash you get from `btc-lab1 getblockhash 0`.",
+        "`merkleroot` is a full 32-byte hash even though there is only one transaction — a lone transaction's hash *is* the Merkle root.",
+        "`bits` on regtest is `207fffff` — a huge target, effectively \"any hash wins\"."
+      ],
+      "meaning": [
+        "Every field in the 80-byte header is part of the hash. Change any one of them and the block hash changes completely.",
+        "The `previousblockhash` link is what makes this a *chain*: tampering with an old block invalidates every block after it."
+      ],
+      "transition": "That `bits` field looks like a random hex string. Next, decode what it actually means."
+    },
+    {
+      "id": "lab1-bits-target",
+      "chapter": "lab1-anatomy",
+      "title": "Decode the Difficulty (Bits → Target)",
+      "goal": "`bits` is scientific notation in disguise: a 1-byte exponent and a 3-byte coefficient. Expand it into the actual 256-bit target that a valid block hash must fall below.",
+      "student_steps": [
+        "Run the decoder in Python:\n\n```\npython3 -c '\nimport sys\nbits = 0x207fffff\nexponent = bits >> 24\ncoefficient = bits & 0xffffff\ntarget = coefficient * 256**(exponent - 3)\nprint(f\"Target: {target:x}\")\n'\n```",
+        "Compare that target to the block hash you looked at in the previous step. The block hash, interpreted as a 256-bit integer, must be **less than** the target."
+      ],
+      "expected_observations": [
+        "The regtest target is astronomically large — nearly all 256-bit numbers satisfy it — which is why `generatetoaddress` finds a valid block almost instantly.",
+        "On mainnet the target has dozens of leading zero bits, so miners burn huge compute to find a qualifying hash."
+      ],
+      "meaning": [
+        "Difficulty is not a magic knob — it's a concrete threshold encoded in every block. The network adjusts the threshold; miners just keep rolling the nonce until the hash drops below it."
+      ],
+      "transition": "Now put the coins to work and watch a real transaction move through the system."
+    },
+    {
+      "id": "lab1-send-transaction",
+      "chapter": "lab1-anatomy",
+      "title": "Send and Confirm a Transaction",
+      "goal": "Spend 10 BTC from the student wallet to alice, then mine one block to confirm it. This is the smallest end-to-end flow: wallet signs → tx enters mempool → miner bundles it into a block.",
+      "student_steps": [
+        "Send the transaction:\n\n```\nTXID=$(btc-lab1 -rpcwallet=student sendtoaddress $ALICE_ADDR 10)\necho $TXID\n```",
+        "Mine one block to confirm it:\n\n```\nbtc-lab1 generatetoaddress 1 $STUDENT_ADDR\n```",
+        "Check both balances:\n\n```\nbtc-lab1 -rpcwallet=student getbalance\nbtc-lab1 -rpcwallet=alice getbalance\n```"
+      ],
+      "expected_observations": [
+        "Alice's balance is 10 BTC.",
+        "The student's balance is ~89.99990000 BTC — 50 from block #1 minus 10 sent, plus a newly-mined 50 from the confirming block, minus the tiny fee.",
+        "Before you mined, the transaction sat in the mempool: `btc-lab1 getrawmempool` listed it; afterwards it does not."
+      ],
+      "meaning": [
+        "A transaction becomes \"confirmed\" only when a miner includes it in a block. Before that, it is just a pending announcement.",
+        "The block reward goes to whoever mines — in regtest, you are both the spender and the miner."
+      ],
+      "transition": "Now decode the raw transaction bytes — starting with the one that minted the funds in the first place."
+    },
+    {
+      "id": "lab1-coinbase-decode",
+      "chapter": "lab1-anatomy",
+      "title": "Decode the Coinbase (Money from Nothing)",
+      "goal": "A coinbase transaction is special: it has no real input, because it creates brand new coins. Look at the block-#1 coinbase, then at your spending transaction, and spot the difference.",
+      "student_steps": [
+        "Grab the coinbase txid from block #1 and decode it:\n\n```\nCB_TXID=$(btc-lab1 getblock $(btc-lab1 getblockhash 1) | jq -r '.tx[0]')\nbtc-lab1 getrawtransaction $CB_TXID true | less\n```\n\nScroll with the arrow keys; press **q** to exit.",
+        "Now decode the 10-BTC transaction you sent to alice:\n\n```\nbtc-lab1 getrawtransaction $TXID true | less\n```"
+      ],
+      "expected_observations": [
+        "The coinbase's `vin` has **no `txid`** — it has a `coinbase` field instead. Money created from thin air.",
+        "Your spending transaction's `vin` references the coinbase txid you just inspected — that is the literal chain of ownership.",
+        "The spending tx has **two outputs**: one for alice (10 BTC) and one change output back to student."
+      ],
+      "meaning": [
+        "Bitcoin does not track balances directly. It tracks **unspent transaction outputs (UTXOs)**; sending coins means consuming old outputs and creating new ones.",
+        "Every non-coinbase input is a pointer to a prior output. Walk that pointer chain backwards and you eventually hit a coinbase — the root of all supply."
+      ],
+      "transition": "Next, parse that same raw hex manually in Python — no `bitcoin-cli` helping you."
+    },
+    {
+      "id": "lab1-python-decoder",
+      "chapter": "lab1-python",
+      "title": "Deserialize a Transaction With python-bitcoinlib",
+      "goal": "Bitcoin Core shows you nicely formatted JSON. Under the hood though, a transaction is a tight binary struct. Parse the raw hex yourself using `python-bitcoinlib` to see exactly how the fields are laid out.",
+      "student_steps": [
+        "Export the raw hex for your Lab 1 spending transaction:\n\n```\nexport RAW_TX_HEX=$(btc-lab1 getrawtransaction $TXID false)\necho $RAW_TX_HEX\n```",
+        "Write `decoder.py`:\n\n```\ncat << 'EOF' > decoder.py\nimport os, sys\nfrom bitcoin.core import CTransaction, b2lx\nfrom bitcoin.core.serialize import BytesIO\n\nhex_str = os.environ.get('RAW_TX_HEX')\nif not hex_str:\n    print(\"Error: Set RAW_TX_HEX environment variable first.\")\n    sys.exit(1)\n\ntx_bytes = bytes.fromhex(hex_str)\ntx = CTransaction.stream_deserialize(BytesIO(tx_bytes))\n\nprint(f\"\\n=== Transaction {b2lx(tx.GetTxid())} ===\")\nprint(f\"Version:  {tx.nVersion}\")\nprint(f\"LockTime: {tx.nLockTime}\")\n\nprint(f\"\\n--- {len(tx.vin)} INPUTS (Spending) ---\")\nfor i, vin in enumerate(tx.vin):\n    print(f\"Input #{i}:\")\n    print(f\"  Prev TxID: {b2lx(vin.prevout.hash)}\")\n    print(f\"  Prev Index: {vin.prevout.n}\")\n    print(f\"  ScriptSig Size: {len(vin.scriptSig)} bytes\")\n\nprint(f\"\\n--- {len(tx.vout)} OUTPUTS (Creating) ---\")\nfor i, vout in enumerate(tx.vout):\n    btc_value = vout.nValue / 100000000\n    print(f\"Output #{i}:\")\n    print(f\"  Value: {btc_value:.8f} BTC ({vout.nValue} sats)\")\n    print(f\"  ScriptPubKey Size: {len(vout.scriptPubKey)} bytes\")\nEOF\n```",
+        "Run it:\n\n```\npython3 decoder.py\n```"
+      ],
+      "expected_observations": [
+        "The script prints the same txid, version, inputs, and outputs you saw in `getrawtransaction`.",
+        "`nValue` is in satoshis (1 BTC = 100,000,000 sats) — the unit bitcoind actually stores internally.",
+        "`b2lx` is needed because Bitcoin stores hashes in little-endian byte order but displays them in big-endian — the reversal is a common trip-up."
+      ],
+      "meaning": [
+        "Inside Bitcoin, a transaction is a packed struct: version, input count, inputs, output count, outputs, locktime. You just deserialized it by hand.",
+        "The `b2lx` / little-endian quirk is one of the first things that bites people writing Bitcoin tooling."
+      ],
+      "transition": "Now that you can read the bytes, it is time to tamper with them — next chapter."
+    },
+    {
+      "id": "lab1-hash-refresh",
+      "chapter": "lab1-merkle",
+      "title": "Refresher — One Byte Changes Everything",
+      "goal": "Before corrupting a real block, prove to yourself that a single-byte change to input data completely scrambles the resulting hash. This is the mathematical property the Merkle root relies on.",
+      "student_steps": [
+        "Run this short demo:\n\n```\npython3 -c '\nimport hashlib\ndef dsha256(x): return hashlib.sha256(hashlib.sha256(x).digest()).digest()\ntx_a = b\"A\" * 64\ntx_b = b\"B\" * 64\nroot_original = dsha256(dsha256(tx_a) + dsha256(tx_b)).hex()\ntx_a_modified = b\"a\" + b\"A\" * 63\nroot_modified = dsha256(dsha256(tx_a_modified) + dsha256(tx_b)).hex()\nprint(f\"Original Root: {root_original}\")\nprint(f\"Modified Root: {root_modified}\")\n'\n```"
+      ],
+      "expected_observations": [
+        "The two roots are completely different — not \"one byte off\" but essentially unrelated 32-byte hashes.",
+        "All that changed was `A` → `a` in one transaction. The effect is called the **avalanche property** of cryptographic hashes."
+      ],
+      "meaning": [
+        "The Merkle root commits to **every byte** of every transaction. Tamper with one byte and the entire root changes — and with it, the block hash."
+      ],
+      "transition": "Now apply that same rule to a real block sitting on disk."
+    },
+    {
+      "id": "lab1-corrupt-block",
+      "chapter": "lab1-merkle",
+      "title": "Corrupt a Block on Disk",
+      "goal": "Bitcoin Core stores raw blocks in `blk00000.dat` — XOR-obfuscated with a per-datadir key. Find the most recent block's Merkle root inside the obfuscated file, overwrite it with 32 bytes of `0xAA`, and re-obfuscate. Do **not** yet ask bitcoind to validate the result.",
+      "student_steps": [
+        "Save the best block hash and its Merkle root:\n\n```\nBEST_BLOCK=$(btc-lab1 getbestblockhash)\nbtc-lab1 getblock $BEST_BLOCK | jq '{hash: .hash, merkleroot: .merkleroot, previousblockhash: .previousblockhash}'\nMERKLE_ROOT=$(btc-lab1 getblock $BEST_BLOCK | jq -r '.merkleroot')\n```",
+        "Write `corrupt_block.py`:\n\n```\nnano corrupt_block.py\n```\n\nPaste:\n\n```\nimport sys, os\n\nmerkle_hex = sys.argv[1]\nmerkle_bytes = bytes.fromhex(merkle_hex)[::-1]  # little-endian on disk\n\nblocks_dir = os.path.expanduser(\"~/.bitcoin-regtest/regtest/blocks\")\nfile_path = os.path.join(blocks_dir, \"blk00000.dat\")\nxor_path = os.path.join(blocks_dir, \"xor.dat\")\nbackup_path = file_path + \".bak\"\n\nwith open(xor_path, \"rb\") as f:\n    xor_key = f.read()\n\ndef apply_xor(data, key):\n    res = bytearray(len(data))\n    key_len = len(key)\n    for i in range(len(data)):\n        res[i] = data[i] ^ key[i % key_len]\n    return res\n\nwith open(file_path, \"rb\") as f:\n    raw_data = bytearray(f.read())\n\nif not os.path.exists(backup_path):\n    with open(backup_path, \"wb\") as f:\n        f.write(raw_data)\n\ndata = apply_xor(raw_data, xor_key)\nidx = data.find(merkle_bytes)\nif idx != -1:\n    print(f\"[*] Found Merkle Root at offset {idx} (de-obfuscated)\")\n    data[idx:idx+32] = b'\\xaa' * 32\n    with open(file_path, \"wb\") as f:\n        f.write(apply_xor(data, xor_key))\n    print(\"[*] Merkle Root corrupted. The block header is now altered.\")\nelse:\n    print(\"[!] Could not find the Merkle Root in the block file.\")\n```",
+        "Run the corrupter, passing in the Merkle root:\n\n```\npython3 corrupt_block.py $MERKLE_ROOT\n```"
+      ],
+      "expected_observations": [
+        "The script reports the Merkle root's offset inside the de-obfuscated block file.",
+        "A `.bak` backup now exists alongside `blk00000.dat` — you will restore from it later.",
+        "No error from bitcoind yet — it does not re-check old blocks on write."
+      ],
+      "meaning": [
+        "The block hash is **not** stored in the block file. Bitcoin reads the 80-byte header, SHA-256-double-hashes it, and compares the result against the LevelDB block index on the fly.",
+        "The XOR obfuscation is anti-antivirus, not anti-tamper — but it does mean you have to de-obfuscate, edit, and re-obfuscate to change anything on disk."
+      ],
+      "transition": "Ask bitcoind to re-verify the chain and watch the corruption get caught."
+    },
+    {
+      "id": "lab1-validate-fail",
+      "chapter": "lab1-merkle",
+      "title": "Run verifychain and Observe the Failure",
+      "goal": "Now that the block file is lying, ask bitcoind to validate the last 10 blocks at the deepest check level. Watch exactly **which** rule catches the corruption.",
+      "student_steps": [
+        "Run verifychain:\n\n```\nbtc-lab1 verifychain 4 10\n```",
+        "Inspect the daemon log for the error:\n\n```\ntail -n 20 ~/.bitcoin-regtest/regtest/debug.log\n```"
+      ],
+      "expected_observations": [
+        "`verifychain` returns **false**.",
+        "The debug log contains a `hash mismatch` or `proof of work failed` error — the recomputed 80-byte header hashes to a value that neither matches the LevelDB index nor has the expected leading zeros."
+      ],
+      "meaning": [
+        "You didn't just \"change a number\". You broke the proof of work. The corrupted header, when hashed, produces a value above the target — bitcoind treats it as if the miner never solved the puzzle.",
+        "This is why you cannot forge history on a permissionless chain: any edit breaks PoW, and every peer would detect it the next time they verify."
+      ],
+      "transition": "Fix it. Since the block hash isn't stored, repairing the Merkle root recomputes the valid hash automatically."
+    },
+    {
+      "id": "lab1-fix-block",
+      "chapter": "lab1-merkle",
+      "title": "Repair the Header and Restore Proof of Work",
+      "goal": "To fix the block you cannot edit a cached hash — there isn't one. You have to restore the valid Merkle root inside the header. Once that's back, bitcoind recomputes the original (valid) block hash on its own.",
+      "student_steps": [
+        "Write `fix_block.py`:\n\n```\nnano fix_block.py\n```\n\nPaste:\n\n```\nimport os, hashlib\n\ndef dsha256(data):\n    return hashlib.sha256(hashlib.sha256(data).digest()).digest()\n\nblocks_dir = os.path.expanduser(\"~/.bitcoin-regtest/regtest/blocks\")\nfile_path = os.path.join(blocks_dir, \"blk00000.dat\")\nxor_path = os.path.join(blocks_dir, \"xor.dat\")\nbackup_path = file_path + \".bak\"\n\nwith open(xor_path, \"rb\") as f:\n    xor_key = f.read()\n\ndef apply_xor(data, key):\n    res = bytearray(len(data))\n    key_len = len(key)\n    for i in range(len(data)):\n        res[i] = data[i] ^ key[i % key_len]\n    return res\n\nwith open(file_path, \"rb\") as f:\n    corrupted_data = apply_xor(f.read(), xor_key)\nwith open(backup_path, \"rb\") as f:\n    pristine_data = apply_xor(f.read(), xor_key)\n\nidx = corrupted_data.find(b'\\xaa' * 32)\nif idx != -1:\n    header_start = idx - 36  # merkle root sits 36 bytes into the 80-byte header\n    corrupted_header = corrupted_data[header_start:header_start+80]\n    invalid_hash = dsha256(corrupted_header)[::-1].hex()\n    print(f\"[*] Corrupted header hashes to: {invalid_hash}\")\n    print(\"    (no leading zeros — proof of work is completely broken.)\\n\")\n\n    corrupted_data[idx:idx+32] = pristine_data[idx:idx+32]\n    restored_header = corrupted_data[header_start:header_start+80]\n    valid_hash = dsha256(restored_header)[::-1].hex()\n    print(f\"[*] Restored header hashes to: {valid_hash}\")\n\n    with open(file_path, \"wb\") as f:\n        f.write(apply_xor(corrupted_data, xor_key))\n    print(\"\\n[*] Block data restored on disk.\")\nelse:\n    print(\"[!] Corrupted data not found. Has it already been fixed?\")\n```",
+        "Run it:\n\n```\npython3 fix_block.py\n```",
+        "Validate the chain again:\n\n```\nbtc-lab1 verifychain 4 10\n```"
+      ],
+      "expected_observations": [
+        "`fix_block.py` prints the invalid and valid hashes side by side — the valid one has leading zero bytes, the invalid one does not.",
+        "`verifychain 4 10` now returns **true**."
+      ],
+      "meaning": [
+        "You just watched proof of work work: the only way to make the chain validate again was to put back the exact bytes that hashed to the stored block hash.",
+        "This is why rewriting history on a high-difficulty chain is effectively impossible — you would have to re-mine every affected block, at full difficulty, faster than the rest of the network."
+      ],
+      "transition": "Lab 1 is done — shut the regtest node down before you move on."
+    },
+    {
+      "id": "lab1-cleanup",
+      "chapter": "lab1-cleanup",
+      "title": "Stop the Private Node",
+      "goal": "Stop the regtest bitcoind so there is no confusion when you start working against ClassNet in Lab 2.",
+      "student_steps": [
+        "Stop the daemon:\n\n```\nbtc-lab1 stop\n```",
+        "Confirm it has exited (may take a second):\n\n```\npgrep -a bitcoind\n```"
+      ],
+      "expected_observations": [
+        "`pgrep` still lists **one** bitcoind — the ClassNet node, which has been running the whole time on the default ports."
+      ],
+      "meaning": [
+        "Running two bitcoinds on different datadirs and ports is a clean separation. Stop the lab one when you're done; leave ClassNet alone."
+      ],
+      "transition": "On to Lab 2 — the shared chain everyone in the room writes to."
+    },
+    {
+      "id": "lab2-classnet-wallet",
+      "chapter": "lab2-identity",
+      "title": "Identity & Sharing",
+      "goal": "Your ClassNet bitcoind has been running in the background the whole session. It speaks to every other station in the room — this is a genuinely shared blockchain. Create a wallet on it, publish your address in your personal share folder, and let other students find you.",
+      "surfaces": [
+        {
+          "label": "Student wallet",
+          "href": "/labs/bitcoin/student/share/"
+        }
+      ],
+      "student_steps": [
+        "Create your ClassNet wallet (note: no `-regtest` flag — that was Lab 1):\n\n```\nbitcoin-cli createwallet \"student_wallet\"\n```",
+        "Generate an address and save it to your public share folder:\n\n```\nMY_ADDR=$(bitcoin-cli -rpcwallet=student_wallet getnewaddress)\necho $MY_ADDR\necho $MY_ADDR > ~/share/address.txt\n```",
+        "Click **Student wallet** in the panel bar above the console. You should see `address.txt` served from your personal static site."
+      ],
+      "expected_observations": [
+        "`address.txt` is reachable at `/labs/bitcoin/student/share/address.txt` — click **Student wallet** to confirm.",
+        "The Peers menu links the student and instructor share pages. Publish an address on each station to exchange funds."
+      ],
+      "meaning": [
+        "This is a real multi-station blockchain. Your wallet is scoped to your workstation, but the chain is shared.",
+        "The static site is the classroom's equivalent of publishing an address on a website — a human-friendly way for peers to find you."
+      ],
+      "transition": "You have an address but no coins. Mine some."
+    },
+    {
+      "id": "lab2-mine-coins",
+      "chapter": "lab2-identity",
+      "title": "Mine Coins on the Shared Chain",
+      "goal": "ClassNet uses the same 10-block maturity fork as Lab 1, so the goal is still to unlock a spendable 50 BTC from the first matured coinbase reward. On this shared chain, one mining request is not guaranteed to find all 11 requested blocks, so keep mining in batches until your trusted balance reaches 50 BTC.",
+      "student_steps": [
+        "Mine 11-block batches until your ClassNet wallet has 50 BTC of trusted balance:\n\n```\nwhile bitcoin-cli -rpcwallet=student_wallet getbalances | jq -e '.mine.trusted < 50' >/dev/null; do bitcoin-cli -rpcwallet=student_wallet generatetoaddress 11 $MY_ADDR 50000000 >/dev/null; done\n\nbitcoin-cli -rpcwallet=student_wallet getbalance\n```"
+      ],
+      "expected_observations": [
+        "Your balance reaches at least 50 BTC once a mined coinbase reward becomes trusted.",
+        "The block height from `bitcoin-cli getblockchaininfo` has increased for **every other station in the room too**. You didn't fork; you extended the shared chain."
+      ],
+      "meaning": [
+        "ClassNet is a regular Bitcoin network with a low difficulty, so anyone can mine. The first workstation to broadcast a valid block wins — and everyone else accepts it.",
+        "Unlike Lab 1, every transaction you broadcast from here on is visible to the other station and visualization nodes."
+      ],
+      "transition": "Find a classmate and send them some of those coins."
+    },
+    {
+      "id": "lab2-peer-discover",
+      "chapter": "lab2-peers",
+      "title": "Peer Discovery and Sending",
+      "goal": "Open the Peers dropdown in the panel bar, pick a classmate, copy their `address.txt`, and send them 0.01 BTC.",
+      "surfaces": [
+        {
+          "label": "Peers",
+          "href": "#"
+        },
+        {
+          "label": "Student wallet",
+          "href": "/labs/bitcoin/student/share/"
+        }
+      ],
+      "student_steps": [
+        "Click **Peers** in the panel bar. The menu links the two shared example stations.",
+        "Open a classmate's page in a new tab and copy their `address.txt`.",
+        "Paste the peer's address into your console and verify it was set:\n\n```\nPEER_ADDR=<paste-your-peer's-address-here>\necho \"Targeting Peer: $PEER_ADDR\"\n```",
+        "Send 0.01 BTC:\n\n```\nbitcoin-cli -rpcwallet=student_wallet sendtoaddress $PEER_ADDR 0.01\n```"
+      ],
+      "expected_observations": [
+        "`sendtoaddress` returns a txid.",
+        "Before anyone mines, the transaction is visible in your mempool and your peer's: `bitcoin-cli getrawmempool`.",
+        "In the Mempool Explorer panel link, the transaction appears in the unconfirmed queue."
+      ],
+      "meaning": [
+        "You just made a payment on a live multi-party blockchain. Nobody had to route it for you — your node gossiped the transaction to its peers, who gossiped it to theirs."
+      ],
+      "transition": "Confirm the transaction yourself by running the manual miner — and see exactly how a block is built."
+    },
+    {
+      "id": "lab2-manual-mine",
+      "chapter": "lab2-peers",
+      "title": "Manual Mining — Read miner.py, Then Run It",
+      "goal": "`generatetoaddress` hides the mining loop. `~/scripts/miner.py` implements it in plain Python: build a header, increment the nonce, hash until the value falls below the target. Read it first, then run it.",
+      "student_steps": [
+        "Read the miner — focus on the `mine_block` method and the `nonce` loop:\n\n```\nless ~/scripts/miner.py\n```\n\nPress **q** to exit.",
+        "Now run it, verbose mode, against your address:\n\n```\npython3 ~/scripts/miner.py -v --address $MY_ADDR | less\n```"
+      ],
+      "expected_observations": [
+        "The miner prints the block's Merkle root — the fingerprint of the transactions it bundled, including your 0.01 BTC send to the peer.",
+        "The mempool no longer contains your transaction — the block you just mined swept it onto the chain.",
+        "Your peer's wallet now shows 0.01 BTC (ask them to run `bitcoin-cli -rpcwallet=student_wallet getbalance`)."
+      ],
+      "meaning": [
+        "A miner is just a program that rolls the nonce until the hash works. `miner.py` is ~100 lines; mainnet miners do the same thing with ASICs at 10^20x the hash rate."
+      ],
+      "transition": "Real networks have scarcity. Next, flood the mempool and watch a fee market form."
+    },
+    {
+      "id": "lab2-agent",
+      "chapter": "lab2-congestion",
+      "title": "Congestion — Run the Flood Agent",
+      "goal": "Blocks have limited space. When demand exceeds supply, users bid up fees to get mined first. `~/scripts/agent.py` generates synthetic transactions continuously; watch the fee market emerge in the mempool UI.",
+      "surfaces": [
+        {
+          "label": "Mempool",
+          "href": "/labs/bitcoin/mempool/"
+        }
+      ],
+      "student_steps": [
+        "Start the agent in another pane or in the foreground:\n\n```\npython3 ~/scripts/agent.py --wallet student_wallet --verbose\n```",
+        "Open the Mempool explorer (panel bar link) and watch unconfirmed transactions pile up.",
+        "Stop the agent with **Ctrl+C** when you have seen enough."
+      ],
+      "expected_observations": [
+        "The mempool fills with transactions, sorted by **fee rate (sat/vB)**, highest first.",
+        "If you were to send a new low-fee transaction right now, it would sit at the bottom of the queue and may not get mined for a long time."
+      ],
+      "meaning": [
+        "Bitcoin's fee market is not a central pricing engine — it's an open auction. The miner picks the top sat/vB transactions, everyone else waits.",
+        "In practice this is what users notice during mainnet congestion: \"why hasn't my transaction confirmed for an hour\" is a fee-rate problem, not a bug."
+      ],
+      "transition": "Now try to break the rules on purpose — can you double-spend?"
+    },
+    {
+      "id": "lab2-double-spend",
+      "chapter": "lab2-double-spend",
+      "title": "The Double Spend Challenge",
+      "goal": "Create a throwaway wallet, fund it with exactly one coinbase, and try to send **all of it** to two different recipients. See which layer of Bitcoin stops you — and which layer would stop you if that one didn't.",
+      "student_steps": [
+        "Set up the cheater wallet:\n\n```\nbitcoin-cli createwallet \"cheater\"\nCHEAT_ADDR=$(bitcoin-cli -rpcwallet=cheater getnewaddress)\nwhile [ \"$(bitcoin-cli -rpcwallet=cheater getbalances | jq -r '.mine.trusted')\" != \"50\" ]; do bitcoin-cli generatetoaddress 11 $CHEAT_ADDR 50000000 >/dev/null; done\nbitcoin-cli -rpcwallet=cheater getbalance\n```",
+        "Attempt the double spend — send the same nearly-all-funds amount to two destinations back to back:\n\n```\nbitcoin-cli -rpcwallet=cheater sendtoaddress $PEER_ADDR 49.999 \"comment\" \"comment_to\" true\nbitcoin-cli -rpcwallet=cheater sendtoaddress $MY_ADDR 49.999 \"comment\" \"comment_to\" true\n```",
+        "Read the error on the second call carefully. Where did it come from?"
+      ],
+      "expected_observations": [
+        "The first `sendtoaddress` succeeds — a valid transaction that leaves the wallet effectively drained via the `subtractfeefromamount=true` flag.",
+        "The second fails with `Insufficient funds` or a similar error — your **local** wallet refuses to build the second transaction."
+      ],
+      "meaning": [
+        "Bitcoin defends against double-spends at two layers. Your node won't sign a transaction that reuses UTXOs it already spent. Even if it did, the consensus rule against double-spending the same outputs would get the second transaction rejected by every peer when it tried to enter a block.",
+        "This is why double-spend **attempts** on mainnet require either a race condition with unconfirmed transactions or an actual chain reorg — you can't just issue two spends from a normal wallet and hope one sticks."
+      ],
+      "transition": "Explore the shared chain in the block explorer to see your and your classmates' transactions."
+    },
+    {
+      "id": "lab2-explore",
+      "chapter": "lab2-explore",
+      "title": "Browse the Shared Chain",
+      "goal": "Open the two classroom explorers and track down your own and your classmates' transactions.",
+      "surfaces": [
+        {
+          "label": "Mempool",
+          "href": "/labs/bitcoin/mempool/"
+        },
+        {
+          "label": "Explorer",
+          "href": "/labs/bitcoin/btc-explorer/"
+        }
+      ],
+      "student_steps": [
+        "Open the **Mempool** explorer (panel bar).",
+        "Open **btc-explorer** (panel bar). Search for your 0.01 BTC send by txid or address.",
+        "Pick a classmate's address (from their `address.txt`) and look them up — you can see every transaction they made on the shared chain."
+      ],
+      "expected_observations": [
+        "Every transaction in this classroom is visible to everyone. Privacy on a public chain is about identity linkage, not about hiding the ledger."
+      ],
+      "meaning": [
+        "Block explorers are just friendly front-ends over the same RPC your wallet uses. Anything you can see here, you could also get from `bitcoin-cli getrawtransaction <txid> true`."
+      ],
+      "transition": "The main lab is done. If you finished early, try the bonus exercises — unsticking transactions, censorship, and difficulty adjustment."
+    },
+    {
+      "id": "lab2-rbf",
+      "chapter": "lab2-bonus",
+      "title": "Bonus · Unsticking a Transaction (RBF)",
+      "goal": "With the agent flooding the mempool, a low-fee transaction of yours will sit unconfirmed indefinitely. Use Replace-By-Fee to bump its fee and jump the queue.",
+      "surfaces": [
+        {
+          "label": "Mempool",
+          "href": "/labs/bitcoin/mempool/"
+        }
+      ],
+      "student_steps": [
+        "Start the agent again if it is not already running:\n\n```\npython3 ~/scripts/agent.py --wallet student_wallet --verbose\n```",
+        "In another shell, send a deliberately cheap, replaceable transaction:\n\n```\nbitcoin-cli -named sendtoaddress address=$PEER_ADDR amount=0.001 fee_rate=1 replaceable=true\n```\n\nNote the TXID it returns.",
+        "Confirm in the Mempool explorer that your transaction is stuck near the bottom of the queue.",
+        "Bump the fee:\n\n```\nbitcoin-cli bumpfee <YOUR_TXID>\n```",
+        "Check the explorer again. Your original txid is gone; a replacement txid sits near the top."
+      ],
+      "expected_observations": [
+        "The old txid disappears from the mempool; the new one replaces it at a higher fee rate.",
+        "`bumpfee` only works because you set `replaceable=true` — that marks the tx as opt-in RBF per BIP-125."
+      ],
+      "meaning": [
+        "RBF is how wallets recover from under-priced transactions. Without it, a stuck tx stays stuck until the mempool drains — which on busy days could be hours."
+      ],
+      "transition": "Next: what if the miner itself refuses to include your transaction?"
+    },
+    {
+      "id": "lab2-censor",
+      "chapter": "lab2-bonus",
+      "title": "Bonus · The Malicious Miner (Censorship)",
+      "goal": "A miner decides which transactions go into a block. Modify `miner.py` to skip a specific txid, then mine — that transaction will remain stuck even though a new block got added.",
+      "student_steps": [
+        "Ask a classmate to send you a transaction but **do not** mine yet. Copy their TXID.",
+        "Open the miner:\n\n```\nnano ~/scripts/miner.py\n```\n\nFind the `4. Merkle Root` section and the `for tx in transactions:` loop. Add this at the top of the loop body (indentation matters):\n\n```\nfor tx in transactions:\n    tx_id_hex = tx.get('txid', tx['hash'])\n\n    # --- MALICIOUS CODE START ---\n    if tx_id_hex == \"YOUR_PARTNERS_TXID_HERE\":\n        print(f\"CENSORING TRANSACTION: {tx_id_hex}\")\n        continue\n    # --- MALICIOUS CODE END ---\n\n    tx_hashes.append(binascii.unhexlify(tx_id_hex)[::-1])\n```",
+        "Run the miner:\n\n```\npython3 ~/scripts/miner.py --address $MY_ADDR\n```"
+      ],
+      "expected_observations": [
+        "You mine a valid block.",
+        "Your partner's transaction is still **unconfirmed** in the mempool — you censored it."
+      ],
+      "meaning": [
+        "Individual miners can censor transactions in their own blocks, but the network as a whole can't — some other miner (or you, later) will include it.",
+        "Persistent censorship requires a majority of hash power **and** a willingness to burn block subsidy to avoid specific transactions. That's the real threat model behind miner decentralization debates."
+      ],
+      "transition": "Last bonus: watch the protocol raise the difficulty in response to your mining speed."
+    },
+    {
+      "id": "lab2-difficulty",
+      "chapter": "lab2-bonus",
+      "title": "Bonus · Difficulty Adjustment",
+      "goal": "Mainnet adjusts difficulty every 2016 blocks (~2 weeks). ClassNet is forked to adjust every **4 blocks**. Mine a fast epoch and watch the difficulty rise.",
+      "student_steps": [
+        "Check the current difficulty:\n\n```\nbitcoin-cli getblockchaininfo | grep difficulty\n```",
+        "Mine 5 blocks as fast as you can:\n\n```\nbitcoin-cli -rpcwallet=student_wallet generatetoaddress 5 $MY_ADDR\n```",
+        "Check difficulty again:\n\n```\nbitcoin-cli getblockchaininfo | grep difficulty\n```"
+      ],
+      "expected_observations": [
+        "Difficulty has gone **up**. Because you mined the 5 blocks faster than the target pace, the protocol raised the bar for the next epoch."
+      ],
+      "meaning": [
+        "Difficulty is Bitcoin's thermostat. Too-fast blocks raise difficulty; too-slow blocks lower it. The target block time stays roughly constant regardless of the network's total hash power.",
+        "On mainnet this happens every 2016 blocks with much larger swings. The mechanism — compare actual vs. expected time, scale target accordingly — is the same."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,307 @@
+{
+  "lesson_id": "demo_signatures",
+  "lesson_title": "Publication example: signatures",
+  "topic": "primitives",
+  "tags": [
+    "demo-signatures"
+  ],
+  "metadata": {
+    "publication_sample": true,
+    "historical_assessment": false,
+    "source_mix": {
+      "lesson_questions": 13,
+      "reading_questions": 0
+    }
+  },
+  "questions": [
+    {
+      "id": "demo_signatures_1",
+      "question_type": "multiple_choice",
+      "question_stem": "A signed announcement is readable by everyone. Is that a signature failure?",
+      "correct_answer": "No; signatures authenticate messages without providing confidentiality.",
+      "incorrect_answers": [
+        "Yes; every signature must encrypt the message.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "No; signatures authenticate messages without providing confidentiality.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_2",
+      "question_type": "multiple_choice",
+      "question_stem": "Which key verifies a digital signature?",
+      "correct_answer": "The signer public key.",
+      "incorrect_answers": [
+        "The recipient private encryption key.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "The signer public key.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_3",
+      "question_type": "multiple_choice",
+      "question_stem": "A signature verifies under an unfamiliar key. What is still missing?",
+      "correct_answer": "Evidence linking that public key to the claimed signer.",
+      "incorrect_answers": [
+        "The signer private key for comparison.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Evidence linking that public key to the claimed signer.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_4",
+      "question_type": "multiple_choice",
+      "question_stem": "Why does sharing a signing private key harm accountability?",
+      "correct_answer": "Several holders can produce indistinguishable valid signatures.",
+      "incorrect_answers": [
+        "It makes the public key expire immediately.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Several holders can produce indistinguishable valid signatures.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_5",
+      "question_type": "multiple_choice",
+      "question_stem": "A transaction signature is copied to a different network. What design helps prevent replay?",
+      "correct_answer": "Bind the signature to the intended chain and transaction context.",
+      "incorrect_answers": [
+        "Hide the public verification key.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Bind the signature to the intended chain and transaction context.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_6",
+      "question_type": "multiple_choice",
+      "question_stem": "Why combine asymmetric key establishment with symmetric authenticated encryption?",
+      "correct_answer": "It combines scalable key establishment with efficient protected data transfer.",
+      "incorrect_answers": [
+        "It removes the need to authenticate peers.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "It combines scalable key establishment with efficient protected data transfer.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_7",
+      "question_type": "multiple_choice",
+      "question_stem": "What should a receiver do after signature verification fails?",
+      "correct_answer": "Reject the message as unauthenticated and investigate the key and message.",
+      "incorrect_answers": [
+        "Decrypt the signature with the sender public key and accept it.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Reject the message as unauthenticated and investigate the key and message.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_8",
+      "question_type": "multiple_choice",
+      "question_stem": "What does a certificate chain establish when properly validated?",
+      "correct_answer": "A trust path from an accepted root to a certified identity/key binding.",
+      "incorrect_answers": [
+        "That the certified application contains no vulnerabilities.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "A trust path from an accepted root to a certified identity/key binding.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_9",
+      "question_type": "multiple_choice",
+      "question_stem": "Why check a certificate validity period?",
+      "correct_answer": "The identity binding is authorized only within a defined time window.",
+      "incorrect_answers": [
+        "The public key becomes mathematically undecipherable afterward.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "The identity binding is authorized only within a defined time window.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_10",
+      "question_type": "multiple_choice",
+      "question_stem": "A private key is exposed. What response is needed?",
+      "correct_answer": "Revoke or replace its trusted binding and stop using it for new signatures.",
+      "incorrect_answers": [
+        "Publish the private key to prove the exposure.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Revoke or replace its trusted binding and stop using it for new signatures.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_11",
+      "question_type": "multiple_choice",
+      "question_stem": "Why sign a canonical transaction encoding?",
+      "correct_answer": "All parties must verify the same unambiguous byte representation.",
+      "incorrect_answers": [
+        "Canonicalization makes every signature confidential.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "All parties must verify the same unambiguous byte representation.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_12",
+      "question_type": "multiple_choice",
+      "question_stem": "What does Diffie-Hellman without peer authentication fail to prevent?",
+      "correct_answer": "An active intermediary can establish separate keys with each participant.",
+      "incorrect_answers": [
+        "Passive observers can always read the private exponents directly.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "An active intermediary can establish separate keys with each participant.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_signatures_13",
+      "question_type": "multiple_choice",
+      "question_stem": "What should a signatures teaching demo make explicit?",
+      "correct_answer": "Toy parameters and simplified trust assumptions differ from deployment requirements.",
+      "incorrect_answers": [
+        "Successful verification proves the signer understood the message.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Toy parameters and simplified trust assumptions differ from deployment requirements.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-signatures"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/04-CP-asymmetric_encryption_and_digital_signatures.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    }
+  ],
+  "hierarchy": {
+    "sections": [
+      {
+        "id": "sec_demo_signatures",
+        "title": "Publication samples",
+        "lectures": [
+          {
+            "id": "demo_signatures",
+            "title": "signatures",
+            "question_ids": [
+              "demo_signatures_1",
+              "demo_signatures_2",
+              "demo_signatures_3",
+              "demo_signatures_4",
+              "demo_signatures_5",
+              "demo_signatures_6",
+              "demo_signatures_7",
+              "demo_signatures_8",
+              "demo_signatures_9",
+              "demo_signatures_10",
+              "demo_signatures_11",
+              "demo_signatures_12",
+              "demo_signatures_13"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

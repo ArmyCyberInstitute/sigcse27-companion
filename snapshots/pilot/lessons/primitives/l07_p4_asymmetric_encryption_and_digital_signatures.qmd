@@ -1,0 +1,1121 @@
+---
+title: "Asymmetric Encryption & Digital Signatures"
+subtitle: 'Section II: Blockchain Foundations'
+author: Army Cyber Institute
+lesson: 7
+date: ""
+bibliography: ../references/Blockchain.bib
+csl: ../references/ieee.csl
+link-citations: true
+skip-title-lift: true
+format:
+  aci-revealjs:
+    slide-level: 2
+aci-mermaid: true
+human-review: true
+ai-review: false
+correctness: false
+pedagogical: false
+suitability: false
+quality: false
+title-slide-attributes:
+  data-sync-id: "signatures-title"
+---
+
+## The Impossible Secret {data-sync-id="signatures-secret"}
+
+- Imagine needing to share a password with 1,000 friends around the world.
+- How do you keep it safe from spies listening in?
+- Before 1976, this was considered *impossible* without trusted middlemen.
+- This is the “key distribution problem.”
+
+<!--
+*(Visual: cartoon-style globe with one person shouting a password while many others listen in, with spies/ears intercepting.)*
+-->
+
+::: {.notes}
+Key Points:
+
+- Before public-key cryptography, secure communication required sharing a secret in advance.
+- Scaling secure communications to many people was not feasible.
+- The “key distribution problem” was the major obstacle to digital trust.
+
+Instructor Notes:
+In the pre-digital era, secrecy worked when two people could meet privately. But once computers and networks arrived, it became clear that scaling secret sharing was a nightmare. Imagine having 1,000 pen pals, and needing to mail them each a unique padlock and key in advance before you could talk securely. That’s essentially what symmetric cryptography required: both sides had to have the same secret key before communication could start. The system was fragile — if anyone stole or leaked the key, all security was gone. And scaling to global networks? Forget it. Banks, governments, and militaries wrestled with this bottleneck for decades.
+
+Script:
+“Imagine needing to share a single password with people scattered across the globe while prying ears sit on every cable and radio link, ready to copy whatever you say. Before the mid‑1970s, the only dependable way to communicate securely was to meet first and exchange a secret in person, or to trust a controlled courier or switchboard. That approach can work for a pair of correspondents, but it breaks the moment you try to scale it to hundreds or thousands: secrets leak, messengers get compromised, and every new relationship demands yet another private exchange. The result was a hard wall known as the key distribution problem: secure communication requires a shared key, yet sharing that key securely already assumes the very channel you’re trying to create. In practical terms, the world had telephones, satellites, and emerging computer networks, but no way for strangers to establish trust at distance without relying on fragile intermediaries. This bottleneck didn’t just make privacy hard—it made many forms of digital coordination impossible, because the overhead of creating and protecting pairwise secrets exploded as networks grew. Hold that tension in mind: clear demand for secure connectivity, and no scalable method to bootstrap it. The breakthrough that follows will turn the situation on its head by letting the “password” be shouted from the rooftops while the true secret stays safe, but at this stage the core insight is simpler: without a new model of keys, global digital trust can’t happen.
+”
+
+References:
+
+- @diffie_newdirectionscryptography_1976
+:::
+
+## The Key-Distribution Crisis {.smaller data-sync-id="signatures-key-distribution"}
+
+- In symmetric cryptography, each pair of users needs a **unique shared key**.  
+- Number of keys grows as:   
+  $$
+  \frac{n(n-1)}{2}
+  $$
+- For 100 users → 4,950 keys. For 1 million → ≈ 5 × 10¹¹ keys.  
+- Managing, rotating, and securing them is impossible at scale.  
+- We need a model where public information can enable private communication.
+
+<!--
+(visual: network diagram — dozens of nodes with lines multiplying exponentially; caption “n(n-1)/2 keys”)
+
+-->
+
+::: {.notes}
+**Key Points**
+
+- Defines the scaling problem that asymmetric cryptography solves.  
+- Quantifies exponential key-management growth.  
+- Creates tension that motivates next concept.
+
+**Instructor Notes and Script**
+Use a quick math exercise: if every soldier in a brigade needed a separate key for every other, logistics would collapse.  
+Describe early attempts—manual key exchanges, courier networks—and their vulnerability.  
+Highlight how this problem blocked secure digital communication until the 1970s.  
+Bridge directly into the “public key” idea on the next slide.
+
+**Script**
+“With symmetric keys, security collapses under its own weight.  
+To make secrecy scalable, we needed a way to share the locks—but not the keys.”  
+
+**References**
+
+- Diffie & Hellman, 1976.  
+- Menezes et al., *Handbook of Applied Cryptography*, CRC Press, 1996.  
+:::
+
+## The Locked Mailbox Analogy {data-sync-id="signatures-mailbox"}
+
+- Imagine a mailbox with an **open slot** and a **locked door**.  
+- Anyone can drop messages inside (public access).  
+- Only the owner with the private key can open it and read them.  
+- This is the essence of **asymmetric cryptography**:  
+  - One key to **encrypt** (public)  
+  - Another key to **decrypt** (private)
+
+<!--
+(visual: blue mailbox labeled “Public Key” with open slot; golden key labeled “Private Key” unlocking the door)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Provides an intuitive emotional hook for asymmetric encryption.  
+- Highlights the one-way direction of access and control.  
+- Prepares students for mathematical abstraction later.
+
+**Instructor Notes and Script**
+Start with the story: imagine you’re deployed overseas, and anyone can send you encrypted mail through your secure mailbox, but only you can open it.  
+Explain that symmetric cryptography failed at this scale—people couldn’t meet to exchange keys.  
+Introduce the revolutionary shift: encryption without prior contact.  
+Ask rhetorically, “How can math make this possible?”
+
+**Script**
+“Think of a mailbox everyone can use but only you can open.  
+That simple idea—one open slot, one hidden key—changed the history of security.”  
+
+**References**
+
+- Diffie & Hellman, “New Directions in Cryptography,” *IEEE Trans. Inf. Theory*, 1976.  
+- Katz & Lindell, *Introduction to Modern Cryptography*, CRC Press, 2021.  
+:::
+
+
+
+
+## Enter Public-Key Cryptography {data-sync-id="signatures-public-key"}
+
+- **Core idea:** two mathematically linked keys—one public, one private.  
+- **Public key:** shared freely for encrypting or verifying.  
+- **Private key:** kept secret for decrypting or signing.  
+- The relationship is **easy to compute forward**, but **hard to reverse**.  
+- Foundation for modern internet security and blockchain wallets.
+
+::: {.callout-note appearance="simple"}
+Public-Key Cryptography and Asymmetric Cryptography are synonymous and mean the same thing.
+:::
+
+
+<!-- 
+
+(visual: paired locks—silver lock (open) labeled Public Key and gold key (closed) labeled Private Key; arrow showing one-way math link)
+
+-->
+
+::: {.notes}
+**Key Points**
+
+- Introduces asymmetric pair structure.  
+- Highlights directionality—trapdoor relationship.  
+- Connects conceptually to next section on trapdoor functions.
+
+**Instructor Notes and Script**
+Explain that the brilliance of public-key systems lies in mathematical asymmetry: anyone can encrypt with your public key, but only you can decrypt with your private one.  
+Emphasize that reversing the process is computationally infeasible without the private key.  
+Note this innovation came from Diffie and Hellman (1976) and led directly to RSA (1978).  
+Mention that blockchain wallets use the same concept—public address vs private signing key.
+
+**Script**
+“Public-key cryptography flipped security upside-down.  
+Instead of hiding every key, we publish half—and math keeps the secret half safe.”  
+
+**References**
+
+- Diffie & Hellman, 1976.  
+- Rivest, Shamir & Adleman, ‘A Method for Obtaining Digital Signatures and Public-Key Cryptosystems,’ *CACM*, 1978.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 08*, 2021.  
+:::
+
+
+## Symmetric vs Asymmetric Comparison {.smaller data-sync-id="signatures-symmetric-asymmetric"}
+
+| Feature | **Symmetric** | **Asymmetric** |
+|----------|---------------|----------------|
+| **Keys** | Same for encrypt/decrypt | Public/Private pair |
+| **Speed** | Very fast | Slower (computationally heavy) |
+| **Security Basis** | Shared secret | Mathematical one-way function |
+| **Scalability** | Poor — $\frac{n(n-1)}{2}$ keys | Excellent — 2 keys per user |
+| **Use Case** | Bulk data encryption | Key exchange, authentication, signatures |
+
+<!--
+(visual: split-screen showing two padlocks — identical (symmetric) vs mismatched lock/key pair (asymmetric))
+-->
+
+::: {.notes}
+**Key Points**
+
+- Contrasts efficiency and scalability between models.  
+- Clarifies distinct roles: symmetric for performance, asymmetric for trust establishment.  
+- Sets up logical flow into key exchange methods.  
+
+**Instructor Notes and Script**
+Highlight that asymmetric crypto solves key-distribution but is computationally expensive.  
+That’s why hybrid systems exist: public keys establish a symmetric key, then data flows with AES or ChaCha20.  
+Use real-world examples: HTTPS, PGP, blockchain wallets.  
+Reiterate: the strength of asymmetry is *scalability*, not speed.  
+
+**Script**
+“Asymmetric cryptography doesn’t replace symmetric—it recruits it.  
+The public key just gets you the shared secret; the heavy lifting still belongs to AES.”  
+
+**References**
+
+- Menezes et al., *Handbook of Applied Cryptography*, 1996.  
+- Katz & Lindell, *Introduction to Modern Cryptography*, 2021.  
+- Rescorla, E., *RFC 8446 – TLS 1.3*, 2018.  
+:::
+
+
+
+## RSA Emerges {data-sync-id="signatures-rsa"}
+
+- Rivest, Shamir, and Adleman, 1978
+- Introduced RSA encryption and digital signatures
+- Practical system for both confidentiality *and* authenticity
+- Became the backbone of secure Internet protocols
+
+<!--
+*(Visual: split graphic: left shows a lock symbol for encryption, right shows a pen symbol for digital signatures, both tied to RSA.)*
+-->
+
+::: {.notes}
+Key Points:
+
+- RSA was the first widely usable public-key system.
+- It enabled both encryption and digital signatures.
+- RSA became foundational for secure Internet communication.
+
+Instructor Notes:
+While Diffie, Hellman, and Merkle provided the theory, RSA made it practical. Ronald Rivest, Adi Shamir, and Leonard Adleman introduced an algorithm based on the difficulty of factoring large numbers. RSA could encrypt messages using a public key, and decrypt with the private key. More importantly, it enabled digital signatures—proof that a message really came from a specific sender and had not been altered. RSA quickly became the backbone of secure Internet communication, eventually underpinning SSL/TLS for websites and many other systems. It remains one of the most influential cryptographic inventions.
+
+Transition:
+Now that we’ve seen RSA turn theory into practice, let’s pause and step back to clearly compare symmetric and asymmetric systems side by side.
+
+Script:
+“RSA translated the promise of public‑key ideas into a versatile, widely usable system that supports both encryption and digital signatures. With RSA, one key can be shared broadly to let anyone encrypt a message to you, while the paired private key decrypts it—and the same pairing lets you sign data so that anyone can verify the signature using your public key. That dual capability is why RSA became a backbone of secure Internet communication: the very tools needed to keep messages confidential also let you prove origin and integrity without revealing your secret. Crucially, RSA provided a concrete scheme that could be implemented, standardized, and deployed across software and hardware, turning theory into infrastructure. The practical impact is hard to overstate. Once a reliable, general‑purpose public‑key system existed, protocols could be built around it—handshakes to start secure sessions, certificate systems to bind keys to identities, and application‑level guarantees that messages come from who they claim to and arrive unaltered. RSA didn’t replace every cryptographic tool, but it solved enough of the right problems to become foundational, enabling the secure web, protected email, and countless machine‑to‑machine links that people now take for granted.
+”
+
+References:
+
+- @rivest_methodobtainingdigital_1978
+:::
+
+## Trapdoor Functions {data-sync-id="signatures-trapdoor"}
+
+- A **trapdoor function** is easy to compute in one direction but infeasible to reverse without a secret.  
+- Example:  
+  - $f(x) = x^{e} \bmod n$ is easy to compute.  
+  - Recovering $x$ (taking modular roots) is hard without knowing factors of $n$.  
+- The secret information (like factors $p$, $q$) acts as the **trapdoor**.  
+- Enables encryption with one key and decryption with another.
+
+<!--
+(visual: hill-shaped diagram labeled “Easy downhill (encryption)” and “Impossible uphill (decryption)” with hidden tunnel “trapdoor.”)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Defines trapdoor functions — the mathematical core of asymmetry.  
+- Provides conceptual bridge to RSA and ECC.  
+- Shows how public key systems rely on one-way math.  
+
+**Instructor Notes and Script**
+Describe trapdoor functions as mathematical one-way streets.  
+Forward direction (encryption) is computationally easy; reversing (decryption) is impossible without the secret “trapdoor.”  
+Example: multiplying two large primes is easy; factoring the product is hard.  
+Mention that modern public-key systems like RSA and ECC instantiate this concept with different hard problems—factoring or discrete log.  
+
+**Script**
+“Trapdoor functions are mathematical one-way valves.  
+Anyone can go forward, but only the person with the secret trapdoor can come back.”  
+
+**References**
+
+- Diffie & Hellman, “New Directions in Cryptography,” *IEEE Trans. Inf. Theory*, 1976.  
+- Rivest, Shamir & Adleman, *CACM*, 1978.  
+- Katz & Lindell, *Introduction to Modern Cryptography*, 2021.  
+:::
+
+
+## Diffie–Hellman Key Exchange Analogy {data-sync-id="signatures-dh-analogy"}
+
+<div style="display: flex; justify-content: center; align-items: center;text-align:center">
+<iframe style="margin:0px auto;" width="560" height="315" src="https://www.youtube.com/embed/YEBfamv-_do?si=pzzfzLZ7V8TdMiu9&amp;start=134" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
+## Diffie–Hellman Key Exchange Concept {data-sync-id="signatures-dh-concept"}
+
+- Goal: two parties derive the **same shared secret** without sending it.  
+- Steps:  
+  1. Agree on a public base $g$ and modulus $p$.  
+  2. Alice picks private $a$; Bob picks private $b$.  
+  3. Exchange $g^a \bmod p$ and $g^b \bmod p$.  
+  4. Each computes shared key $g^{a^{b}} \bmod p$.  
+- Even if the messages are intercepted, the secret exponent remains unknown.  
+
+<!--
+(visual: Alice → Bob exchange diagram showing exponentiation steps, arrows labeled with public values, private exponents kept hidden)
+-->
+
+
+::: {.notes}
+**Key Points**
+
+- Explains first practical asymmetric protocol (1976).  
+- Introduces modular exponentiation as a hard problem (discrete log).  
+- Lays groundwork for RSA and ECC.  
+
+**Instructor Notes and Script**
+Walk through the 4-step process visually.  
+Explain that intercepting $g^a$ and $g^b$ doesn’t reveal $g^{ab}$ — the discrete logarithm problem is computationally infeasible.  
+Mention that Diffie–Hellman was revolutionary: secure communication without key exchange.  
+Modern protocols use elliptic-curve versions (ECDH).  
+Highlight security depends on large primes and random exponents.  
+
+**Script**
+“Diffie and Hellman solved a centuries-old problem: how to agree on a secret without ever meeting.  
+They didn’t hide the math—they hid the exponents.”  
+
+**References**
+
+- Diffie & Hellman, *IEEE Trans. Inf. Theory*, 1976.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 08: Key Exchange*, 2021.  
+- NIST SP 800-56A, *Recommendations for Pair-Wise Key Establishment*, 2018.  
+:::
+
+## Mathematical Backdrop: Modular Exponentiation {.smaller data-sync-id="signatures-modular-exponentiation"}
+
+- Core building block of RSA and Diffie–Hellman.  
+- Computations occur **modulo a prime or composite number** — results “wrap around.”  
+- Example:  
+  $$
+  7^4 \bmod 10 = 1
+  $$
+- Provides non-linear mapping and bounded outputs.  
+- Easy to compute forward, infeasible to reverse without secret factors.  
+
+<!--
+(visual: circular “clock” diagram with numbers 0–9; arrow showing 7⁴ mod 10 wrapping back to 1)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Introduces modular arithmetic intuitively.  
+- Connects to one-wayness and finite fields.  
+- Prepares for RSA and discrete-log explanations.  
+
+**Instructor Notes and Script**
+Remind students that modulo means “remainder after division.”  
+Use analogies: a 12-hour clock (after 12 comes 1 again) or wrapping around a racetrack.  
+Show that modular exponentiation behaves unpredictably, creating the basis for trapdoor hardness.  
+Note that computers handle huge exponents efficiently with modular reduction—what’s hard is reversing it.  
+
+**Script**
+“In modular arithmetic, numbers loop instead of running off to infinity.  
+That looping hides patterns—and it’s where public-key magic begins.”  
+
+**References**
+
+- Stinson, D. R., *Cryptography: Theory and Practice*, CRC Press, 2018.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 08*, 2021.  
+- Katz & Lindell, *Introduction to Modern Cryptography*, 2021.  
+:::
+
+
+
+
+
+## Computational Hardness Assumptions {.smaller data-sync-id="signatures-hardness"}
+
+| Problem | Description | Used In | Current Status |
+|----------|--------------|---------|----------------|
+| **Integer Factorization** | Given $N = p × q$, find $p,q$. | RSA | No polynomial-time algorithm known |
+| **Discrete Logarithm** | Given $g, y = g^{x} \bmod p$, find $x$. | Diffie–Hellman, DSA | Hard for large p |
+| **Elliptic Curve DL** | Given P, Q = kP on curve, find k. | ECC, ECDH, ECDSA | Harder per bit than RSA |
+
+- These “hard” problems underpin asymmetric security.  
+- Quantum algorithms (Shor’s) threaten factorization & discrete logs → motivates **post-quantum cryptography**.
+
+<!--
+(visual: three stacked locks labeled RSA, DH, ECC — arrows showing hardness assumptions beneath)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Summarizes mathematical foundations of asymmetric cryptography.  
+- Emphasizes computational infeasibility, not secrecy, as security basis.  
+- Foreshadows future lectures on quantum threats.  
+
+**Instructor Notes and Script**
+Reinforce that public-key security depends on the absence of efficient algorithms, not on secrecy of the math.  
+Briefly explain that RSA’s hardness = factoring; DH/ECC = discrete logarithms.  
+Mention that these problems scale exponentially—doubling key length increases attack cost dramatically.  
+Add teaser: quantum computing changes this landscape (Lecture 5-2).  
+
+**Script**
+“Asymmetric crypto stands on three pillars of difficulty—factoring, discrete logs, and elliptic curves.  
+Break one, and half the internet goes dark.”  
+
+**References**
+
+- Rivest et al., *CACM*, 1978.  
+- Diffie & Hellman, 1976.  
+- Koblitz, N., “Elliptic Curve Cryptosystems,” *Math. Comput.*, 1987.  
+:::
+
+## RSA Video (Optional) {data-sync-id="signatures-rsa-video"}
+
+<div style="display: flex; justify-content: center; align-items: center;text-align:center">
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/hm8s6FAc4pg?si=Tnz3HPKvryYopZhz" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
+## RSA Key Generation Overview {data-sync-id="signatures-rsa-keygen"}
+
+1. **Choose two large primes:** $p, q$ (typically 2048–4096 bits).  
+2. **Compute:** $n = p × q$.  
+3. **Find:** $\phi(n) = (p – 1)(q – 1)$.  
+4. **Select public exponent:** $e$ (coprime to $\phi(n)$, often 65537).  
+5. **Compute private exponent:** $d = e^{-1} \bmod \phi(n)$.  
+6. **Public key = (n, e); Private key = (n, d).**
+
+- Decryption works because $M^{ed} \bmod n = M$.
+
+<!--
+(visual: flowchart boxes “choose p,q → multiply → derive n,e,d” ending with two key icons)
+-->
+
+
+::: {.notes}
+**Key Points**
+
+- Outlines RSA key generation process conceptually.  
+- Connects back to trapdoor and hardness assumptions.  
+- Provides foundation for later signing and verification.  
+
+**Instructor Notes and Script**
+Explain that RSA’s strength lies in the secrecy of p and q.  
+Even though n and e are public, without p and q one cannot compute φ(n) or d.  
+Stress modular arithmetic consistency: the math guarantees reversibility only for key owner.  
+Encourage students not to memorize numbers but to grasp flow logic—public = open math; private = trapdoor factors.  
+
+**Script**
+“RSA keys are born from two primes in secret matrimony.  
+The world sees n, but never the parents p and q—that’s the heart of its security.”  
+
+**References**
+
+- Rivest, Shamir & Adleman, *CACM*, 1978.  
+- NIST SP 800-56B, *Recommendation for RSA Key Establishment*, 2019.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 08*, 2021.  
+:::
+
+## RSA Encryption & Decryption {.smaller data-sync-id="signatures-rsa-encryption"}
+
+- **Encryption:** Anyone with public key (n, e) can compute this.
+  $$
+  C = M^e \bmod n
+  $$
+- **Decryption:** Only holder of private key d can compute this.
+  $$
+  M = C^d \bmod n
+  $$
+- **Properties:**  
+  - Reversible via modular arithmetic.  
+  - Works on small numeric blocks (real data padded and encoded).  
+  - Security depends entirely on factoring hardness.  
+
+<!--
+(visual: dual-arrow flow — “Message M → Encrypt with e → Ciphertext C → Decrypt with d → Message M”)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Shows mathematical symmetry of RSA.  
+- Demonstrates how the public key locks and private key unlocks.  
+- Reinforces concept of one-wayness through exponentiation mod n.
+
+**Instructor Notes and Script**
+Walk students through the formula pair.  
+Clarify that e and n are public — anyone can encrypt — but without d, decryption is computationally infeasible.  
+Mention that in practice, RSA operates on encoded blocks (e.g., PKCS#1 OAEP padding) to prevent structural attacks.  
+Stress that RSA’s elegance lies in its mathematical reciprocity: encrypt/decrypt and sign/verify are mirror operations.  
+
+**Script**
+“With RSA, math itself is the lock and the key.  
+Public numbers open; secret exponents close — all within the loop of modular arithmetic.”  
+
+Consider using this explainer: https://www.youtube.com/watch?v=hm8s6FAc4pg
+
+**References**
+
+- Rivest, Shamir & Adleman, *CACM*, 1978.  
+- NIST SP 800-56B, *Recommendation for RSA Key Establishment*, 2019.  
+- Katz & Lindell, *Introduction to Modern Cryptography*, 2021.  
+:::
+
+
+## Why RSA Works (Intuition) {data-sync-id="signatures-rsa-correctness"}
+
+- Based on **Euler’s theorem:**  
+  $$
+  M^{\phi(n)} \equiv 1 \pmod{n}
+  $$
+  so $M^{ed} \equiv M$.  
+- Multiplying exponents $e × d$ cycles the number “back” to its origin.  
+- Only works if $e, d$ chosen correctly relative to $\phi(n)$.  
+- Inversion without φ(n) is infeasible → security.  
+
+<!--
+(visual: loop diagram — message rises through exponent e, circles back via exponent d to starting point)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Explains RSA’s internal consistency and reversibility.  
+- Connects modular exponentiation to Euler’s theorem.  
+- Reinforces that correctness and secrecy both derive from number theory.  
+
+**Instructor Notes and Script**
+Explain Euler’s theorem conceptually: raising a number to φ(n) cycles it through all possible residues and back to 1.  
+Because $ed ≡ 1 \pmod{\phi(n)}$, applying e then d restores M.  
+Use small numeric demo (e.g., n = 33, e = 3, d = 7) to show process.  
+Highlight that elegance equals danger: any leak of p or q instantly reveals φ(n) → d → full compromise.  
+
+**Script**
+“RSA is a mathematical boomerang — throw your message out with e, and only the right d will bring it home.”  
+
+**References**
+
+- Rivest et al., 1978.  
+- Stinson, *Cryptography: Theory and Practice*, 2018.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 08*, 2021.  
+:::
+
+
+
+## Elliptic Curve Cryptography (ECC) {.smaller data-sync-id="signatures-ecc"}
+
+- Uses points on a curve:  
+  $$
+  y^2 = x^3 + ax + b
+  $$
+- **Keys:**  
+  - Private key = random integer $k$  
+  - Public key = $Q = kP$ (point multiplication)  
+- **Encryption / key exchange** use **elliptic-curve discrete log problem** — hard to reverse.  
+- Provides equal security with much smaller keys (256-bit ECC ≈ 3072-bit RSA).  
+
+<!--
+(visual: plotted elliptic curve with tangent lines showing point addition and scalar multiplication)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Introduces ECC as modern successor to RSA.  
+- Explains group-law arithmetic intuitively via geometry.  
+- Highlights efficiency and compact key size.  
+
+**Instructor Notes and Script**
+Display a simple curve diagram and explain that adding two points geometrically yields a third; repeating that process (k times P) creates the public key.  
+Stress that while operations are deterministic, reversing Q = kP to find k is infeasible (discrete log problem).  
+Mention widespread use: TLS, SSH, cryptocurrencies (Bitcoin uses secp256k1).  
+Clarify that ECC’s power lies in small, fast math without sacrificing security.  
+
+**Script**
+“On an elliptic curve, addition becomes encryption.  
+It’s elegant geometry—each point unique, each secret unreachable without the right multiplier.”  
+
+**References**
+
+- Koblitz, N., “Elliptic Curve Cryptosystems,” *Math. Comput.*, 1987.  
+- Miller, V., “Use of Elliptic Curves in Cryptography,” *CRYPTO 1985 Proc.*  
+- NIST FIPS 186-5, *Digital Signature Standard (DSS)*, 2023.  
+:::
+
+## ECC Video (Optional) {data-sync-id="signatures-ecc-video"}
+
+<div style="display: flex; justify-content: center; align-items: center;text-align:center">
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rzSU2m8oN48?si=X2Jzw5d-xNWZWT3k&amp;start=68" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
+## ECC vs RSA {.smaller data-sync-id="signatures-ecc-rsa"} 
+
+| Property | **RSA** | **ECC** |
+|-----------|----------|----------|
+| **Underlying Problem** | Integer factorization | Elliptic-curve discrete log |
+| **Typical Key Size (≈128-bit security)** | 3072 bits | 256 bits |
+| **Performance** | Slower key generation & decryption | Faster operations, smaller keys |
+| **Bandwidth / Storage** | Larger certificates & signatures | Compact and efficient |
+| **Adoption** | Legacy (TLS, email) | Modern systems, blockchain (e.g., Bitcoin, Ethereum) |
+
+- ECC achieves the same security with far smaller keys.  
+- Ideal for low-power devices and distributed systems.
+
+<!--
+(visual: side-by-side bar chart comparing key lengths: RSA-3072 vs ECC-256)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Highlights efficiency advantage of ECC.  
+- Connects ECC adoption to blockchain and IoT.  
+- Serves as bridge from encryption to signing.
+
+**Instructor Notes and Script**
+Emphasize that ECC’s security-per-bit ratio makes it superior for mobile and blockchain systems.  
+Note that while RSA remains widely deployed, ECC dominates new protocols such as TLS 1.3, Signal, and cryptocurrencies.  
+Mention Bitcoin’s curve (secp256k1) and Ethereum’s (same).  
+Transition by pointing out that both RSA and ECC support not only encryption but also *digital signatures*.  
+
+**Script**
+“RSA built the Internet; ECC made it fit in your pocket.  
+Next, we’ll see how these same keys don’t just hide messages—they prove identity.”  
+
+**References**
+
+- Koblitz, 1987.  
+- NIST FIPS 186-5, 2023.  
+- Rescorla, *RFC 8446 – TLS 1.3*, 2018.  
+:::
+
+
+## From Encryption to Signing {data-sync-id="signatures-encryption-to-signing"}
+
+- **Encryption:** uses **public key** to lock, **private key** to unlock.  
+- **Digital Signature:** reverses the process—**private key** to sign, **public key** to verify.  
+- Purpose shifts from **confidentiality → authenticity + integrity.**  
+- Signatures prove:  
+  - The message came from the claimed sender.  
+  - The message has not been altered.  
+
+<!--
+(visual: two panels — left “encrypt/decrypt,” right “sign/verify,” with reversed key roles)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Introduces inversion of roles between encryption and signing.  
+- Clarifies goals: authentication, non-repudiation, and integrity.  
+- Provides conceptual transition to detailed signature workflow.
+
+**Instructor Notes and Script**
+Explain that encryption hides information, while signatures *bind* information to an identity.  
+Use analogy: sealing a letter vs signing a contract.  
+Reiterate: anyone can verify a signature using your public key—no secret exchange required.  
+Lead into next slide by noting that signatures rely on hashing and modular exponentiation or curve multiplication.  
+
+**Script**
+“If encryption is secrecy, signatures are accountability.  
+You don’t hide the message—you prove it’s yours.”  
+
+**References**
+
+- Rivest et al., 1978.  
+- NIST FIPS 186-5, 2023.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 09*, 2021.  
+:::
+
+
+## Digital Signature Workflow {data-sync-id="signatures-signing-workflow"}
+
+1. Sender computes message **hash** (e.g., SHA-256).  
+2. Sender **signs** the hash with private key → signature $S$.  
+3. Receiver gets (message, signature).  
+4. Receiver **verifies** by checking:  
+   $$
+   \text{Verify}(S, M, \text{public key}) = \text{True}
+   $$
+5. If valid → message authentic and intact.
+
+- Ensures **integrity, authenticity, non-repudiation**.  
+- Used in SSL/TLS, software updates, and blockchain transactions.  
+
+<!--
+(visual: flow diagram — hash → sign → transmit → verify)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Depicts complete sign-verify lifecycle.  
+- Shows role of hash in linking data to identity.  
+- Bridges to RSA/ECDSA math in next slides.
+
+**Instructor Notes and Script**
+Emphasize that signing the *hash*—not the raw message—saves computation and fixes message length.  
+Walk through step-by-step: sender computes digest, signs with private key, receiver verifies with public key.  
+Clarify that verification doesn’t decrypt the message; it confirms origin and integrity.  
+Connect to real-world examples: Git commits, code-signing certificates, blockchain transactions (ECDSA).  
+
+**Script**
+“Digital signatures turn math into trust.  
+You don’t need to *believe* who sent the message—your computer can *prove* it.”  
+
+**References**
+
+- NIST FIPS 186-5, 2023.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 09*, 2021.  
+- Stinson, *Cryptography: Theory and Practice*, 2018.  
+:::
+
+## Example: RSA Signature {.smaller data-sync-id="signatures-rsa-signature"}
+
+- **Signing:**  
+  $$
+  S = H(M)^d \bmod n
+  $$
+  (hash the message, then raise to private exponent)
+- **Verification:**  
+  $$
+  H(M) \stackrel{?}{=} S^e \bmod n
+  $$
+  (raise signature to public exponent and compare hashes)
+- Correctness guaranteed because $(H(M)^{d})^{e} \equiv H(M) \pmod{n}$.
+- Hashing prevents direct message manipulation and collision attacks.
+
+<!--
+(visual: side-by-side arrows showing hash → sign with $d$, then verify with $e$)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Shows the mathematics behind RSA signatures.  
+- Reinforces relationship between encryption and signing.  
+- Connects modular arithmetic to authenticity verification.
+
+**Instructor Notes and Script**
+Walk students slowly through the algebra.  
+Explain that both parties know $n, e$; only the signer knows $d$.  
+When verifying, recomputing $S^e \bmod n$ reproduces the original hash only if the signer used the true private key.  
+Emphasize that signing the hash rather than the message limits exposure and guarantees fixed-size input.  
+Mention padding schemes (RSA-PSS) as modern standards improving randomness and collision resistance.
+
+**Script**
+“RSA signing is modular math as a handshake:  
+I raise the hash with my secret; you raise it back with the public—and if it matches, you know it’s mine.”  
+
+**References**
+
+- Rivest, Shamir & Adleman, *CACM*, 1978.  
+- NIST FIPS 186-5, *Digital Signature Standard*, 2023.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 09*, 2021.  
+:::
+
+## Certificates and PKI Hierarchy {.smaller data-sync-id="signatures-pki"}
+
+- **PKI (Public-Key Infrastructure):** system that binds identities to public keys.  
+- Certificates issued and digitally signed by **Certificate Authorities (CAs)**.  
+- Structure:  
+  - **Root CA** — self-signed, ultimate trust anchor.  
+  - **Intermediate CAs** — delegated signers.  
+  - **End-Entity Certificates** — for servers, users, or devices.  
+- Each certificate contains public key, owner info, expiration, and CA signature.
+
+<!--
+(visual: pyramid diagram — Root CA → Intermediate → Server → User)
+
+-->
+ 
+::: {.notes}
+**Key Points**
+
+- Introduces hierarchical trust model of PKI.  
+- Connects digital signatures to organizational authority.  
+- Prepares for validation process on next slide.
+
+**Instructor Notes and Script**
+Explain that PKI replaces personal key exchange with institutional trust.  
+Root certificates are distributed in operating systems and browsers; everything below derives trust from them.  
+Use analogy: military chain-of-command—orders trusted because of rank hierarchy.  
+Point out that each layer signs the next, forming a cryptographic chain of custody.
+
+**Script**
+“PKI is the bureaucracy of trust.  
+Every certificate salutes the one above it, until it reaches the root sitting in your computer’s trust store.”  
+
+**References**
+
+- Cooper et al., *RFC 5280 – X.509 Certificate and CRL Profile*, 2008.  
+- NIST SP 800-32, *Introduction to Public Key Technology*, 2001.  
+- Katz & Lindell, *Introduction to Modern Cryptography*, 2021.  
+:::
+
+
+## Certificate Validation Process {data-sync-id="signatures-certificate-validation"} 
+
+1. Browser receives server certificate.  
+2. Checks **signature chain** up to trusted Root CA.  
+3. Validates:  
+   - Certificate not expired.  
+   - Domain name matches subject.  
+   - Signature of issuer verifies.  
+4. Checks **revocation status** (CRL / OCSP).  
+5. If all checks pass → secure session established.
+
+<!--
+(visual: flowchart—browser → server → CA → Root CA → “Trusted” green checkmark)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Illustrates certificate verification workflow.  
+- Emphasizes layered trust and revocation checks.  
+- Connects PKI to user-facing security indicators (lock icon, HTTPS).  
+
+**Instructor Notes and Script**
+Walk through validation step by step.  
+Show how browsers trace signatures upward until they reach a locally trusted root certificate.  
+Explain revocation mechanisms: CRLs (downloaded lists) and OCSP (real-time checks).  
+Highlight that failed validation produces warnings—never click through in production systems.  
+Relate to blockchain by noting that PKI centralizes trust, while blockchain distributes it—a theme revisited in the final slides.
+
+**Script**
+“When your browser shows a padlock, it’s not magic—it’s math and paperwork.  
+Every HTTPS connection is a miniature audit trail ending at a trusted root.”  
+
+**References**
+
+- Cooper et al., *RFC 5280*, 2008.  
+- NIST SP 800-32, 2001.  
+- Rescorla, *RFC 8446 – TLS 1.3*, 2018.  
+:::
+
+## Public Keys as Blockchain Addresses {data-sync-id="signatures-addresses"}
+
+- In blockchain systems, a **public key** identifies a wallet or account.  
+- The **address** is a **hash** of the public key (e.g., Bitcoin uses RIPEMD-160(SHA-256(pubkey))).  
+- Transactions are **digitally signed** with the private key → verified using the public key.  
+- This provides **ownership without identity** — pseudonymity, not anonymity.  
+- Loss of private key = loss of access.  
+
+<!--
+(visual: flow diagram — “Private Key → Public Key → Hash → Address,” arrows labeled with SHA-256 and RIPEMD-160)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Links asymmetric cryptography directly to blockchain identity.  
+- Shows hashing’s role in generating addresses and preserving pseudonymity.  
+- Highlights that signatures secure transactions, not personal identity.  
+
+**Instructor Notes and Script**
+Walk through Bitcoin’s address derivation:  
+1. Generate private key (random 256-bit number).  
+2. Compute public key (elliptic-curve point).  
+3. Hash twice (SHA-256 then RIPEMD-160) to form the address.  
+Explain why hashing public keys reduces exposure — it’s like hiding your phone number behind a one-way code.  
+Reinforce that in blockchain, control = possession of private key.  
+Tie back to PKI: while PKI binds keys to people, blockchain binds them to actions.  
+
+**Script**
+“In the blockchain world, your name is math.  
+Your public key becomes your address, and your private key—your passport.”  
+
+**References**
+
+- Nakamoto, S., “Bitcoin: A Peer-to-Peer Electronic Cash System,” 2008.  
+- Boneh & Shoup, *IntenseCrypto.org Lecture 07: Hash Functions and Bitcoin*, 2021.  
+- Antonopoulos, A. M., *Mastering Bitcoin*, O’Reilly, 2017.  
+:::
+
+
+
+## Compromised Keys and Revocation Failures {.smaller data-sync-id="signatures-compromise"}
+
+- **Private-key compromise** breaks authenticity and confidentiality.  
+- **Revocation mechanisms:**  
+  - PKI: Certificate Revocation Lists (CRL) and Online Certificate Status Protocol (OCSP).  
+  - Blockchain: *no central revocation* — lost or stolen keys remain valid until funds moved.  
+- **Famous incidents:**  
+  - 2011 DigiNotar CA compromise.  
+  - 2014 Heartbleed bug exposing private keys.  
+  - 2016 Bitfinex Bitcoin theft (key management failure).  
+- Lesson: cryptography is only as strong as its key hygiene.  
+
+<!--
+(visual: timeline of breaches with icons—server, lock, broken key)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Emphasizes operational risks of key compromise.  
+- Contrasts centralized vs decentralized revocation.  
+- Reinforces real-world consequences of poor key management.  
+
+**Instructor Notes and Script**
+Describe how traditional PKI allows revocation through CA infrastructure, whereas blockchain offers no such remedy.  
+Discuss how attackers exploit implementation flaws—not the math—to steal keys.  
+Encourage reflection: the human factor (mismanagement, phishing, weak storage) is the greatest vulnerability.  
+Explain that post-quantum efforts and hardware security modules (HSMs) address long-term threats, but discipline remains vital.  
+
+**Script**
+“Mathematical perfection can’t save careless hands.  
+Every breach you’ve heard of began not with broken equations, but broken habits.”  
+
+**References**
+
+- Cooper et al., *RFC 5280 – X.509 Certificate and CRL Profile*, 2008.  
+- NIST SP 800-57, *Key Management Guidelines*, 2020.  
+- Al Bassam et al., “The Bitfinex Hack – Lessons for Decentralized Custody,” *Ledger Journal*, 2018.  
+:::
+
+
+
+## Blind Signatures {.smaller data-sync-unmatched="true"}
+
+- **Definition:**  
+  A *blind signature* allows a signer to sign a message **without seeing its content**.  
+  - The message is first **blinded** using a random factor.  
+  - The signer signs the blinded message.  
+  - The requester **unblinds** the signature to obtain a valid signature on the original message.
+
+- **Process Overview:**
+  1. **Blinding:** requester computes $m' = f(m, r)$ using random $r$.  
+  2. **Signing:** signer produces $s' = \mathrm{Sign}(m')$.  
+  3. **Unblinding:** requester computes $s = g(s', r)$, yielding a valid signature on $m$.  
+
+## Blind Signatures Continued {.smaller data-sync-unmatched="true"}
+- **Example (RSA-style):**  
+  - Blinding: $m' = m \cdot r^e \bmod N$  
+  - Signing: $s' = (m')^d \bmod N$  
+  - Unblinding: $s = s' \cdot r^{-1} \bmod N$
+
+- **Properties:**
+  - **Blindness:** signer learns nothing about the original message.  
+  - **Unforgeability:** only the signer can produce valid signatures.  
+  - Enables *anonymous authentication* and *privacy-preserving payments*.
+
+<!--
+(visual: flow diagram — message → blind → sign → unblind → valid signature)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Blind signatures extend digital signatures with privacy: the signer authenticates without seeing the message.  
+- Protects message confidentiality while preserving signature validity.  
+- Commonly used in **electronic cash** (Chaum eCash) and **anonymous credential** systems.
+
+**Instructor Notes and Script**
+Walk through RSA blinding intuitively:  
+- The requester “hides” the message by multiplying it by a random factor $r^e$.  
+- The signer signs the disguised message.  
+- The requester divides out $r$ afterward, revealing a valid signature.  
+This process is analogous to signing a folded piece of paper — you know the signature is yours, but not the message inside.
+
+**Script**
+“Blind signatures let me sign something I can’t see.  
+It’s as if you hand me an envelope — I sign it sealed, and when you open it, the signature still verifies.”
+
+**References**
+
+- Chaum, D. (1983). *Blind signatures for untraceable payments.*  
+- Katz & Lindell, *Introduction to Modern Cryptography*, 2021.  
+- Boneh & Shoup, *A Graduate Course in Applied Cryptography*, 2020. 
+- @chaum_blindsignaturesuntraceable_1983
+:::
+
+
+## Quantum Threat Preview {data-sync-id="signatures-quantum"}
+
+- **Shor’s Algorithm (1994):** polynomial-time factoring & discrete-log solver on quantum computers.  
+- Breaks RSA, DH, ECC — renders most current public-key systems insecure.  
+- **Post-Quantum Cryptography (PQC):** lattice-based, code-based, and hash-based alternatives.  
+- NIST PQC Standardization (2022 → 2025): CRYSTALS-Kyber (key exchange) and Dilithium (signatures).  
+- Blockchain relevance: future migration to quantum-safe wallets and consensus proofs.  
+
+<!--
+(visual: two columns—“Classical” vs “Quantum”; arrows showing RSA/ECC breaking under Shor, lattice schemes surviving)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Introduces quantum computing as emerging threat.  
+- Connects to cryptographic hardness assumptions discussed earlier.  
+- Sets up later modules on post-quantum and hybrid systems.  
+
+**Instructor Notes and Script**
+Summarize that RSA and ECC rely on problems quantum computers can solve efficiently.  
+Mention Shor’s algorithm (1994) and Grover’s algorithm (search speedup for symmetric keys).  
+Explain NIST’s ongoing standardization and its impact on military, government, and blockchain systems.  
+Bridge explicitly: this lecture closes the classical crypto trilogy; next, we examine decentralized trust and consensus.  
+
+**Script**
+“The quantum era flips our trapdoors open.  
+But new math—lattices, codes, hashes—builds fresh ones that even qubits can’t pry.”  
+
+**References**
+
+- Shor, P. W., “Algorithms for Quantum Computation: Discrete Logarithms and Factoring,” *FOCS*, 1994.  
+- NIST PQC Standardization Project, https://csrc.nist.gov/projects/pqc-standardization.  
+- Bernstein, D. J., et al., *Post-Quantum Cryptography*, Springer, 2009.  
+:::
+
+## Summary {data-sync-id="signatures-summary"}
+
+- Asymmetric cryptography solves the **key-distribution problem** using **public/private pairs**.  
+- **Trapdoor functions** make forward computation easy but reversal infeasible.  
+- **RSA** relies on integer factorization; **ECC** on the discrete-log problem.  
+- **Digital signatures** provide authenticity and integrity.  
+- **PKI** formalizes trust through hierarchical certificate authorities.  
+- Blockchain adapts these principles for decentralized identity and verification.
+
+<!--
+(visual: chain of icons — lock → key → signature → certificate → blockchain node)
+-->
+
+::: {.notes}
+**Key Points**
+
+- Consolidates major ideas before closing.  
+- Reinforces narrative of trust: from secrecy → identity → decentralization.  
+- Prepares students for consensus mechanisms next session.
+
+**Instructor Notes and Script**
+Summarize visually on the board how each concept builds on the last:  
+symmetric → asymmetric → signatures → PKI → blockchain.  
+Ask learners to describe in one sentence how each step replaces a “human trust” process with a “mathematical one.”  
+Bridge to the next topic: blockchain consensus, where distributed systems agree on validity rather than identity.  
+
+**Script**
+“We began with keys and ended with trust.  
+Next, we’ll see how entire networks, not just pairs of people, reach agreement through mathematics.”  
+
+**References**
+
+- Diffie & Hellman, 1976.  
+- Rivest, Shamir & Adleman, 1978.  
+- Cooper et al., *RFC 5280*, 2008.  
+- Nakamoto, 2008.  
+
+**Discussion Prompts**
+
+1. Why does asymmetric cryptography eliminate the need for secure pre-shared keys?  
+2. In what way is blockchain identity *similar* to PKI — and in what way is it *different*?  
+3. If a Root CA is compromised, what parallels can you draw to a compromised blockchain key?  
+4. How might quantum computing reshape global trust models?
+
+
+**Key Points**
+
+- Encourages critical comparison of centralized vs decentralized trust.  
+- Connects cryptography principles to governance and emerging threats.  
+- Promotes active reasoning beyond formula recall.
+
+**Instructor Notes and Script**
+Run these as group prompts or polls.  
+Guide conversation toward systemic insight:  
+PKI centralizes trust in authorities; blockchain decentralizes it through consensus.  
+Ask students to speculate responsibly about quantum transition periods and hybrid crypto deployments.  
+Encourage them to relate examples to current news — e.g., certificate transparency logs or post-quantum standards.  
+
+**Script**
+“These questions aren’t about math—they’re about meaning.  
+Who do you trust when math is the only referee?”  
+
+**References**
+
+- Katz & Lindell, *Introduction to Modern Cryptography*, 2021.  
+- NIST PQC Project, 2025.  
+- Nakamoto, 2008.  
+
+1. A trapdoor function is:  
+   - A. Reversible both ways easily  
+   - **B. Easy forward, infeasible backward**  
+   - C. Symmetric cipher mode  
+   - D. Elliptic-curve coordinate  
+
+2. RSA’s security relies on:  
+   - A. Modular addition  
+   - **B. Integer factorization**  
+   - C. Matrix inversion  
+   - D. Quantum superposition  
+
+3. In a digital signature, which key verifies authenticity?  
+   - A. Private  
+   - **B. Public**  
+   - C. Shared secret  
+   - D. None of the above  
+
+4. PKI chains establish trust by:  
+   - **A. Linking CA signatures up to a trusted root**  
+   - B. Random key exchange  
+   - C. Blockchain consensus  
+   - D. Hash collisions  
+
+(visual: checklist animation—each answer revealed sequentially with green checkmarks)
+
+References:
+- @chaum_blindsignaturesuntraceable_1983
+- @diffie_newdirectionscryptography_1976
+- @hughes_cypherpunksmanifesto_1993
+- @merkle_protocolspublickey_1980
+- @merkle_securecommunicationsinsecure_1978
+- @nakamoto_bitcoinpeertopeerelectronic_2008
+- @rivest_methodobtainingdigital_1978
+- @zimmerman_whywrotepgp_1991
+:::
+
+## References {data-sync-id="signatures-references"}

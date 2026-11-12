@@ -1,0 +1,307 @@
+{
+  "lesson_id": "demo_hashing",
+  "lesson_title": "Publication example: hashing",
+  "topic": "primitives",
+  "tags": [
+    "demo-hashing"
+  ],
+  "metadata": {
+    "publication_sample": true,
+    "historical_assessment": false,
+    "source_mix": {
+      "lesson_questions": 13,
+      "reading_questions": 0
+    }
+  },
+  "questions": [
+    {
+      "id": "demo_hashing_1",
+      "question_type": "multiple_choice",
+      "question_stem": "A downloaded lesson archive differs by one byte. What is the strongest integrity check?",
+      "correct_answer": "Compare its SHA-256 digest with an independently authenticated expected digest.",
+      "incorrect_answers": [
+        "Check only that its file size is unchanged.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Compare its SHA-256 digest with an independently authenticated expected digest.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_2",
+      "question_type": "multiple_choice",
+      "question_stem": "Why does publishing a digest beside a file on the same compromised server fail to authenticate it?",
+      "correct_answer": "An attacker can replace both the file and the displayed digest.",
+      "incorrect_answers": [
+        "Digest algorithms require the file to remain secret.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "An attacker can replace both the file and the displayed digest.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_3",
+      "question_type": "multiple_choice",
+      "question_stem": "A system truncates a hash to eight bits. What is the principal consequence?",
+      "correct_answer": "The small output space makes collisions easy to find.",
+      "incorrect_answers": [
+        "Truncation makes encryption keys shorter.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "The small output space makes collisions easy to find.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_4",
+      "question_type": "multiple_choice",
+      "question_stem": "Why can a matching hash not reconstruct the original lecture file?",
+      "correct_answer": "A fixed-length digest discards information and is not reversible encryption.",
+      "incorrect_answers": [
+        "Reconstruction merely requires the digest algorithm name.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "A fixed-length digest discards information and is not reversible encryption.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_5",
+      "question_type": "multiple_choice",
+      "question_stem": "A transaction changes after a Merkle root is signed. What should verification detect?",
+      "correct_answer": "The recomputed path should no longer match the authenticated root.",
+      "incorrect_answers": [
+        "The root automatically repairs the altered transaction.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "The recomputed path should no longer match the authenticated root.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_6",
+      "question_type": "multiple_choice",
+      "question_stem": "Why must a Merkle verifier track whether each sibling is left or right?",
+      "correct_answer": "Hash input ordering affects the parent digest.",
+      "incorrect_answers": [
+        "Sibling position determines the encryption key.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Hash input ordering affects the parent digest.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_7",
+      "question_type": "multiple_choice",
+      "question_stem": "What must accompany a Merkle proof to establish trust in its result?",
+      "correct_answer": "An authenticated expected root.",
+      "incorrect_answers": [
+        "Every transaction in the chain.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "An authenticated expected root.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_8",
+      "question_type": "multiple_choice",
+      "question_stem": "A tree contains 1024 leaves. Roughly how many sibling digests are needed for one balanced-tree proof?",
+      "correct_answer": "Ten sibling digests.",
+      "incorrect_answers": [
+        "One sibling digest per leaf.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Ten sibling digests.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_9",
+      "question_type": "multiple_choice",
+      "question_stem": "Why should leaf hashes and internal-node hashes use distinct encodings?",
+      "correct_answer": "Domain separation prevents ambiguous interpretations of hashed structures.",
+      "incorrect_answers": [
+        "It conceals the number of transactions from every verifier.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Domain separation prevents ambiguous interpretations of hashed structures.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_10",
+      "question_type": "multiple_choice",
+      "question_stem": "An instructor hashes two files and sees different digests. What follows?",
+      "correct_answer": "The hashed byte sequences differ, assuming a deterministic implementation.",
+      "incorrect_answers": [
+        "One file must have been maliciously modified.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "The hashed byte sequences differ, assuming a deterministic implementation.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_11",
+      "question_type": "multiple_choice",
+      "question_stem": "What is the distinction between collision and second-preimage attacks?",
+      "correct_answer": "A collision chooses both messages; a second preimage targets an existing message.",
+      "incorrect_answers": [
+        "Both attacks require recovering the hash algorithm private key.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "A collision chooses both messages; a second preimage targets an existing message.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_12",
+      "question_type": "multiple_choice",
+      "question_stem": "Why is a single fast SHA-256 digest insufficient for password storage?",
+      "correct_answer": "Fast guessing is cheap; password storage needs a salted password-hashing scheme.",
+      "incorrect_answers": [
+        "SHA-256 makes passwords publicly reversible.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Fast guessing is cheap; password storage needs a salted password-hashing scheme.",
+      "difficulty_level": 2,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_hashing_13",
+      "question_type": "multiple_choice",
+      "question_stem": "What does the avalanche experiment demonstrate?",
+      "correct_answer": "Small input changes can produce widespread digest changes.",
+      "incorrect_answers": [
+        "It proves the implementation has no possible collisions.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Small input changes can produce widespread digest changes.",
+      "difficulty_level": 3,
+      "topic": "primitives",
+      "tags": [
+        "demo-hashing"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/primitives/02-CP-hashing_and_merkle_trees.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    }
+  ],
+  "hierarchy": {
+    "sections": [
+      {
+        "id": "sec_demo_hashing",
+        "title": "Publication samples",
+        "lectures": [
+          {
+            "id": "demo_hashing",
+            "title": "hashing",
+            "question_ids": [
+              "demo_hashing_1",
+              "demo_hashing_2",
+              "demo_hashing_3",
+              "demo_hashing_4",
+              "demo_hashing_5",
+              "demo_hashing_6",
+              "demo_hashing_7",
+              "demo_hashing_8",
+              "demo_hashing_9",
+              "demo_hashing_10",
+              "demo_hashing_11",
+              "demo_hashing_12",
+              "demo_hashing_13"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "lesson_id": "demo_pos",
+  "lesson_title": "Publication example: pos",
+  "topic": "ethereum",
+  "tags": [
+    "demo-pos"
+  ],
+  "metadata": {
+    "publication_sample": true,
+    "historical_assessment": false,
+    "source_mix": {
+      "lesson_questions": 13,
+      "reading_questions": 0
+    }
+  },
+  "questions": [
+    {
+      "id": "demo_pos_1",
+      "question_type": "multiple_choice",
+      "question_stem": "What resource is principally at risk for a PoS validator?",
+      "correct_answer": "Bonded capital subject to protocol penalties.",
+      "incorrect_answers": [
+        "A mandatory amount of expended mining electricity.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Bonded capital subject to protocol penalties.",
+      "difficulty_level": 3,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_2",
+      "question_type": "multiple_choice",
+      "question_stem": "A validator proposes a block. Is that alone finality?",
+      "correct_answer": "No; finality depends on the protocol voting and quorum rules.",
+      "incorrect_answers": [
+        "Yes; every proposal is instantly irreversible.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "No; finality depends on the protocol voting and quorum rules.",
+      "difficulty_level": 2,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_3",
+      "question_type": "multiple_choice",
+      "question_stem": "What happens to liveness when too much voting stake goes offline?",
+      "correct_answer": "The protocol may stop finalizing even if honest nodes retain valid state.",
+      "incorrect_answers": [
+        "Every remaining validator automatically gains enough votes.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "The protocol may stop finalizing even if honest nodes retain valid state.",
+      "difficulty_level": 3,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_4",
+      "question_type": "multiple_choice",
+      "question_stem": "Why distinguish safety from liveness?",
+      "correct_answer": "Agreement on finalized history and continued progress are separate properties.",
+      "incorrect_answers": [
+        "Safety measures CPU temperature while liveness measures token price.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Agreement on finalized history and continued progress are separate properties.",
+      "difficulty_level": 2,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_5",
+      "question_type": "multiple_choice",
+      "question_stem": "What is the role of slashing?",
+      "correct_answer": "Penalize provable protocol violations using bonded stake.",
+      "incorrect_answers": [
+        "Encrypt every validator vote.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Penalize provable protocol violations using bonded stake.",
+      "difficulty_level": 3,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_6",
+      "question_type": "multiple_choice",
+      "question_stem": "Why is a stake-weighted quorum different from a count of network connections?",
+      "correct_answer": "Voting influence depends on stake, not simply the number of peers.",
+      "incorrect_answers": [
+        "Every IP address carries equal economic weight.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Voting influence depends on stake, not simply the number of peers.",
+      "difficulty_level": 2,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_7",
+      "question_type": "multiple_choice",
+      "question_stem": "What should a classroom PoS simulator disclose?",
+      "correct_answer": "Its timing, committee rules, and adversary assumptions are simplified.",
+      "incorrect_answers": [
+        "Its outputs certify production Ethereum behavior.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Its timing, committee rules, and adversary assumptions are simplified.",
+      "difficulty_level": 3,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_8",
+      "question_type": "multiple_choice",
+      "question_stem": "Why do validator key compromises matter?",
+      "correct_answer": "An attacker may sign conflicting or unauthorized protocol messages.",
+      "incorrect_answers": [
+        "The attacker can invert every block hash.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "An attacker may sign conflicting or unauthorized protocol messages.",
+      "difficulty_level": 2,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_9",
+      "question_type": "multiple_choice",
+      "question_stem": "Why separate fork choice from finality?",
+      "correct_answer": "Choosing a current head and making a history commitment serve different roles.",
+      "incorrect_answers": [
+        "Fork choice is exclusively a wallet user-interface operation.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Choosing a current head and making a history commitment serve different roles.",
+      "difficulty_level": 3,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_10",
+      "question_type": "multiple_choice",
+      "question_stem": "A local demo finalizes quickly. What conclusion is justified?",
+      "correct_answer": "The configured teaching model reaches its own finality condition.",
+      "incorrect_answers": [
+        "Public Ethereum guarantees the identical classroom timing.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "The configured teaching model reaches its own finality condition.",
+      "difficulty_level": 2,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_11",
+      "question_type": "multiple_choice",
+      "question_stem": "What does a long-range attack exploit?",
+      "correct_answer": "Historical signing authority can support a competing history for an unsynchronized observer.",
+      "incorrect_answers": [
+        "Every hash function eventually decrypts old blocks.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "Historical signing authority can support a competing history for an unsynchronized observer.",
+      "difficulty_level": 3,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_12",
+      "question_type": "multiple_choice",
+      "question_stem": "Why can social checkpoints matter to a returning PoS node?",
+      "correct_answer": "A recent trusted reference can constrain competing historical views.",
+      "incorrect_answers": [
+        "They eliminate all dependence on public-key signatures.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "A recent trusted reference can constrain competing historical views.",
+      "difficulty_level": 2,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    },
+    {
+      "id": "demo_pos_13",
+      "question_type": "multiple_choice",
+      "question_stem": "What makes a consensus comparison informative?",
+      "correct_answer": "State the fault model, quorum, timing, and economic assumptions.",
+      "incorrect_answers": [
+        "Compare token prices alone.",
+        "The observation guarantees correctness without any additional assumptions.",
+        "The mechanism works only when all inputs are kept secret."
+      ],
+      "explanation": "State the fault model, quorum, timing, and economic assumptions.",
+      "difficulty_level": 3,
+      "topic": "ethereum",
+      "tags": [
+        "demo-pos"
+      ],
+      "source_type": "lesson",
+      "specific_source_lesson": "snapshots/final/lessons/consensus_primitives/03-CM-pos.qmd",
+      "lesson_block": "Core mechanisms and assumptions"
+    }
+  ],
+  "hierarchy": {
+    "sections": [
+      {
+        "id": "sec_demo_pos",
+        "title": "Publication samples",
+        "lectures": [
+          {
+            "id": "demo_pos",
+            "title": "pos",
+            "question_ids": [
+              "demo_pos_1",
+              "demo_pos_2",
+              "demo_pos_3",
+              "demo_pos_4",
+              "demo_pos_5",
+              "demo_pos_6",
+              "demo_pos_7",
+              "demo_pos_8",
+              "demo_pos_9",
+              "demo_pos_10",
+              "demo_pos_11",
+              "demo_pos_12",
+              "demo_pos_13"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

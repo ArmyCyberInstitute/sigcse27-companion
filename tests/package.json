@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "name": "collection-browser-checks",
+  "license": "CC0-1.0",
+  "scripts": {
+    "test": "node browser.cjs",
+    "test:functional": "node functional.cjs",
+    "test:unit": "node --test rpc-url.test.cjs bitcoin-terminal-output.test.cjs",
+    "test:additional-microlabs": "node additional-microlabs.cjs",
+    "test:bitcoin-terminal": "node bitcoin-zellij.cjs",
+    "test:ethereum-extended": "node ethereum-extended.cjs",
+    "test:ethereum-api": "node run-ethereum-api.cjs",
+    "test:ethereum-contracts": "node run-ethereum-contracts.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

@@ -1,0 +1,9 @@
+.git
+.quarto
+_site
+dist
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/*_files
+.env

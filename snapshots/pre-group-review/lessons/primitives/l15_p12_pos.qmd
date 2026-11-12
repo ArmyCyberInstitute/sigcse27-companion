@@ -1,0 +1,2546 @@
+---
+title: "Proof of Stake (PoS): Selection, Security, and Finality"
+subtitle: 'Section II: Blockchain Foundations'
+author: Army Cyber Institute
+lesson: 15
+date: ""
+bibliography: ../references/Blockchain.bib
+csl: ../references/ieee.csl
+link-citations: true
+skip-title-lift: true
+format:
+  aci-revealjs:
+    slide-level: 2
+aci-mermaid: true
+human-review: true
+ai-review: false
+correctness: false
+pedagogical: false
+suitability: false
+quality: false
+title-slide-attributes:
+  data-sync-id: "pos-title ethereum-title"
+---
+
+## Proof of Stake {data-sync-id="pos-orientation"}
+
+- **Purpose:** Replace energy‑based leader election with stake‑weighted selection and penalties.
+
+- **Outcome:** Deterministic or probabilistic finality based on explicit votes and thresholds.
+
+- **Focus today:** Selection (VRF/committees), security (slashing, long‑range, weak subjectivity), fork choice.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Proof of Stake** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Proof of Stake — Why Right After PoW. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on **Purpose:** Replace energy‑based leader election with stake‑weighted selection and penalties.; **Outcome:** Deterministic or probabilistic finality based on explicit votes and thresholds.; **Focus today:** Selection (VRF/committees), security (slashing, long‑range, weak subjectivity), fork choice.; **Position in course:** Comes immediately after PoW; prepares you for Ethereum‑day deep dives.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a
+
+monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Proof of Stake — Why Right After PoW. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how **Purpose:** Replace energy‑based leader election with stake‑weighted selection and penalties., **Outcome:** Deterministic or probabilistic finality based on explicit votes and thresholds., **Focus today:** Selection (VRF/committees), security (slashing, long‑range, weak subjectivity), fork choice., **Position in course:** Comes immediately after PoW; prepares you for Ethereum‑day deep dives. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Proof of Stake**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Proof of Stake**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Learning Objectives** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Learning Objectives {data-sync-unmatched="true"}
+
+- Explain PoS validator roles, keys, stake and activation/deactivation.
+
+- Describe randomness and leader/committee selection and what ‘public verifiability’ means.
+
+- Reason about safety, liveness, slashing, nothing‑at‑stake, and long‑range attacks.
+
+- Contrast probabilistic confirmations with deterministic finality and weak subjectivity.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Learning Objectives** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Learning Objectives. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Explain PoS validator roles, keys, stake and activation/deactivation.; Describe randomness and leader/committee selection and what ‘public verifiability’ means.; Reason about safety, liveness, slashing, nothing‑at‑stake, and long‑range attacks.; Contrast probabilistic confirmations with deterministic finality and weak subjectivity.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all
+
+share a basic idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Learning Objectives. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Explain PoS validator roles, keys, stake and activation/deactivation., Describe randomness and leader/committee selection and what ‘public verifiability’ means., Reason about safety, liveness, slashing, nothing‑at‑stake, and long‑range attacks., Contrast probabilistic confirmations with deterministic finality and weak subjectivity. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Learning Objectives**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Learning Objectives**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **PoW vs PoS at a Glance** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## PoW vs PoS at a Glance {.smaller data-sync-id="pos-comparison pos-orientation"}
+
+ Aspect | **Proof of Work (PoW)** | **Proof of Stake (PoS)** |
+|:--|:--|:--|
+| **Selection Mechanism** | Random “wins” by computational work | Lottery weighted by stake (capital at risk) |
+| **Primary Cost** | Energy consumption (watts) | Locked collateral (opportunity cost) |
+| **Fork Choice** | Longest / heaviest chain wins | Votes or checkpoints from validators |
+| **Finality** | Probabilistic (more blocks → higher confidence) | Often deterministic or semi-final with BFT-style commits |
+| **Security Budget** | Mining rewards fund energy costs | Validator rewards and slashing secure stake |
+| **Failure Risks** | 51% hashpower attacks | Stake concentration, long-range, inactivity |
+| **Common Goal** | Economic cost for consensus honesty | Economic penalty for consensus dishonesty |
+
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **PoW vs PoS at a Glance** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — PoW vs PoS at a Glance. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on PoW: rare wins by work; cost in watts; fork choice by heaviest chain; probabilistic finality.; PoS: stake‑weighted lottery; cost in capital at risk; explicit votes; often deterministic finality.; Security budgets differ: energy vs stake; both require networking and timing assumptions.; Design space: chain‑based, committee/BFT‑based, and hybrids with finality gadgets.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based,
+
+committee/BFT‑based, and hybrid designs that all share a basic idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is PoW vs PoS at a Glance. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how PoW: rare wins by work; cost in watts; fork choice by heaviest chain; probabilistic finality., PoS: stake‑weighted lottery; cost in capital at risk; explicit votes; often deterministic finality., Security budgets differ: energy vs stake; both require networking and timing assumptions., Design space: chain‑based, committee/BFT‑based, and hybrids with finality gadgets. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **PoW vs PoS at a Glance**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **PoW vs PoS at a Glance**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Becoming a Validator** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+<!-- ## Becoming a Validator -->
+
+<!-- - Stake deposit and activation epoch or queue; withdrawal and exit procedures. -->
+
+<!-- - Keys: withdrawal vs signing keys; custody and operational separation for safety. -->
+
+<!-- - Online requirements: uptime expectations; penalties for missing votes; anti‑correlation advice. -->
+
+<!-- - Monitoring and operations: alerts, diversity of clients, redundancy without double‑signing. -->
+
+## Becoming a Validator {.smaller data-sync-id="pos-validator pos-lifecycle ethereum-validators"}
+
+- **Role:** In Proof-of-Stake, validators replace miners.  
+  - Instead of racing with hardware and energy (PoW), they are **selected by stake** to propose and attest to blocks.
+
+- **Participation:**  
+  - Join by making a **stake deposit** and waiting for an **activation epoch**.  
+  - Leave through an **exit and withdrawal process**.
+
+- **Keys and Security:**
+  - **Signing key** — kept online for proposing and voting.
+  - **Withdrawal key** — held offline for custody and recovery.
+
+- **Operations and Uptime:**  
+  - Validators must stay **online and responsive** to earn rewards and avoid penalties for missed votes.  
+  - **Double-signing** (e.g., by redundant servers) leads to **slashing** — an enforced loss of stake.
+
+<!-- - **Good Practice:**   -->
+<!--   - Maintain **client diversity**, **monitoring**, and **redundant setups** (carefully configured to prevent equivocation).   -->
+<!--   - Unlike miners, who can power off safely, validators have ongoing **responsibility for consensus participation**. -->
+
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Becoming a Validator** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Becoming a Validator. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Stake deposit and activation epoch or queue; withdrawal and exit procedures.; Keys: withdrawal vs signing keys; custody and operational separation for safety.; Online requirements: uptime expectations; penalties for missing votes; anti‑correlation advice.; Monitoring and operations: alerts, diversity of clients, redundancy without double‑signing.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid
+
+designs that all share a basic idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Becoming a Validator. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Stake deposit and activation epoch or queue; withdrawal and exit procedures., Keys: withdrawal vs signing keys; custody and operational separation for safety., Online requirements: uptime expectations; penalties for missing votes; anti‑correlation advice., Monitoring and operations: alerts, diversity of clients, redundancy without double‑signing. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Becoming a Validator**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Becoming a Validator**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **How Proposers Are Selected** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## How Proposers Are Selected {.smaller data-sync-id="pos-selection pos-proposer ethereum-selection"}
+
+- **Goal:** Choose who proposes and votes on each block *fairly and unpredictably*.  
+  <!-- - In PoW, chance comes from **hashing power** — random success in finding a valid block.   -->
+  - Selection chance comes from **stake-weighted randomness**.
+
+- **Selection Sources:**  
+  - Use protocol-specific randomness mechanisms to produce unpredictable yet public randomness.  
+  - Ensures no participant can bias the draw in their favor.
+
+- **Assignment:**  
+  - For each slot or round, one (or in some more uncommon protocols, more validators) are chosen to **propose** a block.  
+  - A larger group (the **committee**) is selected to **attest** or **vote** on its validity.  
+  - Over time, assignments rotate to spread influence and reduce collusion.
+
+- **Fairness and Security:**  
+  - Random selection prevents powerful stakers from dominating every round.  
+  - Committees average many votes → **Byzantine fault tolerance** through majority agreement.
+
+::: {.fragment .fade-in}
+**Key idea:**  
+Where PoW relies on computational luck, PoS relies on **cryptographically verifiable randomness** — the foundation for modern committee-based and BFT-style consensus.
+:::
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points:**  
+
+Transition students from individual validator roles to the collective coordination layer.  
+
+Highlight that randomness is critical — it provides both fairness and unpredictability in a setting where all participants know one another’s stakes.
+
+
+
+**Instructor Notes:**  
+
+Ask:  
+
+- “How can we prove the draw was fair?”  
+
+- “What happens if randomness were predictable?”  
+
+Use this to motivate the upcoming discussion on *random beacons*, *VRFs*, and *committee formation*.
+
+
+
+**Script (talk track)**
+
+“Here’s the point of this slide: **How Proposers Are Selected**. First, define it plainly. Then ask: *what must be true for this to be safe or correct?* Finally, tie it to the blockchain setting—where we assume adversaries, partial failures, and incentives.”
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **How Proposers Are Selected** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Instructor Notes (expansion)**
+
+Add one concrete example (operational or adversarial), one common pitfall/misconception, and one ‘why this matters’ sentence for the course thread. Aim for 3–5 sentences so a substitute instructor can confidently present this slide.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+
+**Reasoning chain (why → how → so what)**
+
+- Why: why does **How Proposers Are Selected** matter for security/trust?
+
+- How: what mechanism/assumption makes it work?
+
+- So what: what should an analyst/operator check or watch for?
+
+**Tie-back to slide title**
+
+- Re-anchor the talk track to **How Proposers Are Selected**; keep examples and side-notes in service of this slide’s claim.
+:::
+
+
+## Verifiable Random Functions (VRFs) {.smaller data-sync-unmatched="true"}
+
+- **Purpose:** generate private, verifiable randomness for *individual* validators.
+- **Analogy:** a VRF is like a **provable coin flip** — each validator flips privately but can show cryptographic proof the flip was honest.
+
+- **Mechanics:**
+  - Each validator inputs a **secret key** and public parameters (e.g., slot, epoch) into a VRF → outputs a **random value + proof**.  
+  - The validator checks if the value falls below a **stake-weighted threshold** (e.g., `hash(output) < threshold × stake`).  
+  - If so, it has *won* the slot and broadcasts its proof.  
+  - Others verify the proof using the validator’s public key — no coordination or trust required.
+
+- **Properties:**  
+  - **Unpredictable** until evaluated — prevents pre-computation or bias.  
+  - **Verifiable** by anyone — proof binds randomness to the validator’s key and epoch.
+
+<!-- ```{dot} -->
+<!-- digraph VRF { -->
+<!--   rankdir=LR; -->
+<!--   graph [fontsize=12, nodesep=0.4, ranksep=0.6]; -->
+<!--   node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12]; -->
+<!--   edge [fontname="Helvetica", fontsize=11, arrowsize=0.7]; -->
+
+<!--   Validator [label="Validator\n(secret key sk)", fillcolor="#e3f2fd"]; -->
+<!--   Compute [label="Compute VRF(sk, slot)\n→ (y, π)", fillcolor="#fff8e1"]; -->
+<!--   Threshold [label="Check: hash(y) < stake × threshold?", fillcolor="#e8f5e9"]; -->
+<!--   Win [label="“Win” slot → propose block\nbroadcast (y, π)", fillcolor="#c8e6c9"]; -->
+<!--   Others [label="Other validators\nVerify(pk, slot, y, π)", fillcolor="#bbdefb"]; -->
+
+<!--   Validator -> Compute -> Threshold; -->
+<!--   Threshold -> Win [label="if yes", color="#388e3c"]; -->
+<!--   Threshold -> Others [label="if no", color="gray", style=dashed]; -->
+<!--   Win -> Others [color="#1976d2"]; -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ::: {.fragment .fade-in} -->
+<!-- **Key idea:**   -->
+<!-- VRFs give *each validator* its own unpredictable, provable lottery — no coordination needed, yet everyone can verify the result. -->
+<!-- ::: -->
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Verifiable Random Functions (VRFs)** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:**  
+
+- Emphasize that VRFs merge two ideas: deterministic pseudorandomness + public verifiability.  
+
+- Compare to a digital signature: only the holder of `sk` can produce a valid proof.  
+
+- Mention deployments: Algorand (VRF for leader selection), Ouroboros Praos (for slot leaders), Cardano.
+
+
+
+**Script (talk track)**
+
+“Here’s the point of this slide: **Verifiable Random Functions (VRFs)**. First, define it plainly. Then ask: *what must be true for this to be safe or correct?* Finally, tie it to the blockchain setting—where we assume adversaries, partial failures, and incentives.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Verifiable Random Functions (VRFs)**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Verifiable Random Functions (VRFs)**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Verifiable Random Functions (VRFs)** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Global Randomness: RANDAO + VDF Beacons: Image** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+
+## Global Randomness: RANDAO + VDF Beacons {.smaller data-sync-id="ethereum-randao-vdf ethereum-randao"}
+
+- **Why global randomness?**  
+  VRFs decide *who wins locally*, but the network still needs a shared, unbiased seed for committee rotation or epoch-level tasks.
+
+- **RANDAO (Random DAO):**  
+  1. Validators commit to random values (hash commitments).  
+  2. Later, they reveal them; revealed values are **XORed** → collective seed.  
+  3. Problem: the *last revealer* could withhold to bias the result.
+
+- **Verifiable Delay Function (VDF):**  
+  - Adds a *time-locked transformation* `seed' = VDF(seed)` that everyone can verify but no one can compute faster.  
+  - Prevents the final participant from seeing and influencing the outcome in advance.
+
+- **Result:**  
+  - A shared, **unbiased** randomness beacon usable by all nodes.  
+  - Ethereum’s beacon chain combines RANDAO + VDF output every epoch.
+
+
+
+## Global Randomness: RANDAO + VDF Beacons: Image {data-sync-id="ethereum-randao-vdf"}
+```{dot}
+digraph Beacon {
+  rankdir=LR;
+  graph [fontsize=12, nodesep=0.5, ranksep=0.6];
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12];
+  edge [fontname="Helvetica", fontsize=11, arrowsize=0.7];
+
+  C1 [label="Commit (hash r₁)", fillcolor="#e3f2fd"];
+  C2 [label="Commit (hash r₂)", fillcolor="#e3f2fd"];
+  C3 [label="Commit (hash r₃)", fillcolor="#e3f2fd"];
+  Reveal [label="Reveal r₁, r₂, r₃ → XOR", fillcolor="#fff8e1"];
+  Seed [label="Combined seed", fillcolor="#c8e6c9"];
+  VDF [label="VDF(seed) → unbiased output", fillcolor="#bbdefb"];
+
+  {C1 C2 C3} -> Reveal -> Seed -> VDF;
+}
+```
+
+::: {.fragment .fade-in}
+**Key idea:**
+RANDAO + VDF beacons provide **collective**, bias-resistant entropy — the *public dice roll* that keeps PoS selection fair across epochs.
+:::
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Global Randomness: RANDAO + VDF Beacons: Image** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:**  
+
+- Distinguish between local (VRF) and global (beacon) randomness.  
+
+- Stress that the VDF enforces unpredictability through real-time delay.  
+
+- Tie to Ethereum’s beacon chain: the RANDAO mix + VDF drives committee rotation and proposer selection.
+
+
+
+**Script (talk track)**
+
+“Here’s the point of this slide: **Global Randomness: RANDAO + VDF Beacons: Image**. First, define it plainly. Then ask: *what must be true for this to be safe or correct?* Finally, tie it to the blockchain setting—where we assume adversaries, partial failures, and incentives.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Global Randomness: RANDAO + VDF Beacons: Image**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Global Randomness: RANDAO + VDF Beacons: Image**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Global Randomness: RANDAO + VDF Beacons: Image** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Validator Committees** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Validator Committees {.smaller data-sync-id="pos-committees pos-attestation ethereum-validators"}
+
+- **Purpose:** Enable scalable, fault-tolerant consensus by replacing all-to-all voting with **small random samples**.
+
+- **Formation:**  
+  - Randomly selected each slot or epoch using beacon/VRF output.  
+  - Membership changes frequently: why?
+
+- **Responsibilities:**  
+  - **Attestation:** vote on proposed blocks or checkpoints.  
+  - **Aggregation:** combine votes into a single **Quorum Certificate (QC)** or aggregate signature.  
+  - **Cross-checking:** provide redundant verification of proposer behavior.
+
+- **Requirements:**  
+  - Sufficient size to tolerate *t* Byzantine nodes and reach majority honest votes.  
+  - Secure randomness → unbiased membership; low overlap across rounds.
+
+::: {.fragment .fade-in}
+**Key idea:** Committees make PoS practical — small, randomly chosen groups stand in for the whole network.
+:::
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Validator Committees** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:**  
+
+- Clarify that committee rotation prevents stake concentration and repeated collusion.  
+
+- Discuss quorum thresholds (2t+1) and how committees map onto earlier quorum logic.  
+
+- In Ethereum: committees attest per slot; aggregators compress votes into the beacon block.
+
+
+
+**References:**  
+
+- Buterin & Griffith, *Casper the Friendly Finality Gadget* (2017)  
+
+- Kiayias et al., *Ouroboros Praos* (2017)  
+
+- Ethereum.org, *Validator Duties & Committees*
+
+
+
+**Script (talk track)**
+
+“Here’s the point of this slide: **Validator Committees**. First, define it plainly. Then ask: *what must be true for this to be safe or correct?* Finally, tie it to the blockchain setting—where we assume adversaries, partial failures, and incentives.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Validator Committees**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Validator Committees**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **Validator Committees** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+**Transition**
+
+- Next: **From Committees to Checkpoints** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+## From Committees to Checkpoints {.smaller data-sync-id="pos-checkpoints pos-epochs pos-justification pos-finalization pos-attestation ethereum-slots ethereum-gasper"}
+
+- **Committee Attestations:**  
+  - Each slot’s committee **attests** to the validity of the proposed block.  
+  - Votes are **stake-weighted** and aggregated into a **Quorum Certificate (QC)** once ≥ 2t + 1 signatures are collected.  
+  - The QC acts as verifiable evidence that a block is accepted by a supermajority of honest validators.
+
+- **Checkpointing and Finality:**  
+  - Every *N* slots, a block becomes a **checkpoint**.  
+  - When a **supermajority (≥ 2/3 of total stake)** attests to a link between two checkpoints, the earlier one is **finalized** — it can no longer be reverted without slashing.  
+  - These finalized checkpoints define the chain’s **irreversible history**.
+
+<!-- - **Protocol Flow:**   -->
+<!--   - Committees provide rapid, fine-grained validation each slot.   -->
+<!--   - Checkpoints accumulate those results into durable finality — a **two-layer rhythm** of progress and consolidation.   -->
+<!--   - **Pacemaker/timeouts** ensure that when leaders fail or messages lag, proposers rotate and rounds advance, preserving **liveness**. -->
+
+::: {.fragment .fade-in}
+**Key idea:**  
+Slot-level attestations build short-term confidence;  
+checkpoint finalization turns that confidence into **permanent consensus.**
+:::
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points:**  
+
+- Clarify how committee attestations aggregate into checkpoint votes and how those votes achieve finality.  
+
+- Emphasize the distinction between *safety* (no conflicting finalized checkpoints) and *liveness* (eventual finalization under partial synchrony).  
+
+- Relate to Ethereum’s **Casper FFG**: every epoch has justified and finalized checkpoints linked by supermajority attestations.
+
+
+
+**Instructor Notes:** Context and motivation — Committees, Attestations, and Checkpoints. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Committees attest to proposed blocks; votes carry stake weight.; Checkpoints every N slots/blocks; finalize when a supermajority links them.; Evidence: signed attestations form quorum/commit certificates.; Liveness: pacemaker/timeouts rotate proposers and advance rounds under delays.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic idea:
+
+stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Committees, Attestations, and Checkpoints. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Committees attest to proposed blocks; votes carry stake weight., Checkpoints every N slots/blocks; finalize when a supermajority links them., Evidence: signed attestations form quorum/commit certificates., Liveness: pacemaker/timeouts rotate proposers and advance rounds under delays. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **From Committees to Checkpoints**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **From Committees to Checkpoints**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **From Slot Validation to Finality** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+## From Slot Validation to Finality {.smaller data-sync-id="pos-flow pos-lifecycle ethereum-gasper"}
+
+```{dot}
+digraph PoSFlow {
+  rankdir=LR;
+  graph [fontsize=12, nodesep=0.6, ranksep=0.7];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12];
+  edge  [fontname="Helvetica", fontsize=11, arrowsize=0.7];
+
+  // --- Left side: proposer and committee ---
+  Proposer [label="Block Proposer\n(Validator for Slot N)", fillcolor="#e3f2fd"];
+  Committee [label="Slot N Committee\n(random subset of validators)", fillcolor="#fff8e1"];
+  Attest [label="Stake-Weighted Attestations\n(2t+1 votes)", fillcolor="#c8e6c9"];
+  QC [label="Quorum Certificate (QC)\nAggregated Signatures", fillcolor="#bbdefb"];
+
+  // --- Middle: checkpoints and finality ---
+  CheckA [label="Checkpoint\n(Finalized)", fillcolor="#f0f4c3"];
+
+  // --- Flow arrows ---
+  Proposer -> Committee [label="proposes block"];
+  Committee -> Attest [label="attest votes"];
+  Attest -> QC [label="aggregate"];
+  QC -> CheckA [label="supermajority stake vote, > X rounds in epoch"];
+  QC -> Proposer [label="new round, <= X rounds in epoch"];
+  CheckA -> Proposer [label="new round, epoch advances"];
+
+  // --- Additional elements: pacemaker / timeouts ---
+  Pacemaker [label="Pacemaker / Timeout\n(view change, leader rotation)", fillcolor="#ffe082", shape=note];
+  QC -> Pacemaker [style=dashed, color="gray"];
+  Pacemaker -> Proposer [style=dashed, label="new round"];
+}
+```
+
+::: {.fragment .fade-in}
+**Key idea:**  
+Committees secure *each slot*, quorum certificates justify *checkpoints*, and supermajority links between checkpoints deliver **finality** — the point where history becomes irreversible.
+:::
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **From Slot Validation to Finality** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:**  
+
+- Use this visual to summarize the end-to-end pipeline from validator action to finalized chain.  
+
+- Explain how every layer builds on the previous: attestation → quorum → checkpoint → finality.  
+
+- Tie back to Ethereum’s **Casper FFG** and other BFT-style PoS protocols (Tendermint, HotStuff).
+
+
+
+**Script (talk track)**
+
+“Here’s the point of this slide: **From Slot Validation to Finality**. First, define it plainly. Then ask: *what must be true for this to be safe or correct?* Finally, tie it to the blockchain setting—where we assume adversaries, partial failures, and incentives.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **From Slot Validation to Finality**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **From Slot Validation to Finality**?
+
+
+
+**Visual guidance**
+
+- If this slide is text-heavy, add/point to a simple diagram that reinforces **From Slot Validation to Finality** (boxes/arrows, timeline, or threat-model sketch).
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Fork Choice Rules** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Fork Choice Rules {.smaller data-sync-id="pos-fork-choice ethereum-forks ethereum-gasper"}
+
+- **Why forks happen:**  
+  - Network delays or simultaneous proposals produce **competing blocks** at the same height.  
+  - Some committees vote on branch A, others on branch B → temporary divergence.
+
+- **Chain-style (LMD-GHOST family):**  
+  - Treat the tree as a DAG; at each step pick the **child with the most stake-weighted *latest* votes**.  
+  - Accumulate **latest-message** votes from validators to walk toward the heaviest subtree (not just longest length).
+
+- **Tie-breaking & honesty heuristics:**  
+  - Deterministic rules (hash/slot tiebreak) avoid oscillation.  
+  - Ignore obviously late or equivocal votes; rely on **latest** attestations only.
+
+- **Fork choice** selects the current head (short-term view).  
+- **Finality** makes parts of history **irreversible** (long-term safety).  
+
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Fork Choice Rules** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Fork Choice Rules. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Heaviest/longest chain analogs: weight edges by stake votes (e.g., LMD‑GHOST).; BFT‑style: follow the highest justified checkpoint with a valid commit path.; Tie‑breaking and honest heuristics matter for resilience to withholding.; Fork choice is separate from finality; both must align to avoid confusion.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic idea:
+
+stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Fork Choice Rules. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Heaviest/longest chain analogs: weight edges by stake votes (e.g., LMD‑GHOST)., BFT‑style: follow the highest justified checkpoint with a valid commit path., Tie‑breaking and honest heuristics matter for resilience to withholding., Fork choice is separate from finality; both must align to avoid confusion. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Fork Choice Rules**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Fork Choice Rules**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Safety and Liveness — PoS Invariants** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+## Safety and Liveness — PoS Invariants {.smaller data-sync-id="pos-safety"}
+
+- **Safety — “Nothing bad ever happens”**  
+  - The protocol must never **finalize two conflicting checkpoints**.  
+  - Any such event implies **slashable evidence** (double vote, double proposal).  
+  - Enforced through **quorum intersection**: two 2t+1 sets always share ≥ t+1 honest validators, making double finality impossible without slashing.
+
+- **Liveness — “Something good eventually happens”**  
+  - Under **eventual synchrony** and an **honest supermajority**, new checkpoints will **continue to finalize**.  
+  - Timeouts and leader rotation (pacemaker) prevent deadlock even if some validators are slow or fail.  
+
+- **Time and Structure:**  
+  - **Slots** provide frequent progress opportunities (per-block attestations).  
+  - **Epochs** collect those votes into checkpoints and finality links.  
+  - **Timeouts** bound waiting, forcing transitions to new proposers or rounds when progress stalls.
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points:**  
+
+- Reinforce the classical trade-off: if timing assumptions fail, protocols preserve **safety** but may temporarily lose **liveness**.  
+
+- “Safety-first” behavior is why forks pause finalization during network partitions instead of finalizing conflicting chains.  
+
+- Relate back to **FLP/DLS results**: liveness requires partial synchrony, but safety holds typically.  
+
+- Tie in the slashing mechanism as the cryptoeconomic enforcement layer on top of quorum math.
+
+
+
+**Instructor Notes:** Context and motivation — Safety and Liveness — PoS Invariants. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Safety: cannot finalize two conflicting checkpoints without slashable evidence.; Liveness: under eventual synchrony and honest supermajority, checkpoints finalize.; Intersection properties: quorums share honest weight; prevents double finality.; Time dimensions: epochs/slots and timeouts enforce progress and rotation.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that
+
+all share a basic idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Safety and Liveness — PoS Invariants. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Safety: cannot finalize two conflicting checkpoints without slashable evidence., Liveness: under eventual synchrony and honest supermajority, checkpoints finalize., Intersection properties: quorums share honest weight; prevents double finality., Time dimensions: epochs/slots and timeouts enforce progress and rotation. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Safety and Liveness — PoS Invariants**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Safety and Liveness — PoS Invariants**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Slashing — Making Misbehavior Expensive** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+## Slashing — Making Misbehavior Expensive {.smaller data-sync-id="pos-slashing"}
+
+- **What it is:**  
+  - A **cryptoeconomic penalty** applied when validators produce cryptographic proof of misbehavior.  
+  - Converts *“you shouldn’t do that”* into *“you can’t afford to do that.”*
+
+- **Slashable offenses:**  
+  - **Equivocation:** signing two conflicting blocks or votes in the same slot or height.  
+  - **Surround or double votes:** voting patterns that “wrap around” a previous vote due to delays, etc..  
+  - **Failure to participate:** Don't act when selected as proposer, committee member, checkpoint vote
+  
+- **Penalty mechanics:**  
+  - Offenders lose part or all of their **staked collateral**; evidence is included on-chain.  
+  - **Correlated slashing:** if many validators equivocate together, each loses *more* — deterring cartel behavior.  
+  - Slashing also triggers **forced exit and cooldown**, preventing further influence.
+
+
+::: {.notes}
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Key Points:**  
+
+- Clarify that slashing isn’t just punishment — it’s the **economic glue** that binds validators to protocol safety.  
+
+- Emphasize **evidence portability:** anyone can detect and prove equivocation from signatures alone.  
+
+- Mention that real systems include a **grace period or challenge window** to submit evidence (Ethereum’s slashing protection, for instance).  
+
+- Discuss how correlated slashing raises the collective cost of coordinated attacks — aligning incentives with decentralization.
+
+
+
+**Instructor Notes:** Context and motivation — Slashing: Making Misbehavior Expensive. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Equivocation: signing two conflicting blocks or votes in the same slot/height.; Surround vote / double vote: protocol‑specific slashable patterns.; Penalties: immediate slash plus correlated penalties if many equivocate together.; Purpose: eliminate nothing‑at‑stake incentives; produce portable evidence.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a
+
+basic idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Slashing: Making Misbehavior Expensive. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Equivocation: signing two conflicting blocks or votes in the same slot/height., Surround vote / double vote: protocol‑specific slashable patterns., Penalties: immediate slash plus correlated penalties if many equivocate together., Purpose: eliminate nothing‑at‑stake incentives; produce portable evidence. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Slashing — Making Misbehavior Expensive**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Slashing — Making Misbehavior Expensive**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Nothing‑at‑Stake and How PoS Counters It** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Nothing‑at‑Stake and How PoS Counters It {data-sync-id="pos-nothing-at-stake pos-economics ethereum-nothing-at-stake"}
+
+- Risk: validators could sign all forks because signatures are cheap.
+
+- Countermeasure: slashing makes conflicting votes economically costly.
+
+- Fork‑choice heuristics and finality reduce ambiguity quickly.
+
+- Operator guidance: never run redundant signers; use safeguards to avoid accidents.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Nothing‑at‑Stake and How PoS Counters It** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Nothing‑at‑Stake and How PoS Counters It. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Risk: validators could sign all forks because signatures are cheap.; Countermeasure: slashing makes conflicting votes economically costly.; Fork‑choice heuristics and finality reduce ambiguity quickly.; Operator guidance: never run redundant signers; use safeguards to avoid accidents.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic idea:
+
+stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Nothing‑at‑Stake and How PoS Counters It. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Risk: validators could sign all forks because signatures are cheap., Countermeasure: slashing makes conflicting votes economically costly., Fork‑choice heuristics and finality reduce ambiguity quickly., Operator guidance: never run redundant signers; use safeguards to avoid accidents. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Nothing‑at‑Stake and How PoS Counters It**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Nothing‑at‑Stake and How PoS Counters It**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Long‑Range Attacks and Weak Subjectivity** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Long‑Range Attacks and Weak Subjectivity {data-sync-id="pos-weak-subjectivity pos-checkpoint-mitigations"}
+
+- Old keys plus cheap signing can fabricate an alternative deep history.
+
+- Weak subjectivity: new/returning nodes must rely on recent checkpoints.
+
+- Finality gadgets anchor history; conflicts imply massive slashing events.
+
+- Practical ops: pin recent state hashes; socialize checkpoints in clients/community.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Long‑Range Attacks and Weak Subjectivity** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Long‑Range Attacks and Weak Subjectivity. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Old keys plus cheap signing can fabricate an alternative deep history.; Weak subjectivity: new/returning nodes must rely on recent checkpoints.; Finality gadgets anchor history; conflicts imply massive slashing events.; Practical ops: pin recent state hashes; socialize checkpoints in clients/community.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a
+
+basic idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Long‑Range Attacks and Weak Subjectivity. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Old keys plus cheap signing can fabricate an alternative deep history., Weak subjectivity: new/returning nodes must rely on recent checkpoints., Finality gadgets anchor history; conflicts imply massive slashing events., Practical ops: pin recent state hashes; socialize checkpoints in clients/community. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Long‑Range Attacks and Weak Subjectivity**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Long‑Range Attacks and Weak Subjectivity**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Censorship, Bribery, and Network Games** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Censorship, Bribery, and Network Games {data-sync-id="pos-censorship pos-censorship-mitigations ethereum-censorship"}
+
+- Censorship: proposers omit transactions; committees counter by attesting alternatives.
+
+- Bribery: attempt to buy votes; slashing and reputation deter collusion.
+
+- Eclipse/delay: isolate validators; mitigate with diverse peers and networking rules.
+
+- MEV and ordering: separate but related; incentives shape proposer behavior.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Censorship, Bribery, and Network Games** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Censorship, Bribery, and Network Games. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Censorship: proposers omit transactions; committees counter by attesting alternatives.; Bribery: attempt to buy votes; slashing and reputation deter collusion.; Eclipse/delay: isolate validators; mitigate with diverse peers and networking rules.; MEV and ordering: separate but related; incentives shape proposer behavior.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs
+
+that all share a basic idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Censorship, Bribery, and Network Games. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Censorship: proposers omit transactions; committees counter by attesting alternatives., Bribery: attempt to buy votes; slashing and reputation deter collusion., Eclipse/delay: isolate validators; mitigate with diverse peers and networking rules., MEV and ordering: separate but related; incentives shape proposer behavior. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Censorship, Bribery, and Network Games**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Censorship, Bribery, and Network Games**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Economic Security and Rewards/Penalties** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Economic Security and Rewards/Penalties {data-sync-id="pos-economics ethereum-finality-delay"}
+
+- Security budget comes from rewards at stake and slashing risks.
+
+- Reward curves encourage participation and decentralization where possible.
+
+- Inactivity leaks under extended partitions prevent deadlock.
+
+- Design: tune penalty magnitudes to deter but not terrorize honest operators.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Economic Security and Rewards/Penalties** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Economic Security and Rewards/Penalties. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Security budget comes from rewards at stake and slashing risks.; Reward curves encourage participation and decentralization where possible.; Inactivity leaks under extended partitions prevent deadlock.; Design: tune penalty magnitudes to deter but not terrorize honest operators.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic idea: stake‑weighted
+
+selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Economic Security and Rewards/Penalties. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Security budget comes from rewards at stake and slashing risks., Reward curves encourage participation and decentralization where possible., Inactivity leaks under extended partitions prevent deadlock., Design: tune penalty magnitudes to deter but not terrorize honest operators. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Economic Security and Rewards/Penalties**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Economic Security and Rewards/Penalties**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Validator Operations and Key Management** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Validator Operations and Key Management {data-sync-id="pos-validator"}
+
+- Separate withdrawal and signing keys; protect withdrawal offline.
+
+- Use slashing‑protection databases; prevent double‑signs across failover.
+
+- Redundancy: hot‑standby with mutual exclusion; distributed validators (SSV).
+
+- Monitoring: missed attestations, peers, clock drift, and time sync sanity.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Validator Operations and Key Management** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Validator Operations and Key Management. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Separate withdrawal and signing keys; protect withdrawal offline.; Use slashing‑protection databases; prevent double‑signs across failover.; Redundancy: hot‑standby with mutual exclusion; distributed validators (SSV).; Monitoring: missed attestations, peers, clock drift, and time sync sanity.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic idea:
+
+stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Validator Operations and Key Management. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Separate withdrawal and signing keys; protect withdrawal offline., Use slashing‑protection databases; prevent double‑signs across failover., Redundancy: hot‑standby with mutual exclusion; distributed validators (SSV)., Monitoring: missed attestations, peers, clock drift, and time sync sanity. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Validator Operations and Key Management**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Validator Operations and Key Management**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Parameters that Shape Security** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Parameters that Shape Security {data-sync-id="pos-parameters"}
+
+- Epoch length and committee size: larger committees raise safety, cost more bandwidth.
+
+- Randomness refresh cadence: more frequent reduces grinding risk.
+
+- Slashing percentages and correlation penalties: deterrence vs risk of accidents.
+
+- Fork‑choice timeouts and view‑change pacing: liveness under partitions.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Parameters that Shape Security** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Parameters that Shape Security. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Epoch length and committee size: larger committees raise safety, cost more bandwidth.; Randomness refresh cadence: more frequent reduces grinding risk.; Slashing percentages and correlation penalties: deterrence vs risk of accidents.; Fork‑choice timeouts and view‑change pacing: liveness under partitions.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic
+
+idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Parameters that Shape Security. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Epoch length and committee size: larger committees raise safety, cost more bandwidth., Randomness refresh cadence: more frequent reduces grinding risk., Slashing percentages and correlation penalties: deterrence vs risk of accidents., Fork‑choice timeouts and view‑change pacing: liveness under partitions. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Parameters that Shape Security**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Parameters that Shape Security**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Light Clients and PoS Evidence** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Light Clients and PoS Evidence {data-sync-id="pos-checkpoint-mitigations"}
+
+- Verify headers, checkpoints, and commit certificates without full blocks.
+
+- Sync committees or quorum summaries provide rotating, verifiable witnesses.
+
+- Weak‑subjectivity updates distributed by multiple channels for robustness.
+
+- Goal: portable evidence that a small device can check independently.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Light Clients and PoS Evidence** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Light Clients and PoS Evidence. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Verify headers, checkpoints, and commit certificates without full blocks.; Sync committees or quorum summaries provide rotating, verifiable witnesses.; Weak‑subjectivity updates distributed by multiple channels for robustness.; Goal: portable evidence that a small device can check independently.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic idea:
+
+stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Light Clients and PoS Evidence. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Verify headers, checkpoints, and commit certificates without full blocks., Sync committees or quorum summaries provide rotating, verifiable witnesses., Weak‑subjectivity updates distributed by multiple channels for robustness., Goal: portable evidence that a small device can check independently. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Light Clients and PoS Evidence**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Light Clients and PoS Evidence**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Brief Tour of PoS Variants (Context Only)** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+## Brief Tour of PoS Variants (Context Only) {data-sync-unmatched="true"}
+
+- Chain‑based PoS: stake‑weighted targets; fork choice by weight/depth.
+
+- BFT‑style PoS: proposer + two‑phase voting; deterministic finality at 2/3.
+
+- Nominated/Delegated/ Liquid PoS: selection via nominations or delegation layers.
+
+- We will focus on Ethereum‑style details in a later dedicated session.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Brief Tour of PoS Variants (Context Only)** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~4 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Brief Tour of PoS Variants (Context Only). This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Chain‑based PoS: stake‑weighted targets; fork choice by weight/depth.; BFT‑style PoS: proposer + two‑phase voting; deterministic finality at 2/3.; Nominated/Delegated/ Liquid PoS: selection via nominations or delegation layers.; We will focus on Ethereum‑style details in a later dedicated session.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic
+
+idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Brief Tour of PoS Variants (Context Only). Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Chain‑based PoS: stake‑weighted targets; fork choice by weight/depth., BFT‑style PoS: proposer + two‑phase voting; deterministic finality at 2/3., Nominated/Delegated/ Liquid PoS: selection via nominations or delegation layers., We will focus on Ethereum‑style details in a later dedicated session. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Brief Tour of PoS Variants (Context Only)**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Brief Tour of PoS Variants (Context Only)**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: **Summary and Next Steps** — carry forward the assumptions you just named and watch how they constrain the next design choice.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+
+
+<!-- ## Implementation Pitfalls and Testing -->
+
+<!-- - Clock and time sync: slots/epochs require clocks; protect against drift. -->
+
+<!-- - Slashing protection: persist signer state; test failover paths rigorously. -->
+
+<!-- - Fuzz and simulate: uneven delays, partitions, batch arrivals, and duplicate votes. -->
+
+<!-- - Metrics: participation rate, attestation delay, fork depth, and slash events. -->
+
+<!-- ::: {.notes} -->
+<!-- **Instructor Notes:** Context and motivation — Implementation Pitfalls and Testing. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on Clock and time sync: slots/epochs require sane clocks; protect against drift.; Slashing protection: persist signer state; test failover paths rigorously.; Fuzz and simulate: uneven delays, partitions, batch arrivals, and duplicate votes.; Metrics: participation rate, attestation delay, fork depth, and slash events.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all -->
+<!-- share a basic idea: stake‑weighted selection plus penalties for misbehavior. -->
+
+<!-- Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met. -->
+
+<!-- Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants. -->
+
+<!-- Core invariants to watch. Safety: it should be impossible for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes? -->
+
+<!-- Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off. -->
+
+<!-- Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated. -->
+
+<!-- **Script:** “Our focus here is Implementation Pitfalls and Testing. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how Clock and time sync: slots/epochs require sane clocks; protect against drift., Slashing protection: persist signer state; test failover paths rigorously., Fuzz and simulate: uneven delays, partitions, batch arrivals, and duplicate votes., Metrics: participation rate, attestation delay, fork depth, and slash events. are specified, what **evidence** nodes accept, and what **assumptions** make each guarantee true.” -->
+
+<!-- “Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.” -->
+
+<!-- “Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.” -->
+
+<!-- “Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).” -->
+
+<!-- “As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?” -->
+
+<!-- “Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?” -->
+
+<!-- “Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.” -->
+<!-- ::: -->
+
+
+## Summary and Next Steps {data-sync-id="pos-orientation"}
+
+- PoS moves away from heavy computation
+
+- PoS secures consensus with capital at risk and explicit voting evidence.
+
+- Selection + slashing + finality → safety and liveness under named assumptions.
+
+- Operations and decentralization shape real security beyond the math.
+
+::: {.notes}
+**Key Points**
+
+- Define the core concept on this slide: **Summary and Next Steps** (what it is / what it isn’t).
+
+- Identify the *security-relevant* assumption or failure mode (what can go wrong; who can influence it).
+
+- Connect to the course mental model: how this affects **trust, verification, and adversarial behavior** in blockchains.
+
+
+
+Time: ~2 min
+
+
+
+**Instructor Notes**
+
+**Instructor Notes:** Context and motivation — Summary and Next Steps. This slide advances students from the Proof of Work framing into Proof of Stake, focusing on PoS secures consensus with capital at risk and explicit voting evidence.; Selection + slashing + finality → safety and liveness under named assumptions.; Operations and decentralization shape real security beyond the math.; Next: Ethereum‑day details on validators, committees, fork‑choice, and finality gadgets.. The immediate goal is to explain how PoS replaces expended computation with economic stake and protocol rules, and how that substitution changes both the system’s strengths and its attack surface. Tie this to prior lectures they have already seen: hashing (Merkle roots in block headers), symmetric/asymmetric crypto (validator keys and signatures), and consensus fundamentals (safety, liveness, partial synchrony). Emphasize that PoS is not a monolith; there are chain‑based, committee/BFT‑based, and hybrid designs that all share a basic
+
+idea: stake‑weighted selection plus penalties for misbehavior.
+
+
+
+Definitions and boundaries. Insist on precise interfaces: what does a validator do; what constitutes a valid proposal; who votes and how votes are counted; when a block or checkpoint is considered finalized. State assumptions explicitly: stake distribution, randomness quality (VRFs or beacons), timing (epochs/slots and timeouts), and fault model (Byzantine up to a fraction of total stake). For BFT‑style designs, remind that ≥2/3 voting thresholds deliver deterministic finality under partial synchrony. For chain‑based designs, remind that fork choice rules like LMD‑GHOST or heaviest‑chain are probabilistic until finality gadgets or depth thresholds are met.
+
+
+
+Historical/system background. Motivate PoS as a response to PoW’s energy cost and hardware arms race. Mention that PoS reallocates the ‘security budget’ from watts to capital at risk and uses **slashing** and **inactivity penalties** to align behavior. Name only a few examples for color (e.g., Ouroboros, Tendermint, Casper‑style finality) without diving into chain‑specifics. Students will see full Ethereum details later; today’s focus is selection, evidence, and invariants.
+
+
+
+Core invariants to watch. Safety: it should be infeasible under standard assumptions for two conflicting checkpoints to be finalized unless a large fraction of stake provably signed equivocating messages (slashable). Liveness: under eventual synchrony, honest validators must be able to finalize new checkpoints. Quorum logic and vote‑carried evidence (attestations, quorum certificates) are the artifacts you will trace in diagrams and logs. Keep asking: which exact signatures must a verifier see to accept the next step, and what intersection property prevents two conflicting outcomes?
+
+
+
+Common pitfalls and misconceptions. Students may think ‘nothing‑at‑stake’ means PoS is inherently unsafe, or that ‘51%’ works identically to PoW. Clarify: modern PoS adds **slashable conditions** that turn multi‑fork voting into an expensive error; and majority‑stake attacks are deterred by the threat of catastrophic slashing and social recovery. Another pitfall is underestimating long‑range and weak‑subjectivity issues: nodes must occasionally rely on recent checkpoints and social coordination to anchor the correct head; this is a deliberate design trade‑off.
+
+
+
+Teaching strategy. Lead with short, concrete scenarios: leader selection in a slot; two honest blocks discovered in quick succession; a validator equivocating; a long‑range attempt conflicting with a finalized checkpoint. Use simple diagrams to make VRF‑based selection, quorum voting, and slashing conditions visible. Keep equations minimal; emphasize invariants and evidence. After each scenario, have students identify: (1) the assumption at stake, (2) the evidence a verifier requires, (3) the penalty or outcome if rules are violated.
+
+
+
+**Script:** “Our focus here is Summary and Next Steps. Think of PoS as moving the lever from physical effort to economic exposure. Instead of burning electricity, validators expose capital and sign messages under rules that make certain bad behaviors provably expensive. As we go, listen for three anchors: how PoS secures consensus with capital at risk and explicit voting evidence., Selection + slashing + finality → safety and liveness under named assumptions., Operations and decentralization shape real security beyond the math., Next: Ethereum‑day details on validators, committees, fork‑choice, and finality gadgets. are specified, what **evidence** nodes accept, and what **assumptions** make each aims to ensure true.”
+
+
+
+“Here’s the plan. I’ll first restate the PoW mental model in one sentence to keep our bearings: ‘rare wins, cheap verification, forks resolved by a heaviest‑chain rule.’ Now we translate that to PoS: ‘stake‑weighted leader election, explicit votes, and either probabilistic or deterministic finality depending on the design.’ For each step, I’ll draw a diagram, then I’ll ask you to predict the next move before I reveal it.”
+
+
+
+“Quick engagement. With a neighbor, list two ways we can select a leader at slot t without letting anyone bias the outcome. If you wrote ‘hash of public randomness + VRF proof’ or ‘committee sortition with secret/then‑reveal’, you’re on target. What properties must the randomness have? Unpredictable ahead of time and publicly verifiable after the fact. We’ll connect that to concrete messages on the next slide.”
+
+
+
+“Analogy time. If PoW is a footrace where the fastest runner wins by luck every few minutes, PoS is a lottery where your number of tickets equals your stake, but the drawing is conducted by a public robot that prints a receipt anyone can check. BFT‑style PoS adds a jury on top of the lottery: once a supermajority signs off, the verdict is immutable unless the jury itself is caught signing two conflicting verdicts—at which point the court burns their bonds (slashing).”
+
+
+
+“As I narrate each diagram, I’ll label the **assumptions** in the margin: honesty threshold, partial synchrony, and the randomness model. I’ll also spell out the **evidence** a verifier checks: a VRF output bound to a key, a set of attestations that reach a 2/3 threshold, or a slashing proof consisting of two conflicting signed messages. Your job is to map each acceptance step to concrete bytes on the wire: what exactly would you verify if you were implementing a light client?”
+
+
+
+“Before we move on from a section, I’ll ask three checks. One: in a nothing‑at‑stake world, what stops a rational validator from voting on all forks? Two: what exactly makes a long‑range rewrite unconvincing to an honest node? Three: what is the difference between probabilistic confirmations and deterministic finality, in terms of the **assumptions** you need to roll back history?”
+
+
+
+“Big picture. You won’t design a PoS protocol from scratch in this course, but you will evaluate claims. The habit to cultivate is translating marketing phrases into invariants and evidence: if someone says ‘fast finality,’ ask ‘under what quorum and synchrony assumptions, and what is the slashing condition if that claim is violated?’ If you can answer that, you’re ready for real systems.”
+
+
+
+**Check on Learning (30–60s)**
+
+- Q1: In one sentence, what is the main takeaway of **Summary and Next Steps**?
+
+- Q2: What is one realistic attacker/operational failure mode related to **Summary and Next Steps**?
+
+
+
+References: @katz_introductionmoderncryptography_2020; @menezes_handbookappliedcryptography_2011
+
+
+
+**Transition**
+
+- Next: connect this concept to the next slide by restating the *assumption → mechanism → consequence* chain.
+
+
+
+**Scope / assumptions**
+
+- Phrase claims as conditional: under stated assumptions; avoid implying guarantees.
+
+- If a statement depends on network conditions or adversary limits, say so explicitly.
+
+**Threat model**
+
+- Ask: who can influence this component (user, miner/validator, relay, exchange/bridge, insider)?
+
+- Note one failure mode + one mitigation/control at a conceptual level (no procedural steps).
+:::
+
+## References {data-sync-id="pos-references ethereum-references"}

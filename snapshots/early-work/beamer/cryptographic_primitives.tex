@@ -1,0 +1,472 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage{pgfpages}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage[export]{adjustbox}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{svg}
+\usepackage{upquote}
+\usetheme{d2s}
+
+% Code block style
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  showstringspaces=false,
+  frame=single,
+  upquote=true
+}
+
+% Convenience
+\newcommand{\term}[1]{\textbf{#1}}
+\newcommand{\qbox}[1]{\begin{tcolorbox}#1\end{tcolorbox}}
+
+\title[Blockchain II — Day 3]{Cryptographic Primitives for Blockchain}
+\subtitle{Section II: Blockchain Fundamentals}
+\author{Army Cyber Institute}
+\institute{Army Cyber Institute, U.S. Military Academy}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Today's Roadmap}
+  \begin{itemize}
+    \item \textbf{Hash functions}
+      \begin{itemize}
+        \item These functions provide tamper-evidence and integrity checks, allowing any node to detect even the smallest data alteration.
+      \end{itemize}
+    \item \textbf{Digital signatures}
+      \begin{itemize}
+        \item Signatures bind actions to key owners, proving who authorized a transaction without revealing the private key itself.
+      \end{itemize}
+    \item \textbf{Merkle trees}
+      \begin{itemize}
+        \item Tree-structured hashing enables efficient “proofs of inclusion,” so light clients can verify membership without downloading everything.
+      \end{itemize}
+    \item \textbf{Putting it together}
+      \begin{itemize}
+        \item Combined, these tools make a decentralized ledger verifiable, auditable, and resistant to manipulation.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Cryptography in Blockchains?}
+  \begin{itemize}
+    \item \textbf{Trust to verification}
+      \begin{itemize}
+        \item Instead of trusting an institution, participants verify claims with math; this removes single points of failure and bias.
+      \end{itemize}
+    \item \textbf{Tamper-evidence}
+      \begin{itemize}
+        \item Any unauthorized change cascades through hashes, making attempts to rewrite history immediately apparent.
+      \end{itemize}
+    \item \textbf{Open, adversarial setting}
+      \begin{itemize}
+        \item Because anyone can participate, we assume some will be dishonest; cryptography keeps honest behavior the cheapest option.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Adversarial Environment}
+  \begin{itemize}
+    \item \textbf{Sybil and censorship threats}
+      \begin{itemize}
+        \item Attackers may spin up many fake identities to sway consensus or attempt to suppress transactions; defenses must not depend on identity checks.
+      \end{itemize}
+    \item \textbf{Dishonest participants}
+      \begin{itemize}
+        \item Nodes might equivocate, publish conflicting histories, or try to reorder transactions for profit; cryptographic linkage exposes such attempts.
+      \end{itemize}
+    \item \textbf{Economic incentives}
+      \begin{itemize}
+        \item Where cheating is profitable, systems need cryptographic and economic pressure so that honest participation dominates over time.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Hash Functions}
+
+\begin{frame}{What is a Hash Function?}
+  \begin{itemize}
+    \item \textbf{Definition}
+      \begin{itemize}
+        \item A deterministic function that maps any-length input to a fixed-length digest, enabling compact comparisons of large data.
+      \end{itemize}
+    \item \textbf{Consistency}
+      \begin{itemize}
+        \item The same input always yields the same digest, so independent verifiers can reproduce checks without coordination.
+      \end{itemize}
+    \item \textbf{Sensitivity}
+      \begin{itemize}
+        \item A one-bit change produces a drastically different output, so subtle tampering cannot remain hidden.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Key Properties}
+  \begin{itemize}
+    \item \textbf{Pre-image resistance}
+      \begin{itemize}
+        \item Given only the digest, attackers should not be able to recover the original message, keeping commitments secret until revealed.
+      \end{itemize}
+    \item \textbf{Collision resistance}
+      \begin{itemize}
+        \item It should be computationally infeasible to find two different inputs with the same digest, preserving unique identifiers.
+      \end{itemize}
+    \item \textbf{Avalanche effect}
+      \begin{itemize}
+        \item Small input changes produce unrelated outputs, providing strong, inexpensive tamper-evidence across the ledger.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pre-image Resistance}
+  \begin{itemize}
+    \item \textbf{Security intuition}
+      \begin{itemize}
+        \item A digest leaks no practical information about its input; given only the digest, the original message remains infeasible to determine.
+        \item This protects sealed commitments and prevents frontrunning in protocols that reveal secrets later.
+      \end{itemize}
+    \item \textbf{Role in commitments and PoW}
+      \begin{itemize}
+        \item Miners cannot “reverse engineer” a target hash; they must try many nonces until one satisfies the difficulty, ensuring fairness through effort.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Collision Resistance}
+  \begin{itemize}
+    \item \textbf{Preventing substitution attacks}
+      \begin{itemize}
+        \item If different inputs could share a digest, an attacker could swap a fraudulent transaction for a valid one without changing the ID, corrupting records.
+      \end{itemize}
+    \item \textbf{Blockchain reliance}
+      \begin{itemize}
+        \item Blocks and transactions are addressed by their hashes; collision resistance guarantees each digest refers to exactly one object.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Avalanche Effect}
+  \begin{itemize}
+    \item \textbf{Drastic sensitivity}
+      \begin{itemize}
+        \item Flipping a single bit yields a digest with no recognizable relation to the original, foiling attempts to edit data “quietly.”
+      \end{itemize}
+    \item \textbf{Tamper detection}
+      \begin{itemize}
+        \item Because every change propagates through the chain of hashes, nodes can detect unauthorized edits with a single comparison.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{SHA-256 in Practice}
+  \begin{itemize}
+    \item \textbf{Bitcoin’s core function}
+      \begin{itemize}
+        \item SHA-256 secures block headers and proof-of-work puzzles, making history rewrites computationally prohibitive without majority power.
+      \end{itemize}
+    \item \textbf{Chain linkage}
+      \begin{itemize}
+        \item Each header commits to the previous block’s hash, so altering any block forces a cascade of recalculations through all successors.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{One-Bit Change Demo (Pseudo)}
+\begin{lstlisting}
+msg1 = "Transaction A"
+msg2 = "Transaction a"   # only capitalization differs
+h1 = SHA256(msg1)
+h2 = SHA256(msg2)
+print(h1)
+print(h2)  # unrelated outputs
+\end{lstlisting}
+  \begin{itemize}
+    \item Even a trivial input change produces a digest that looks entirely different, illustrating how hashes expose tampering instantly.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Discussion: Why Collisions Matter}
+  \qbox{If two different transactions produced the same digest, how would that undermine the ledger?}
+  \begin{itemize}
+    \item With collisions, an attacker could replace a legitimate transaction with a fake one that shares the same ID, making validation meaningless.
+    \item The ledger’s promise of unambiguous, verifiable history would fail, eliminating trust in the system’s records.
+  \end{itemize}
+\end{frame}
+
+\section{Digital Signatures}
+
+\begin{frame}{What are Digital Signatures?}
+  \begin{itemize}
+    \item \textbf{Asymmetric cryptography}
+      \begin{itemize}
+        \item Each user holds a private key (kept secret) and a public key (shared openly); this pair enables secure authentication in open networks.
+      \end{itemize}
+    \item \textbf{Guarantees}
+      \begin{itemize}
+        \item Signatures prove who authorized a message, ensure it was not altered in transit, and prevent the signer from plausibly denying authorship later.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Signature Workflow}
+  \begin{itemize}
+    \item \textbf{Hash the message}
+      \begin{itemize}
+        \item The message is compressed into a fixed-length digest so the signature is compact and efficient regardless of the message size.
+      \end{itemize}
+    \item \textbf{Sign with private key}
+      \begin{itemize}
+        \item The signer creates a signature over the digest using their private key, binding the result to both the message and the key owner.
+      \end{itemize}
+    \item \textbf{Verify with public key}
+      \begin{itemize}
+        \item Anyone can recompute the digest and check the signature with the public key, confirming origin and integrity without revealing secrets.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bitcoin/Ethereum Usage}
+  \begin{itemize}
+    \item \textbf{Bitcoin}
+      \begin{itemize}
+        \item UTXO spending requires a valid signature that matches the locking condition, proving control over the corresponding private key.
+      \end{itemize}
+    \item \textbf{Ethereum}
+      \begin{itemize}
+        \item Account-based transactions must be signed by the account holder, linking every state change to a verifiable cryptographic authorization.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Verification Walkthrough}
+  \begin{itemize}
+    \item \textbf{Inputs}
+      \begin{itemize}
+        \item The verifier receives the message, the signature, and the signer’s public key as the basis for the check.
+      \end{itemize}
+    \item \textbf{Process}
+      \begin{itemize}
+        \item The verifier hashes the message and uses the public key to verify that the signature corresponds to that digest.
+      \end{itemize}
+    \item \textbf{Outcome}
+      \begin{itemize}
+        \item A valid result proves the message was authorized by the key owner; an invalid result leads to immediate rejection.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{UTXO vs. Account Model}
+  \begin{itemize}
+    \item \textbf{UTXO (Bitcoin)}
+      \begin{itemize}
+        \item Coins are unspent outputs of prior transactions; spending unlocks a specific output with a signature that satisfies its script.
+      \end{itemize}
+    \item \textbf{Account (Ethereum)}
+      \begin{itemize}
+        \item Balances, nonces, and storage live under accounts; signatures prove control to authorize transfers and contract calls.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Discussion: Key Management Risks}
+  \qbox{What happens if private keys are lost, stolen, or weakly generated?}
+  \begin{itemize}
+    \item Lost keys strand funds permanently, so secure backup strategies are as important as strong cryptography.
+    \item Stolen keys let attackers move assets instantly; mitigations include hardware wallets, HSMs, multi-sig, and MPC to avoid single points of failure.
+  \end{itemize}
+\end{frame}
+
+\section{Merkle Trees}
+
+\begin{frame}{What is a Merkle Tree?}
+  \begin{itemize}
+    \item \textbf{Definition}
+      \begin{itemize}
+        \item A binary tree of hashes where leaf nodes are individual transaction digests and internal nodes hash their children, culminating in a root.
+      \end{itemize}
+    \item \textbf{Purpose}
+      \begin{itemize}
+        \item The root acts as a compact commitment to the entire set, enabling efficient inclusion proofs for any member without revealing them all.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Building the Tree}
+  \begin{itemize}
+    \item \textbf{Leaves}
+      \begin{itemize}
+        \item Each transaction is hashed to form the leaf layer, making each element independently verifiable before aggregation.
+      \end{itemize}
+    \item \textbf{Parents}
+      \begin{itemize}
+        \item Pairs of child hashes are concatenated and hashed again to form parent nodes, repeating until only the root remains.
+      \end{itemize}
+    \item \textbf{Root}
+      \begin{itemize}
+        \item The root hash changes if any leaf changes, so the structure offers a single integrity check for the entire dataset.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Proof of Inclusion}
+  \begin{itemize}
+    \item \textbf{Sibling hashes}
+      \begin{itemize}
+        \item To prove inclusion, a prover supplies the transaction’s hash plus the sibling hashes along the path to the root; the verifier recomputes the same root.
+      \end{itemize}
+    \item \textbf{Efficiency}
+      \begin{itemize}
+        \item Proof size grows logarithmically with the number of leaves, so even very large blocks require only a handful of hashes to validate membership.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Example: 4-Leaf Merkle Tree}
+  \begin{itemize}
+    \item \textbf{Leaves}
+      \begin{itemize}
+        \item Four transactions $L_0, L_1, L_2, L_3$ are hashed into leaves; parents are $P_{01} = H(L_0 \| L_1)$ and $P_{23} = H(L_2 \| L_3)$.
+      \end{itemize}
+    \item \textbf{Proof for $L_2$}
+      \begin{itemize}
+        \item Providing $L_3$ and $P_{01}$ lets a verifier compute $P_{23}$ and then the root $H(P_{01} \| P_{23})$, confirming that $L_2$ is included.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mini-Exercise (Pseudo)}
+\begin{lstlisting}
+P01 = H(L0 || L1)
+P23 = H(L2 || L3)
+root = H(P01 || P23)
+# Prove inclusion of L2 with [L3, P01]
+\end{lstlisting}
+  \begin{itemize}
+    \item This micro-exercise shows how little data a verifier needs to check inclusion, which is why light clients remain practical on constrained devices.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Merkle Trees Matter}
+  \begin{itemize}
+    \item \textbf{Auditability}
+      \begin{itemize}
+        \item Light clients can verify that a transaction belongs to a block without downloading the whole block, reducing bandwidth and storage costs.
+      \end{itemize}
+    \item \textbf{Scalability}
+      \begin{itemize}
+        \item Because proofs are small, many independent verifiers can operate efficiently, increasing the network’s security and resilience.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Putting It Together}
+
+\begin{frame}{Block Structure}
+  \begin{itemize}
+    \item \textbf{Header}
+      \begin{itemize}
+        \item The header commits to the previous block’s hash, the Merkle root, a timestamp, and consensus-specific data (e.g., nonce), anchoring the block in history.
+      \end{itemize}
+    \item \textbf{Body}
+      \begin{itemize}
+        \item The body lists all transactions; the root summarizes them so verifiers can check integrity without scanning each one.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{How the Primitives Interlock}
+  \begin{itemize}
+    \item \textbf{Hashes}
+      \begin{itemize}
+        \item Hashes chain blocks together and detect tampering, ensuring that any attempt to alter history is visible to honest nodes.
+      \end{itemize}
+    \item \textbf{Signatures}
+      \begin{itemize}
+        \item Signatures prove authorization, tying each transaction to the party who controls the corresponding private key.
+      \end{itemize}
+    \item \textbf{Merkle trees}
+      \begin{itemize}
+        \item Merkle roots allow efficient inclusion checks, enabling lightweight verification at scale without weakening security.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bitcoin Emphasis}
+  \begin{itemize}
+    \item \textbf{Proof-of-Work}
+      \begin{itemize}
+        \item SHA-256 drives a difficulty race that is costly to cheat, aligning incentives so that honest mining is the most viable strategy long-term.
+      \end{itemize}
+    \item \textbf{Ownership}
+      \begin{itemize}
+        \item UTXO scripts combined with signatures ensure coins can only be moved by those who can satisfy the spending conditions.
+      \end{itemize}
+    \item \textbf{Integrity}
+      \begin{itemize}
+        \item The Merkle root in the header commits to every transaction, making partial edits detectable without re-validating all contents.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Ethereum Variant}
+  \begin{itemize}
+    \item \textbf{Account model}
+      \begin{itemize}
+        \item Ethereum tracks balances and nonces per account; signatures authorize state changes including contract interactions and deployments.
+      \end{itemize}
+    \item \textbf{Trie structures}
+      \begin{itemize}
+        \item Merkle–Patricia tries commit to account state and storage; this generalizes Merkle proofs to dynamic key–value data.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Vulnerabilities \& Migration}
+  \begin{itemize}
+    \item \textbf{If hash functions break}
+      \begin{itemize}
+        \item Practical collisions or pre-image attacks would undermine IDs and commitments, enabling undetectable substitutions and rewrites.
+      \end{itemize}
+    \item \textbf{If signature schemes break}
+      \begin{itemize}
+        \item Forged signatures would let attackers move funds and impersonate users; networks would need coordinated migration to safer algorithms.
+      \end{itemize}
+    \item \textbf{Migration planning}
+      \begin{itemize}
+        \item Protocols should provide upgrade paths (e.g., algorithm agility, PQC-readiness) to transition before weaknesses become catastrophic.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Recap}
+  \begin{itemize}
+    \item \textbf{Hashes}
+      \begin{itemize}
+        \item Provide integrity, tamper-evidence, and block linkage.
+      \end{itemize}
+    \item \textbf{Signatures}
+      \begin{itemize}
+        \item Provide authenticity, authorization, and non-repudiation.
+      \end{itemize}
+    \item \textbf{Merkle trees}
+      \begin{itemize}
+        \item Provide scalable verification through compact inclusion proofs.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Exit Ticket}
+  \qbox{Complete: “The most important property of a hash function is \_\_\_ because \_\_\_.”}
+  \begin{itemize}
+    \item Use a concrete example (e.g., Bitcoin block header) to justify your choice, connecting properties to real protocol behavior.
+  \end{itemize}
+\end{frame}
+
+\end{document}

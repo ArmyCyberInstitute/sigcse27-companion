@@ -1,0 +1,136 @@
+name: paper-companion
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    ports: ["${HOST_BIND:-127.0.0.1}:${PORT:-8080}:80"]
+    depends_on:
+      crypto: {condition: service_healthy}
+      bitcoin: {condition: service_healthy}
+      bitcoin-peer: {condition: service_healthy}
+      bitcoin-tools: {condition: service_healthy}
+      bitcoin-graph: {condition: service_healthy}
+      ethereum: {condition: service_healthy}
+      quiz: {condition: service_healthy}
+  crypto:
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8501/labs/cryptography/_stcore/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    build: demos/cryptography
+    command: ["streamlit", "run", "Lab_2_Home.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.baseUrlPath=labs/cryptography"]
+  bitcoin:
+    healthcheck:
+      test: ["CMD-SHELL", "bitcoin-cli getblockchaininfo >/dev/null && test -f /home/user/share/catalog.json"]
+      interval: 5s
+      timeout: 3s
+      retries: 180
+      start_period: 120s
+    image: paper-companion-bitcoin
+    build: demos/bitcoin-base
+    environment:
+      AUTO_SCAN: "0"
+      BITCOIN_REGTEST: "0"
+      AUTO_WALLET: "0"
+      INIT_CLASSNET: "1"
+    command: ["ttyd", "-W", "-p", "7681", "-b", "/labs/bitcoin/node-1", "zellij", "attach", "--create", "bitcoin"]
+  bitcoin-peer:
+    depends_on:
+      bitcoin: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "bitcoin-cli", "getblockchaininfo"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    image: paper-companion-bitcoin
+    build: demos/bitcoin-base
+    environment:
+      AUTO_SCAN: "0"
+      BITCOIN_REGTEST: "0"
+      SEED_HOSTS: bitcoin:8333
+    command: ["ttyd", "-W", "-p", "7681", "-b", "/labs/bitcoin/node-2", "zellij", "attach", "--create", "bitcoin"]
+  bitcoin-tools:
+    depends_on:
+      bitcoin: {condition: service_healthy}
+    build:
+      context: demos/bitcoin/mempool
+      additional_contexts:
+        bitcoin-base: service:bitcoin
+    environment:
+      BTCEXP_BASEURL: /labs/bitcoin/btc-explorer/
+      MEMPOOL_BASE_PATH: /labs/bitcoin/mempool
+      BITCOIN_EXTRA_ARGS: -addnode=bitcoin:8333
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/labs/bitcoin/mempool/api/v1/blocks >/dev/null && curl -fsS http://localhost:8081/labs/bitcoin/btc-explorer/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 30
+  bitcoin-graph:
+    build:
+      context: demos/bitcoin-graph
+      additional_contexts:
+        bitcoin-base: service:bitcoin
+    depends_on:
+      bitcoin: {condition: service_healthy}
+    environment:
+      GRAPH_PEER: bitcoin:8333
+      GRAPH_AUTOBUILD: "1"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8082/labs/bitcoin/graph/api/status | jq -e ' .state == \"ready\"' >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 30
+  ethereum:
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/config.json"]
+      interval: 5s
+      timeout: 3s
+      # Contract deployments precede the web server, and take longer on a
+      # cold or CPU-constrained host. Successful probes still pass early.
+      start_period: 10m
+      retries: 30
+    build:
+      context: demos/ethereum_lab
+      args:
+        VITE_BASE_PATH: /labs/ethereum/
+    init: true
+    environment:
+      MODE: instructor
+      NGINX_ENABLED: "1"
+      INSTRUCTOR_IP: "*"
+      LAB_TERMINAL_ENABLED: "1"
+      RPC_PORT: "8545"
+      FRONTEND_PORT: "5173"
+      TERMINAL_PORTS: "3002,3003,3004"
+      TERMINAL_CWD: /app
+      RPC_URL_PUBLIC: /labs/ethereum/rpc-write
+      POOL_SIZE: "0"
+      DEPLOY_BEACON_LAB: "1"
+      ASSIGNED_PRIVATE_KEY: "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
+      CLASSROOM_AUTOMINE_DEFAULT: "0"
+      COMMITTEES_PER_EPOCH: "1"
+      VALIDATORS_PER_COMMITTEE: "32"
+      BLOCKS_PER_EPOCH: "4"
+      BEACON_CONDUCTOR: "1"
+      BEACON_BLOCK_MS: "6000"
+  quiz:
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    build:
+      context: .
+      dockerfile: deploy/quiz.Dockerfile
+    environment:
+      QUIZ_ENGINE_DB_PATH: /data/quiz-engine.sqlite
+      QUIZ_ENGINE_INSTRUCTOR_AUTH_MODE: test-header
+      QUIZ_ENGINE_SECRET_KEY: publication-local-demo-only
+    volumes: [quiz-data:/data]
+volumes:
+  quiz-data:

@@ -1,0 +1,186 @@
+diff --git a/frontend/src/app/lightning/lightning-api.service.ts b/frontend/src/app/lightning/lightning-api.service.ts
+index c441163..d78ed39 100644
+--- a/frontend/src/app/lightning/lightning-api.service.ts
++++ b/frontend/src/app/lightning/lightning-api.service.ts
+@@ -17,9 +17,10 @@ export class LightningApiService {
+     private httpClient: HttpClient,
+     private stateService: StateService,
+   ) {
+-    this.apiBaseUrl = ''; // use relative URL by default
++    this.apiBaseUrl = '';
+     if (!stateService.isBrowser) { // except when inside AU SSR process
+-      this.apiBaseUrl = this.stateService.env.NGINX_PROTOCOL + '://' + this.stateService.env.NGINX_HOSTNAME + ':' + this.stateService.env.NGINX_PORT;
++      const basePath = this.stateService.env.BASE_PATH === '/' ? '' : this.stateService.env.BASE_PATH;
++      this.apiBaseUrl = this.stateService.env.NGINX_PROTOCOL + '://' + this.stateService.env.NGINX_HOSTNAME + ':' + this.stateService.env.NGINX_PORT + basePath;
+     }
+     this.apiBasePath = ''; // assume mainnet by default
+     this.stateService.networkChanged$.subscribe((network) => {
+diff --git a/frontend/src/app/services/api.service.ts b/frontend/src/app/services/api.service.ts
+index 702e3d0..f5e7034 100644
+--- a/frontend/src/app/services/api.service.ts
++++ b/frontend/src/app/services/api.service.ts
+@@ -26,9 +26,10 @@ export class ApiService {
+     private stateService: StateService,
+     private storageService: StorageService
+   ) {
+-    this.apiBaseUrl = ''; // use relative URL by default
++    this.apiBaseUrl = '';
+     if (!stateService.isBrowser) { // except when inside AU SSR process
+-      this.apiBaseUrl = this.stateService.env.NGINX_PROTOCOL + '://' + this.stateService.env.NGINX_HOSTNAME + ':' + this.stateService.env.NGINX_PORT;
++      const basePath = this.stateService.env.BASE_PATH === '/' ? '' : this.stateService.env.BASE_PATH;
++      this.apiBaseUrl = this.stateService.env.NGINX_PROTOCOL + '://' + this.stateService.env.NGINX_HOSTNAME + ':' + this.stateService.env.NGINX_PORT + basePath;
+     }
+     this.apiBasePath = ''; // assume mainnet by default
+     this.stateService.networkChanged$.subscribe((network) => {
+diff --git a/frontend/src/app/services/assets.service.ts b/frontend/src/app/services/assets.service.ts
+index 42afa96..19cac9c 100644
+--- a/frontend/src/app/services/assets.service.ts
++++ b/frontend/src/app/services/assets.service.ts
+@@ -22,7 +22,8 @@ export class AssetsService {
+   ) {
+     let apiBaseUrl = '';
+     if (!this.stateService.isBrowser) {
+-      apiBaseUrl = this.stateService.env.NGINX_PROTOCOL + '://' + this.stateService.env.NGINX_HOSTNAME + ':' + this.stateService.env.NGINX_PORT;
++      const basePath = this.stateService.env.BASE_PATH === '/' ? '' : this.stateService.env.BASE_PATH;
++      apiBaseUrl = this.stateService.env.NGINX_PROTOCOL + '://' + this.stateService.env.NGINX_HOSTNAME + ':' + this.stateService.env.NGINX_PORT + basePath;
+     }
+ 
+     this.getAssetsJson$ = this.stateService.networkChanged$
+diff --git a/frontend/src/app/services/electrs-api.service.ts b/frontend/src/app/services/electrs-api.service.ts
+index 831c9f1..266ce9e 100644
+--- a/frontend/src/app/services/electrs-api.service.ts
++++ b/frontend/src/app/services/electrs-api.service.ts
+@@ -19,9 +19,10 @@ export class ElectrsApiService {
+     private httpClient: HttpClient,
+     private stateService: StateService,
+   ) {
+-    this.apiBaseUrl = ''; // use relative URL by default
++    this.apiBaseUrl = '';
+     if (!stateService.isBrowser) { // except when inside AU SSR process
+-      this.apiBaseUrl = this.stateService.env.NGINX_PROTOCOL + '://' + this.stateService.env.NGINX_HOSTNAME + ':' + this.stateService.env.NGINX_PORT;
++      const basePath = this.stateService.env.BASE_PATH === '/' ? '' : this.stateService.env.BASE_PATH;
++      this.apiBaseUrl = this.stateService.env.NGINX_PROTOCOL + '://' + this.stateService.env.NGINX_HOSTNAME + ':' + this.stateService.env.NGINX_PORT + basePath;
+     }
+     this.apiBasePath = ''; // assume mainnet by default
+     this.stateService.networkChanged$.subscribe((network) => {
+diff --git a/frontend/src/app/services/language.service.ts b/frontend/src/app/services/language.service.ts
+index b0d2f24..97e4c2c 100644
+--- a/frontend/src/app/services/language.service.ts
++++ b/frontend/src/app/services/language.service.ts
+@@ -8,6 +8,7 @@ import { languages } from '@app/app.constants';
+ export class LanguageService {
+   private language = 'en';
+   private languages = languages;
++
+   constructor(
+     @Inject(DOCUMENT) private document: Document,
+     @Inject(LOCALE_ID) private locale: string,
+@@ -19,11 +20,25 @@ export class LanguageService {
+     return this.language;
+   }
+ 
++  private getBasePath(): string {
++    const browserEnv = (window as any).__env || {};
++    const configuredBasePath = browserEnv.BASE_PATH || '/';
++    if (!configuredBasePath || configuredBasePath === '/') {
++      return '/';
++    }
++    return `/${String(configuredBasePath).replace(/^\/+|\/+$/g, '')}`;
++  }
++
+   stripLanguageFromUrl(urlPath: string) {
+     let rawUrlPath = urlPath ? urlPath : document.location.pathname;
+-    const urlLanguage = this.document.location.pathname.split('/')[1];
++    const basePath = this.getBasePath();
++    const pathWithoutBase = basePath !== '/' && rawUrlPath.startsWith(basePath)
++      ? rawUrlPath.slice(basePath.length) || '/'
++      : rawUrlPath;
++    const urlLanguage = pathWithoutBase.split('/')[1];
+     if (this.languages.map((lang) => lang.code).indexOf(urlLanguage) != -1) {
+-      rawUrlPath = rawUrlPath.substring(3);
++      const languagePrefix = `/${urlLanguage}`;
++      rawUrlPath = `${basePath === '/' ? '' : basePath}${pathWithoutBase.slice(languagePrefix.length) || '/'}`;
+     }
+     return rawUrlPath;
+   }
+diff --git a/frontend/src/app/services/state.service.ts b/frontend/src/app/services/state.service.ts
+index 9529f83..e77d9e3 100644
+--- a/frontend/src/app/services/state.service.ts
++++ b/frontend/src/app/services/state.service.ts
+@@ -46,6 +46,7 @@ export interface Customization {
+ export type SignaturesMode = 'all' | 'interesting' | 'none' | null;
+ 
+ export interface Env {
++  BASE_PATH: string;
+   MAINNET_ENABLED: boolean;
+   TESTNET_ENABLED: boolean;
+   TESTNET4_ENABLED: boolean;
+@@ -95,6 +96,7 @@ export interface Env {
+ }
+ 
+ const defaultEnv: Env = {
++  'BASE_PATH': '/',
+   'MAINNET_ENABLED': true,
+   'TESTNET_ENABLED': false,
+   'TESTNET4_ENABLED': false,
+@@ -241,6 +243,7 @@ export class StateService {
+     }
+ 
+     this.env = Object.assign(defaultEnv, browserWindowEnv);
++    this.env.BASE_PATH = this.normalizeBasePath(this.env.BASE_PATH);
+ 
+     if (defaultEnv.BASE_MODULE !== 'mempool') {
+       this.env.MINING_DASHBOARD = false;
+@@ -400,10 +403,30 @@ export class StateService {
+     });
+   }
+ 
++  private normalizeBasePath(basePath?: string): string {
++    if (!basePath || basePath === '/') {
++      return '/';
++    }
++
++    const normalized = `/${basePath.replace(/^\/+|\/+$/g, '')}`;
++    return normalized === '/' ? '/' : normalized;
++  }
++
++  private stripBasePath(url: string): string {
++    const [pathname, suffix = ''] = url.split(/([?#].*)/, 2);
++    if (this.env.BASE_PATH === '/' || !pathname.startsWith(this.env.BASE_PATH)) {
++      return url;
++    }
++
++    const strippedPath = pathname.slice(this.env.BASE_PATH.length) || '/';
++    return `${strippedPath.startsWith('/') ? strippedPath : `/${strippedPath}`}${suffix}`;
++  }
++
+   setNetworkBasedonUrl(url: string) {
+     if (this.env.BASE_MODULE !== 'mempool' && this.env.BASE_MODULE !== 'liquid') {
+       return;
+     }
++    url = this.stripBasePath(url);
+     // horrible network regex breakdown:
+     // /^\/                                         starts with a forward slash...
+     // (?:[a-z]{2}(?:-[A-Z]{2})?\/)?                optional locale prefix (non-capturing)
+@@ -463,6 +486,7 @@ export class StateService {
+     if (this.env.BASE_MODULE !== 'mempool') {
+       return;
+     }
++    url = this.stripBasePath(url);
+     const networkMatches = url.match(/\/lightning\//);
+     this.lightning = !!networkMatches;
+     this.lightningChanged$.next(this.lightning);
+diff --git a/frontend/src/app/services/websocket.service.ts b/frontend/src/app/services/websocket.service.ts
+index 8979ce4..a8f4986 100644
+--- a/frontend/src/app/services/websocket.service.ts
++++ b/frontend/src/app/services/websocket.service.ts
+@@ -21,7 +21,8 @@ const initData = makeStateKey('/api/v1/init-data');
+ })
+ export class WebsocketService {
+   private webSocketProtocol = (document.location.protocol === 'https:') ? 'wss:' : 'ws:';
+-  private webSocketUrl = this.webSocketProtocol + '//' + document.location.hostname + ':' + document.location.port + '{network}/api/v1/ws';
++  private webSocketBasePath = (((window as any).__env || {}).BASE_PATH || '/') === '/' ? '' : ((window as any).__env || {}).BASE_PATH;
++  private webSocketUrl = this.webSocketProtocol + '//' + document.location.hostname + ':' + document.location.port + this.webSocketBasePath + '{network}/api/v1/ws';
+ 
+   private websocketSubject: WebSocketSubject<WebsocketResponse>;
+   private goneOffline = false;

@@ -1,0 +1,201 @@
+We are building a course on blockchain for an audience of high school graduates who have above-average technical aptitude, but no formal advanced education in mathematics or cryptography.
+
+I’d like your help constructing a single lecture. Please provide your slide responses as a copy block so that the chat interface does not accidentally render any code in your reply.
+
+If you are a gemini model, your interface does not allow you to create downloadable files. In your case, output the valid quarto template as a json string and format it as a javascript code snippet in the reply.
+
+Material is structured in sections, which are composed of “days,” which are then composed of individual lessons as lectures. Lectures are formatted as Quarto revealjs presentations, in which the slides are a visual cue for the students and notes are provided as a complete script for the instructor.
+
+Key Concepts
+  • Accuracy is most important. Only include information derived from verifiable primary sources (canonical research papers, official documentation, primary whitepapers).
+  • Include sources in the instructor notes, either by URL or in Chicago style. Do not use secondary summaries or blogs.
+  • I've attached the course syllabus for your reference. If I haven't attached it in this chat, stop processing and inform me that I need to attach it before proceeding. Ensure that the lesson stays on the assigned topics and does not overteach what is found in other lessons.
+
+Process
+  1a. Conduct deep research according to key concepts to build knowledge about the topic areas 
+  1b. Lay out the conceptual approach of the lesson (no slides). Ensure that this lesson does not encroach on other lessons in the course (from the syllabus). 
+  1c. Create an outline for the lesson, assigning slides to meet the requirement, with a short description of what is covered.
+    • Target: 20–24 slides, 1–3 minutes each, ~60 minutes total.
+    • Variability in slide length is encouraged. 
+  2. Build the slides in batches of three, following the style guide. Provide the .qmd preamble at the start of the lesson. Present slides in copy blocks so I can stitch them together locally.   Produce them in a single go and I will review each, and stitch them together locally.
+  2a. Ask for the fully stitched lesson, and review it for inaccuracies. Make suggestions if any are found. 
+  2b. Look to see if there are any areas where the lesson flow can be tightened up. Make suggestions if so. 
+  2c. Look to see if we can improve the visual slide content by increasing the depth of material shown on bullet slides, or switching up slide design to break up monotony. Make suggestions if so.
+
+Each numbered task series (1a, 1b, 1c) can be done in sequence, but must be approved by me before moving on to the next numbered task series.
+
+Slide Content
+  • Each slide must use a clean, consistent layout.
+  • Most slides should include a visual element. Instead of generic “graphic goes here,” provide a clear visual placeholder description (e.g., “diagram of generals with conflicting orders”) that could be used by an illustrator or image generator.
+  • Use different modalities across the lecture:
+    • Bullet list slides.
+    • One or two concepts with text boxes, showing definitions and compare or contrast.
+    • Graphic-first slides (minimal text, large diagram/visual).
+    • Narrative slides (1–2 sentences + image).
+    • Interactive slides (questions, polls, Q&A).
+    • Avoid monotonous runs of bullet-point slides.
+
+Instructor Notes
+Each slide must contain a ::: {.notes} block with the following sections in order:
+  1.  Key Points – concise takeaways for students.
+  2.  Instructor Notes and Script – 3–5 paragraphs with context, detail, and analogies. Plain text only, no markdown inside. Accessible at ~8th grade level. Must connect to the visual.
+  3.  Script – Suggested dialogue, simplified and explanatory.
+  4.  References – Clickable markdown list of primary sources.
+
+Additional Requirements
+  • Stay strictly within the lesson scope provided in the syllabus. Do not pre-empt content from later lectures.
+  • First slide must begin with a concrete emotional hook (story, scenario, or analogy).
+  • Last slide must include check-on-learning questions for discussion.
+  • Include smooth transitions/bridge slides when moving between major topics.
+
+Lesson Details:
+#### Lecture 4-4: Distributed Ledgers
+
+*Topics:*
+
+- Distributed ledgers: definitions, types, and how they differ from databases
+
+- Permissioned vs. unpermissioned ledgers
+
+- The role of distributed ledgers in enabling P2P trustless interactions
+
+- Security in ledgers: transparency, immutability, consensus mechanisms
+
+- Trade-offs: performance, scalability, decentralization vs. control
+
+- Case studies: cryptocurrency ledgers, enterprise blockchains (Hyperledger Fabric, gov. applications)
+
+*References:* (Ref by Topic: II.3.f, III.1)
+
+- <https://satoshi.nakamotoinstitute.org/quotes/cryptocurrency/>
+
+- <https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/492972/gs-16-1-distributed-ledger-technology.pdf>
+
+- <https://pubmed.ncbi.nlm.nih.gov/39408147/>
+
+- <https://www.comp.nus.edu.sg/~ooibc/bcvsdb.pdf>
+
+- <https://www.researchgate.net/profile/Efthimios-Enias-Gojka/publication/353018573_Security_in_Distributed_Ledger_Technology_An_Analysis_of_Vulnerabilities_and_Attack_Vectors>
+
+
+The slide syntax is open to anything compatible with the latest quarto.
+Here is a sample example, including frontmatter.
+
+All slides should be at level 2 ("## title here").
+
+There should be a line break before text and a bulleted list.
+
+---
+title: "Example Title"
+author: "Army Cyber Institute"
+format: 
+  aci-revealjs:
+    slide-level: 2
+date: last-modified
+day: X
+lesson: Y
+human-review: false
+ai-review: false
+correctness: false
+pedagogical: false
+suitability: false
+quality: false
+skip-title-lift: true
+scrollable: true
+---
+
+## Slide One
+
+
+::: {.notes}
+Key Points:
+
+* List 3–5 concise takeaways
+
+Instructor Notes:
+[3–5 paragraphs of narrative tex.  Rich technical background, operational context, analogies.]
+
+Script:
+
+- "Word-for-word suggested dialogue for instructors, simplified, explanatory, and tied to visuals."
+
+References:
+
+- [title](url)
+:::
+
+**bold text**
+
+- simple bulleted slide
+- example second bullet.
+
+## Slide Two
+
+::: {.column width="50%"}
+
+- bullets on the slide in the left
+- bullet 2
+
+:::
+
+::: {.column width="50%"}
+chart or graphic can go here
+:::
+
+
+## Smaller Example {.smaller}
+
+- sometimes a slide has a lot of words. 
+- Too many words can be poor slide design. But sometimes it is necessary.
+- When using too many words, use .smaller to help the text fit better on the slide.
+
+## Sample footnote
+
+- Green ^[footnote]
+- Brown
+- Purple ^[A second footnote]
+
+::: aside
+Some additional commentary that displays at the bottom before the footnotes
+:::
+
+## Math Equations
+
+- LaTeX can be rendered as both inline and block. 
+
+Inline: $$ y = X{\color{blue}\beta} + \varepsilon $$
+
+## Math Equations (cont.)
+
+Block:
+$$
+\begin{align}
+(x+1)^2 &= (x+1)(x+1) \\
+& = x(x+1) + 1(x+1) \\
+& = (x^2+x) + (x+1) \\
+& = x^2 + (x + x) + 1 \\
+& = x^2 + 2x + 1
+\end{align}
+$$
+
+No title
+
+## Additional Features
+
+- standard markdown tables
+- absolute positioning for images
+- r-stack layout helpers
+- r-fit-text
+- center, stretch, and animations
+- element matching with animations
+- fragments
+
+
+::: {.notes}
+These features can be referenced at: 
+
+https://quarto.org/docs/presentations/revealjs/advanced.html
+:::
+
+
+

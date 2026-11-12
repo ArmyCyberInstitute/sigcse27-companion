@@ -1,0 +1,127 @@
+%----------------------------------------------------------------------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Theme options, definitions and templates.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------------------------------------------------
+
+% beamer specific options
+
+\mode<presentation> %refers to the first four modes (beamer,handout,second and trans). That is, to all modes except the article mode
+{
+
+%----------------------------------------------------------------------------------------------------------------------------------
+
+% title page
+%% definitions for fonts of the different elements
+  
+\setbeamerfont{institute}{family=\rmfamily, size = \footnotesize}
+\setbeamerfont{title}{family=\rmfamily, size = \Large} 
+\setbeamerfont{subtitle}{family=\rmfamily, size = \large}
+\setbeamerfont{author}{family=\rmfamily, size = \normalsize}
+\setbeamerfont{date}{family=\rmfamily, size = \footnotesize}
+
+\setbeamertemplate{title page}
+   {
+%% setting the above definitions
+
+\begin{minipage}[c][\textheight][c]{\textwidth}
+    \centering
+    \vspace*{65pt}
+     \begin{tcolorbox}[standard jigsaw, colback=armygold, opacityback=0.65, colframe=black, left=1mm,grow to left by=5mm, right=1mm, grow to right by=5mm, bottom=1mm, top=1mm, hbox, tcbox width=auto limited]
+     \centering
+    {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle}
+    \end{tcolorbox}
+    \vspace*{5pt}
+    
+    {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}\insertsubtitle}\vspace*{30pt}
+    
+    {\usebeamerfont{author}\insertauthor}\vspace*{15pt}
+
+    {\usebeamerfont{institute}\insertinstitute}
+    
+    {\usebeamerfont{date}\insertdate}\vspace*{\baselineskip}
+\end{minipage}
+   }
+  
+%----------------------------------------------------------------------------------------------------------------------------------
+  
+% final page
+
+\defbeamertemplate{final page}{text}[1]
+   {
+         \begin{minipage}[c][\textheight][c]{\textwidth}
+                  \centering
+                  #1
+         \end{minipage}
+   }
+                  \newcommand{\finalpage}[1]
+   {
+                  \setbeamertemplate{final page}[text]{#1}
+                  \usebeamertemplate{final page}
+   }
+
+%----------------------------------------------------------------------------------------------------------------------------------
+  
+% add the ICSARL to the background of the titlepage and the final page
+
+\newcommand{\ICSARL}
+   {
+    \setbeamertemplate{background}
+      {
+      \begin{tikzpicture}
+      [overlay,remember picture]
+      \coordinate (UL) at (0,0); %upper left corner of the slide
+                \coordinate (HLR) at (\paperwidth,-0.9\beamer@height); %lower right of the header
+
+                \coordinate (ULL) at (0,-0.85\beamer@height); % upper left corner of the line 
+                \coordinate (LLR) at (\paperwidth,-1\beamer@height); % lower right corner of the line 
+                \coordinate (ULF) at (0,-5.5\beamer@height); % upper left corner of the footline 
+                \coordinate (LFR) at (\paperwidth,-5.8\beamer@height); % lower right corner of the footline
+
+                \coordinate (logopos) at ([shift={(-\beamer@logoouterradius-2.05\beamer@borderwidth,\beamer@height-\beamer@logoouterradius-5.5\beamer@borderwidth)}] HLR); % coordinate of the logo and the circle position
+        \node[opacity=0.15] at ([shift={(0,-.7)}]current page.center)
+        {\includegraphics[width=.65\paperwidth]{beamerThemeGraphics/ICSARLLogo.png}};
+        \draw[draw=none,fill=d2s.bg] (UL) rectangle (HLR); % background rectangle
+        \draw[draw=none,fill=d2s.fg] (ULL) rectangle (LLR); % line below the background rectangle
+        \node[right] at ([shift={(-.25,-.75)}]current page.north west) {\includegraphics[width=.28\paperwidth]{beamerThemeGraphics/ACILogoAndTitle.png}};
+        \end{tikzpicture}
+       }
+    }
+
+% add the D2S logo to the background of the titlepage and the final page
+
+\newcommand{\DivisionLogo}
+   {
+    \setbeamertemplate{background}
+      {
+      \begin{tikzpicture}
+      [overlay,remember picture]
+      \coordinate (UL) at (0,0); %upper left corner of the slide
+                \coordinate (HLR) at (\paperwidth,-0.9\beamer@height); %lower right of the header
+
+                \coordinate (ULL) at (0,-0.85\beamer@height); % upper left corner of the line 
+                \coordinate (LLR) at (\paperwidth,-1\beamer@height); % lower right corner of the line 
+                \coordinate (ULF) at (0,-5.5\beamer@height); % upper left corner of the footline 
+                \coordinate (LFR) at (\paperwidth,-5.8\beamer@height); % lower right corner of the footline
+
+                \coordinate (logopos) at ([shift={(-\beamer@logoouterradius-2.05\beamer@borderwidth,\beamer@height-\beamer@logoouterradius-5.5\beamer@borderwidth)}] HLR); % coordinate of the logo and the circle position
+        \node[opacity=0.10] at ([shift={(0,-0.3)}]current page.center)
+        {\includegraphics[width=.85\paperwidth]{beamerThemeGraphics/D2SLogo.png}};
+        \draw[draw=none,fill=d2s.bg] (UL) rectangle (HLR); % background rectangle
+        \draw[draw=none,fill=d2s.fg] (ULL) rectangle (LLR); % line below the background rectangle
+        \node[right] at ([shift={(-.25,-.75)}]current page.north west) {\includegraphics[width=.28\paperwidth]{beamerThemeGraphics/ACILogoAndTitle.png}};
+        \end{tikzpicture}
+       }
+    }
+
+%----------------------------------------------------------------------------------------------------------------------------------
+  
+% use numbers instead of a picture for the references
+
+\setbeamertemplate{bibliography item}[text]
+
+}
+
+\mode<all>

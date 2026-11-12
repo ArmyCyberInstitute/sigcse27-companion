@@ -1,0 +1,14 @@
+_site/
+.quarto
+.quarto/
+dist/
+__pycache__/
+.pytest_cache/
+.env
+./quarto/**
+/.quarto/**
+**/*.quarto_ipynb
+**/*_files/
+
+/.quarto/
+**/node_modules/

@@ -1,0 +1,20 @@
+---
+title: "Bitcoin laboratory"
+navbar: false
+toc: false
+page-layout: full
+---
+
+[Open student console](./student/) · [Open instructor console](./instructor/)
+
+The consoles combine a browser terminal with the course exercise pager. Choose the terminal primer, private Regtest, shared ClassNet, or one of three forensics labs. The chapter menu, previous/next controls, expected observations, and solutions support each exercise.
+
+The shared example network includes an instructor station, a student station, and three visualization services:
+
+- [Mempool](./mempool/) shows live blocks and transactions.
+- [Bitcoin RPC Explorer](./btc-explorer/) provides block, transaction, and address inspection.
+- [Chain Graph](./graph/) indexes the synthetic forensic evidence for transaction tracing.
+
+The classroom fork uses ten-block coinbase maturity and a two-block difficulty adjustment interval. The private Regtest exercises start a separate daemon; ClassNet exercises use the already-running shared node. The displayed commands and generated evidence catalog provide the addresses and transaction IDs for this deployment.
+
+[Deployment and reset details](../../docs/BITCOIN.md) · [Lab guide](../../lab-guide.qmd#bitcoin)
